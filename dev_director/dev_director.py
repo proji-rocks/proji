@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import sys
-import subprocess
 import os
+import subprocess
+import sys
 
 
 def print_error(*err_msg):
@@ -16,7 +16,7 @@ def print_error(*err_msg):
     print(err_out)
 
 
-def check_args(args):
+def are_args_valid(args):
     ''' Check number of cli arguments. '''
 
     if len(args) != 3:
@@ -24,76 +24,89 @@ def check_args(args):
                     "Syntax: dev_director <projectname> <language>")
         sys.exit(1)
 
-
-def check_dir(folder):
-    ''' Check if a valid dir/project name was provided. '''
-
-    if os.path.exists(folder):
-        print_error("Directory already exists.")
+    if not str(sys.argv[1]).strip():
+        print_error("Error: Projectname needs to be specified.")
         sys.exit(2)
-
-
-def check_lang(lang):
-    ''' Check if the provided language is supported. '''
-
-    langs = ["c", "cpp", "c++", "cc", "python", "py", "web", "php",
-             "js", "javascript", "ts", "typescript", "html", "css"]
-
-    if not lang in langs:
-        print_error("You have to specify a supported language.",
-                    ("Currently supported languages: " + str(langs)))
+    if not str(sys.argv[2]).strip():
+        print_error("Error: Language needs to be specified.")
         sys.exit(3)
 
 
-def create_project_base(project_name):
-    ''' Create the main project directory. '''
+class DevDirector:
 
-    # Create main directory
-    print("Creating project folder...")
-    subprocess.run(["mkdir", "-p", project_name])
+    # Path to the database
+    db = "~/.config/dev_director/db/dd.sqlite"
 
-    # Create ReadMe
-    print("Creating ReadMe...")
-    cmd = 'echo "# ' + project_name + '" > ' + project_name + '/README.md'
-    subprocess.run(cmd, shell=True)
+    def __init__(self, project_name, lang):
+        self.project_name = project_name
+        self.lang = lang
 
+    def run(self):
+        # Check if provided language is supported
+        self.is_lang_supported()
 
-def create_sub_folders(project_name, lang):
-    ''' Create sub folders depending on the specified language. '''
+        # Create the project folder
+        self.create_project_folder()
 
-    lang_folders = {("c", "cpp", "c++", "cc"): ("build/debug/", "build/release/", "doc/", "include/" + project_name + "/", "lib/", "src/", "test/"), ("php", "js", "javascript", "ts", "typescript", "html",
-                                                                                                                                                      "css", "web"): ("public_html/css/", "public_html/img/content/", "public_html/img/layout/", "public_html/js/", "resources/library/", "resources/templates/"), ("python", "py"): ("src/", "docs/", "tests/")}
+        # Create language specific sub folders
+        self.create_sub_folders()
 
-    # Create subfolders
-    print("Creating subfolders...")
+    def does_dir_exist(self):
+        ''' Check if directory already exists. '''
 
-    for langs, folders in lang_folders.items():
-        if lang in langs:
-            for folder in folders:
-                folder = project_name + '/' + folder
-                subprocess.run(["mkdir", "-p", folder])
+        if os.path.exists(self.project_name):
+            print_error("Error: Directory already exists.")
+            sys.exit(2)
+
+    def is_lang_supported(self):
+        ''' Check if the provided language is supported. '''
+
+        langs = []
+
+        if not self.lang in langs:
+            print_error("You have to specify a supported language.",
+                        ("Currently supported languages: " + str(langs)))
+            sys.exit(3)
+
+    def create_project_folder(self):
+        ''' Create the main project directory. '''
+
+        # Create main directory
+        print("Creating project folder...")
+        subprocess.run(["mkdir", "-p", self.project_name])
+
+        # Create ReadMe
+        print("Creating ReadMe...")
+        cmd = 'echo "# ' + self.project_name + '" > ' + self.project_name + '/README.md'
+        subprocess.run(cmd, shell=True)
+
+    def create_sub_folders(self):
+        ''' Create sub folders depending on the specified language. '''
+
+        lang_folders = {}
+
+        # Create subfolders
+        print("Creating subfolders...")
+
+        for langs, folders in lang_folders.items():
+            if self.lang in langs:
+                for folder in folders:
+                    folder = self.project_name + '/' + folder
+                    subprocess.run(["mkdir", "-p", folder])
 
 
 def main():
     ''' Main function. '''
-    args = sys.argv
+    # Check cli args
+    are_args_valid(sys.argv)
+
+    # Define name and language
     project_name = sys.argv[1]
     lang = str(sys.argv[2]).lower()
 
-    # Check cli args
-    check_args(args)
-
-    # Check if directory already exists
-    check_dir(project_name)
-
-    # Check if supported language was provided
-    check_lang(lang)
-
-    # Create the project folder
-    create_project_base(project_name)
-
-    # Create language specific sub folders
-    create_sub_folders(project_name, lang)
+    # Create and run the dev_director
+    dd = DevDirector(project_name, lang)
+    dd.run()
 
 
 if __name__ == '__main__':
