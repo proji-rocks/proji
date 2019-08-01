@@ -1,79 +1,162 @@
-
--- Create tables
- CREATE TABLE
-	IF NOT EXISTS languages(id INTEGER PRIMARY KEY,
-	name VARCHAR(50) NOT NULL,
-	comment VARCHAR(255));
-
-CREATE TABLE
-	IF NOT EXISTS languages_short(id INTEGER PRIMARY KEY,
-	name VARCHAR(50) NOT NULL,
-	language_id INTEGER NOT NULL,
-	comment VARCHAR(255),
-	FOREIGN KEY(language_id) REFERENCES languages(id));
-
-CREATE TABLE
-	IF NOT EXISTS folders(id INTEGER PRIMARY KEY AUTOINCREMENT,
-	name VARCHAR(50) NOT NULL,
-	language_id INTEGER NOT NULL,
-	relative_path VARCHAR(255) NOT NULL,
-	comment VARCHAR(255),
-	FOREIGN KEY(language_id) REFERENCES languages(id));
-
-CREATE TABLE
-	IF NOT EXISTS commands_general(id INTEGER PRIMARY KEY AUTOINCREMENT,
-	name VARCHAR(50) NOT NULL,
-	command VARCHAR(255) NOT NULL,
-	comment VARCHAR(255));
-
-CREATE TABLE
-	IF NOT EXISTS commands_specific(id INTEGER PRIMARY KEY AUTOINCREMENT,
-	name VARCHAR(50) NOT NULL,
-	language_id INTEGER NOT NULL,
-	command VARCHAR(255) NOT NULL,
-	comment VARCHAR(255),
-	FOREIGN KEY(language_id) REFERENCES languages(id));
--- Inserts
- INSERT
-	INTO
-		languages(name)
-	VALUES ('C-Plus-Plus'),
-	('C'),
-	('Python'),
-	('HTML'),
-	('PHP'),
-	('JavaScript');
-
-INSERT
-	INTO
-		languages_short(name,
-		language_id)
-	VALUES('cpp',
-	1),
-	('c++',
-	1),
-	('cc',
-	1),
-	('c',
-	2),
-	('python',
-	3),
-	('py',
-	3),
-	('html',
-	4),
-	('php',
-	5),
-	('javascript',
-	6),
-	('js',
-	6);
-
-INSERT
-	INTO
-		folders(name,
-		language_id,
-		relative_path,
-		comment)
-	VALUES ('build',
-	);
+--
+-- DROP TABLES
+--
+DROP TABLE IF EXISTS languages;
+DROP TABLE IF EXISTS languages_short;
+DROP TABLE IF EXISTS folders;
+DROP TABLE IF EXISTS default_files;
+DROP TABLE IF EXISTS files;
+DROP TABLE IF EXISTS commands_general;
+DROP TABLE IF EXISTS commands_specific;
+--
+-- CREATE TABLES
+--
+CREATE TABLE IF NOT EXISTS languages(
+  id INTEGER PRIMARY KEY,
+  name VARCHAR(50) NOT NULL,
+  comment VARCHAR(255)
+);
+--
+CREATE TABLE IF NOT EXISTS languages_short(
+  id INTEGER PRIMARY KEY,
+  language_id INTEGER NOT NULL,
+  name_short VARCHAR(50) NOT NULL,
+  comment VARCHAR(255),
+  FOREIGN KEY(language_id) REFERENCES languages(id),
+  UNIQUE(name_short)
+);
+--
+CREATE TABLE IF NOT EXISTS folders(
+  id INTEGER PRIMARY KEY,
+  language_id INTEGER NOT NULL,
+  relative_dest_path VARCHAR(255) NOT NULL,
+  comment VARCHAR(255),
+  FOREIGN KEY(language_id) REFERENCES languages(id),
+  UNIQUE(language_id, relative_dest_path)
+);
+--
+CREATE TABLE IF NOT EXISTS default_files(
+  id INTEGER PRIMARY KEY,
+  relative_dest_path VARCHAR(255) NOT NULL,
+  absolute_orig_path VARCHAR(255),
+  comment VARCHAR(255),
+  UNIQUE(relative_dest_path, absolute_orig_path)
+);
+--
+CREATE TABLE IF NOT EXISTS files(
+  id INTEGER PRIMARY KEY,
+  language_id INTEGER NOT NULL,
+  is_template BOOLEAN NOT NULL CHECK (is_template IN (0, 1)),
+  relative_dest_path VARCHAR(255) NOT NULL,
+  absolute_orig_path VARCHAR(255),
+  comment VARCHAR(255),
+  FOREIGN KEY(language_id) REFERENCES languages(id),
+  UNIQUE(
+    language_id,
+    relative_dest_path,
+    absolute_orig_path
+  )
+);
+--
+-- INSERT INTO TABLES
+--
+INSERT INTO
+  languages(name)
+VALUES
+  ("C-Plus-Plus"),
+  ("C"),
+  ("Python"),
+  ("Web");
+--
+INSERT INTO
+  languages_short(language_id, name_short)
+VALUES
+  (1, "cpp"),
+  (1, "c++"),
+  (1, "cc"),
+  (2, "c"),
+  (3, "python"),
+  (3, "py"),
+  (4, "html"),
+  (4, "php"),
+  (4, "javascript"),
+  (4, "js");
+--
+INSERT INTO
+  folders(language_id, relative_dest_path)
+VALUES
+  (1, "./build/debug/"),
+  (1, "./build/release/"),
+  (1, "./doc/"),
+  (1, "./include/"),
+  (1, "./lib/"),
+  (1, "./src/"),
+  (1, "./test/"),
+  (2, "./build/debug/"),
+  (2, "./build/release/"),
+  (2, "./doc/"),
+  (2, "./include/"),
+  (2, "./lib/"),
+  (2, "./src/"),
+  (2, "./test/"),
+  (3, "./src/"),
+  (3, "./doc/"),
+  (3, "./test/"),
+  (4, "./public_html/css/"),
+  (4, "./public_html/img/"),
+  (4, "./public_html/js/"),
+  (4, "./public_html/fonts/"),
+  (4, "./public_html/include/"),
+  (4, "./resources/library"),
+  (4, "./resources/templates/");
+--
+INSERT INTO
+  default_files(relative_dest_path, absolute_orig_path)
+VALUES
+  (
+    "./.gitignore",
+    "~/.config/dev_director/templates/gitignore"
+  ),
+  (
+    "./README.md",
+    "~/.config/dev_director/templates/README.md"
+  );
+--
+INSERT INTO
+  files(
+    language_id,
+    is_template,
+    relative_dest_path,
+    absolute_orig_path
+  )
+VALUES
+  (
+    1,
+    1,
+    "./src/main.cpp",
+    "~/.config/dev_director/templates/main.cpp"
+  ),
+  (
+    1,
+    1,
+    "./CMakeLists.txt",
+    "~/.config/dev_director/templates/CMakeLists-cpp.txt"
+  ),
+  (
+    2,
+    1,
+    "./src/main.c",
+    "~/.config/dev_director/templates/main.c"
+  ),
+  (
+    2,
+    1,
+    "./CMakeLists.txt",
+    "~/.config/dev_director/templates/CMakeLists-c.txt"
+  ),
+  (3, 0, "./src/__main__.py", NULL),
+  (3, 0, "./src/__init__.py", NULL),
+  (4, 0, "./public_html/index.html", NULL),
+  (4, 0, "./public_html/css/main.css", NULL),
+  (4, 0, "./public_html/css/util.css", NULL),
+  (4, 0, "./public_html/js/main.js", NULL);
