@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!.env/bin/python3
 
 import os
 import sqlite3
