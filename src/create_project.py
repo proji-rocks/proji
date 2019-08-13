@@ -51,7 +51,7 @@ class CreateProject:
         self.__does_dir_exist()
 
         # Connect to database
-        with sqlite3.connect(cj.db) as self.conn:
+        with sqlite3.connect(cp.sqlite) as self.conn:
             if not self.conn:
                 print_error("Could not connect to database.")
                 sys.exit(1)
@@ -145,8 +145,8 @@ def main():
     project_name = sys.argv[1]
     lang = str(sys.argv[2]).lower()
 
-    dd = CreateProject(project_name, lang)
-    dd.run()
+    cp = CreateProject(project_name, lang)
+    cp.run()
 
 
 if __name__ == '__main__':
