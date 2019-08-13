@@ -7,29 +7,37 @@ import sys
 
 class Helper:
     @staticmethod
-    def print_error(*err_msg):
+    def format_err_msg(*err_msg):
         ''' Print an error. '''
+
+        if not err_msg:
+            raise ValueError("You have to specify an error message.")
+
+        if not all(isinstance(i, str) for i in err_msg):
+            raise TypeError("The error message must be a string.")
 
         err_out = "Error: "
 
         for err in err_msg:
             err_out += (err + '\n')
 
-        print(err_out)
+        return err_out
 
     @staticmethod
     def are_args_valid(args):
         ''' Check number of cli arguments. '''
 
         if len(args) != 3:
-            Helper.print_error(
+            print(Helper.format_err_msg(
                 "Missing arguments.",
-                "Syntax: create_project <projectname> <language>")
+                "Syntax: create_project <projectname> <language>"))
             sys.exit(1)
 
         if not str(sys.argv[1]).strip():
-            Helper.print_error("Error: Projectname needs to be specified.")
+            print(Helper.format_err_msg(
+                "Error: Projectname needs to be specified."))
             sys.exit(2)
         if not str(sys.argv[2]).strip():
-            Helper.print_error("Error: Language needs to be specified.")
+            print(Helper.format_err_msg(
+                "Error: Language needs to be specified."))
             sys.exit(3)
