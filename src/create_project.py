@@ -28,7 +28,9 @@ class CreateProject:
         # Connect to database
         with sqlite3.connect(CreateProject.db) as self.conn:
             if not self.conn:
-                Helper.print_error("Could not connect to database.")
+                err_msg = Helper.format_err_msg(
+                    "Could not connect to database.")
+                print(err_msg)
                 sys.exit(1)
 
             # Create cursor
@@ -53,7 +55,8 @@ class CreateProject:
         ''' Check if directory already exists. '''
 
         if os.path.exists(self.project_name):
-            Helper.print_error("Directory already exists.")
+            err_msg = Helper.format_err_msg("Directory already exists.")
+            print(err_msg)
             sys.exit(2)
 
     def __is_lang_supported(self):
@@ -73,8 +76,10 @@ class CreateProject:
         langs = self.cur.execute(
             'SELECT name_short FROM languages_short').fetchall()
 
-        Helper.print_error("You have to specify a supported language.",
-                           ("Currently supported languages: " + str(langs)))
+        err_msg = Helper.format_err_msg(
+            "You have to specify a supported language.",
+            ("Currently supported languages: " + str(langs)))
+        print(err_msg)
         sys.exit(3)
 
     def __create_project_folder(self):
