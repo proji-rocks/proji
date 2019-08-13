@@ -35,7 +35,7 @@ class CreateProject:
                 err_msg = Helper.format_err_msg(
                     "Could not connect to database.")
                 print(err_msg)
-                sys.exit(1)
+                sys.exit()
 
             # Create cursor
             self.__cur = self.conn.cursor()
@@ -69,7 +69,7 @@ class CreateProject:
         if os.path.exists(self.__project_name):
             err_msg = Helper.format_err_msg("Directory already exists.")
             print(err_msg)
-            sys.exit(2)
+            sys.exit()
 
     def __is_lang_supported(self):
         ''' Check if the provided language is supported. '''
@@ -92,14 +92,19 @@ class CreateProject:
             "You have to specify a supported language.",
             ("Currently supported languages: " + str(langs)))
         print(err_msg)
-        sys.exit(3)
+        sys.exit()
 
     def __create_project_folder(self):
         ''' Create the main project directory. '''
 
         # Create main directory
         print("Creating project folder...")
-        subprocess.run(["mkdir", "-p", self.__project_name])
+        try:
+            subprocess.run(["mkdir", "-p", self.__project_name], timeout=10.0)
+        except (subprocess.CalledProcessError, TimeoutError) as err:
+            Helper.format_err_msg("Couldn't create project folder.", err)
+            sys.exit()
+        return 0
 
     def __create_sub_folders(self):
         ''' Create sub folders depending on the specified language. '''
