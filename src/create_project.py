@@ -37,7 +37,7 @@ class CreateProject:
 
     # Path to the database
     conf_dir = "/home/niko/.config/create_project/"
-    db = conf_dir + "db/dd.sqlite"
+    db = conf_dir + "db/cp.sqlite"
 
     def __init__(self, project_name, lang):
         self.project_name = project_name
@@ -51,7 +51,7 @@ class CreateProject:
         self.__does_dir_exist()
 
         # Connect to database
-        with sqlite3.connect(cp.sqlite) as self.conn:
+        with sqlite3.connect(CreateProject.db) as self.conn:
             if not self.conn:
                 print_error("Could not connect to database.")
                 sys.exit(1)
@@ -84,7 +84,13 @@ class CreateProject:
     def __is_lang_supported(self):
         ''' Check if the provided language is supported. '''
 
-        for lang_short in self.cur.execute('SELECT language_id, name_short FROM languages_short'):
+        for lang_short in self.cur.execute('''
+                                            SELECT
+                                                language_id,
+                                                name_short
+                                            FROM
+                                                languages_short
+                                            '''):
             if lang_short[1] == self.lang:
                 self.lang_id = lang_short[0]
                 return
@@ -110,7 +116,16 @@ class CreateProject:
         print("Creating subfolders...")
 
         for sub_folder in self.cur.execute(
-                'SELECT relative_dest_path FROM folders WHERE language_id=?', (self.lang_id,)):
+            '''
+            SELECT
+                relative_dest_path
+            FROM
+                folders
+            WHERE
+                language_id=?
+            ''',
+                (self.lang_id,)):
+
             sub_folder = "./" + self.project_name + "/" + sub_folder[0]
             subprocess.run(["mkdir", "-p", sub_folder])
 
@@ -120,7 +135,17 @@ class CreateProject:
         print("Creating files...")
 
         for file in self.cur.execute(
-                'SELECT relative_dest_path FROM files WHERE language_id=? and is_template=?', (self.lang_id, 0,)):
+            '''
+            SELECT
+                relative_dest_path
+            FROM
+                files
+            WHERE
+                language_id=? and
+                is_template=?
+            ''',
+                (self.lang_id, 0,)):
+
             file = "./" + self.project_name + "/" + file[0]
             subprocess.run(["touch", file])
 
@@ -130,7 +155,17 @@ class CreateProject:
         print("Copying templates...")
 
         for template in self.cur.execute(
-                'SELECT relative_dest_path, absolute_orig_path FROM files WHERE language_id=? and is_template=?', (self.lang_id, 1,)):
+            '''
+            SELECT
+                relative_dest_path,
+                absolute_orig_path
+            FROM
+                files
+            WHERE
+                language_id=? and
+                is_template=?''',
+                (self.lang_id, 1,)):
+
             dest = self.project_name + "/" + template[0]
             template = CreateProject.conf_dir + template[1]
             subprocess.run(["cp", template, dest])
