@@ -3,13 +3,13 @@
 import sys
 
 from create_project import CreateProject
-from helper import are_args_valid
+from helper import Helper
 
 
 def main():
     ''' Main function. '''
     # Check cli args
-    are_args_valid(sys.argv)
+    Helper.are_args_valid(sys.argv)
 
     # Define name and language
     project_name = sys.argv[1]
