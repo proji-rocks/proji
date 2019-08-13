@@ -22,7 +22,7 @@ def are_args_valid(args):
 
     if len(args) != 3:
         print_error("Missing arguments.",
-                    "Syntax: dev_director <projectname> <language>")
+                    "Syntax: create_project <projectname> <language>")
         sys.exit(1)
 
     if not str(sys.argv[1]).strip():
@@ -33,10 +33,10 @@ def are_args_valid(args):
         sys.exit(3)
 
 
-class DevDirector:
+class CreateProject:
 
     # Path to the database
-    conf_dir = "/home/niko/.config/dev_director/"
+    conf_dir = "/home/niko/.config/create_project/"
     db = conf_dir + "db/dd.sqlite"
 
     def __init__(self, project_name, lang):
@@ -51,7 +51,7 @@ class DevDirector:
         self.__does_dir_exist()
 
         # Connect to database
-        with sqlite3.connect(DevDirector.db) as self.conn:
+        with sqlite3.connect(cj.db) as self.conn:
             if not self.conn:
                 print_error("Could not connect to database.")
                 sys.exit(1)
@@ -132,7 +132,7 @@ class DevDirector:
         for template in self.cur.execute(
                 'SELECT relative_dest_path, absolute_orig_path FROM files WHERE language_id=? and is_template=?', (self.lang_id, 1,)):
             dest = self.project_name + "/" + template[0]
-            template = DevDirector.conf_dir + template[1]
+            template = CreateProject.conf_dir + template[1]
             subprocess.run(["cp", template, dest])
 
 
@@ -145,8 +145,7 @@ def main():
     project_name = sys.argv[1]
     lang = str(sys.argv[2]).lower()
 
-    # Create and run the dev_director
-    dd = DevDirector(project_name, lang)
+    dd = CreateProject(project_name, lang)
     dd.run()
 
 
