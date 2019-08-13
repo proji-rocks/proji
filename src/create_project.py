@@ -55,6 +55,14 @@ class CreateProject:
             # Copy template files
             self.__copy_templates()
 
+    def get_project_name(self):
+        ''' Get the project name. '''
+        return self.__project_name
+
+    def get_language(self):
+        ''' Get the language. '''
+        return self.__lang
+
     def __does_dir_exist(self):
         ''' Check if directory already exists. '''
 
