@@ -2,6 +2,8 @@
 
 '''A file with helper functions.'''
 
+import sys
+
 
 def print_error(*err_msg):
     ''' Print an error. '''
