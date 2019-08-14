@@ -11,8 +11,8 @@ from .helper import Helper
 class CreateProject:
 
     # Path to the database
-    __conf_dir = "/home/niko/.config/create_project/"
-    __db = __conf_dir + "db/cp.sqlite"
+    _conf_dir = "/home/niko/.config/create_project/"
+    _db = _conf_dir + "db/cp.sqlite"
 
     def __init__(self, project_name, lang):
         if type(project_name) != str:
@@ -31,7 +31,7 @@ class CreateProject:
             return 1
 
         # Connect to database
-        with sqlite3.connect(CreateProject.__db) as self.conn:
+        with sqlite3.connect(CreateProject._db) as self.conn:
             if not self.conn:
                 err_msg = Helper.format_err_msg(
                     "Could not connect to database.")
@@ -72,6 +72,14 @@ class CreateProject:
     def get_language(self):
         ''' Get the language. '''
         return self._lang
+
+    @staticmethod
+    def get_db_path():
+        return CreateProject._db
+
+    @staticmethod
+    def get_config_dir_path():
+        return CreateProject._conf_dir
 
     def _does_dir_exist(self):
         ''' Check if directory already exists. '''
@@ -188,7 +196,7 @@ class CreateProject:
                     (self._lang_id, 1,)):
 
                 dest = self._project_name + "/" + template[0]
-                template = CreateProject.__conf_dir + template[1]
+                template = CreateProject._conf_dir + template[1]
                 subprocess.run(["cp", template, dest])
         except (subprocess.CalledProcessError, TimeoutError) as err:
             Helper.format_err_msg("Couldn't copy template.", err)
