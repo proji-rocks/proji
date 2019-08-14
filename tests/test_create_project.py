@@ -118,15 +118,47 @@ def test_lang_supported(valid_cps, invalid_cps):
 
 
 def test_create_project_folder():
-    cp_valid1 = CreateProject("/tmp/blabla", "py")
-    cp_valid2 = CreateProject("/tmp/create_me_hard", "js")
+    cp_valid1 = CreateProject("/tmp/create_project/blabla", "py")
+    cp_valid2 = CreateProject("/tmp/create_project/create_me_hard", "js")
 
     assert cp_valid1._create_project_folder()
     assert cp_valid2._create_project_folder()
 
     cp_invalid1 = CreateProject("/test_project_123", "py")
-    cp_invalid2 = CreateProject("/tmp/blabla", "js")
+    cp_invalid2 = CreateProject("/tmp/create_project/blabla", "js")
 
     with pytest.raises(AssertionError):
         assert not cp_invalid2._create_project_folder()
         assert not cp_invalid1._create_project_folder()
+
+
+def test_create_sub_folder(valid_db_conn):
+    # Valid
+    cp_valid1 = CreateProject("/tmp/create_project/subs1", "py")
+    cp_valid2 = CreateProject("/tmp/tmp_projects/subs2/new_proj", "js")
+
+    cp_valid1._conn = valid_db_conn
+    cp_valid2._conn = valid_db_conn
+    cp_valid1._cur = cp_valid1._conn.cursor()
+    cp_valid2._cur = cp_valid2._conn.cursor()
+
+    assert cp_valid1._create_project_folder()
+    assert cp_valid2._create_project_folder()
+
+    assert cp_valid1._create_sub_folders()
+    assert cp_valid2._create_sub_folders()
+
+    # Invalid
+    cp_invalid1 = CreateProject("/test_project_123", "py")
+    cp_invalid2 = CreateProject("/tmp/create_project/subs1", "js")
+
+    cp_invalid1._conn = valid_db_conn
+    cp_invalid2._conn = valid_db_conn
+    cp_invalid1._cur = cp_invalid1._conn.cursor()
+    cp_invalid2._cur = cp_invalid2._conn.cursor()
+
+    with pytest.raises(AssertionError):
+        assert not cp_invalid2._create_project_folder()
+        assert not cp_invalid1._create_project_folder()
+        assert not cp_invalid1._create_sub_folders()
+        assert not cp_invalid2._create_sub_folders()
