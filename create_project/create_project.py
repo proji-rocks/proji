@@ -5,7 +5,7 @@ import sqlite3
 import subprocess
 import sys
 
-from helper import Helper
+from .helper import Helper
 
 
 class CreateProject:

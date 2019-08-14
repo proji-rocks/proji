@@ -2,8 +2,8 @@
 
 import sys
 
-from create_project import CreateProject
-from helper import Helper
+from .create_project import CreateProject
+from .helper import Helper
 
 
 def main():
