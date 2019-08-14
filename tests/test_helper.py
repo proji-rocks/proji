@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.helper import Helper
+from create_project.helper import Helper
 
 
 def test_format_err_msg_output():
