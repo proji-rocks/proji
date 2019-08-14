@@ -115,3 +115,18 @@ def test_lang_supported(valid_cps, invalid_cps):
     assert not invalid_cps[0]._is_lang_supported()
     assert not invalid_cps[1]._is_lang_supported()
     assert not invalid_cps[2]._is_lang_supported()
+
+
+def test_create_project_folder():
+    cp_valid1 = CreateProject("/tmp/blabla", "py")
+    cp_valid2 = CreateProject("/tmp/create_me_hard", "js")
+
+    assert cp_valid1._create_project_folder()
+    assert cp_valid2._create_project_folder()
+
+    cp_invalid1 = CreateProject("/test_project_123", "py")
+    cp_invalid2 = CreateProject("/tmp/blabla", "js")
+
+    with pytest.raises(AssertionError):
+        assert not cp_invalid2._create_project_folder()
+        assert not cp_invalid1._create_project_folder()
