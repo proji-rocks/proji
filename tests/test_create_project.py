@@ -34,10 +34,13 @@ def valid_cps(valid_db_conn):
     # List of instances
     cps = []
 
+    # CWD
+    cwd = "/tmp/create_project/valid/"
+
     # Valid
-    cps.append(CreateProject("TestProject1", "cpp"))
-    cps.append(CreateProject("TestProject2", "py"))
-    cps.append(CreateProject("TestProject3", "js"))
+    cps.append(CreateProject(f"{cwd}Project1", "cpp"))
+    cps.append(CreateProject(f"{cwd}Project2", "py"))
+    cps.append(CreateProject(f"{cwd}Project3", "js"))
 
     # Add connection to cp instances
     for cp in cps:
@@ -48,7 +51,31 @@ def valid_cps(valid_db_conn):
 
 
 @pytest.fixture
-def invalid_cps(valid_db_conn):
+def invalid_cp_languages(valid_db_conn):
+    # Db Connection
+    conn = valid_db_conn
+
+    # List of instances
+    cps = []
+
+    # CWD
+    cwd = "/tmp/create_project/invalid/"
+
+    # Invalid
+    cps.append(CreateProject(f"{cwd}Project1", "x"))
+    cps.append(CreateProject(f"{cwd}Project2", "fk"))
+    cps.append(CreateProject(f"{cwd}Project3", ""))
+
+    # Add connection to cp instances
+    for cp in cps:
+        cp._conn = conn
+        cp._cur = cp._conn.cursor()
+
+    return cps
+
+
+@pytest.fixture
+def invalid_cp_folders(valid_db_conn, valid_cps):
     # Db Connection
     conn = valid_db_conn
 
@@ -56,9 +83,8 @@ def invalid_cps(valid_db_conn):
     cps = []
 
     # Invalid
-    cps.append(CreateProject("TestProject4", "x"))
-    cps.append(CreateProject("TestProject5", "fk"))
-    cps.append(CreateProject("TestProject6", ""))
+    cps.append(CreateProject("/test_project123", "py"))
+    cps.append(CreateProject("", "cpp"))
 
     # Add connection to cp instances
     for cp in cps:
@@ -91,6 +117,10 @@ def test_init_types():
         CreateProject(True, "Test")
 
 
+def test_db_conn(valid_db_conn):
+    assert valid_db_conn
+
+
 def test_does_dir_exist():
     cp_valid1 = CreateProject("new_project", "py")
     cp_valid2 = CreateProject("i_dont_exist", "js")
@@ -98,67 +128,42 @@ def test_does_dir_exist():
     assert not cp_valid1._does_dir_exist()
     assert not cp_valid2._does_dir_exist()
 
-    cp_invalid1 = CreateProject("/home", "py")
+    cp_invalid1 = CreateProject("/bin", "py")
     cp_invalid2 = CreateProject("/tmp", "js")
 
     assert cp_invalid1._does_dir_exist()
     assert cp_invalid2._does_dir_exist()
 
 
-def test_lang_supported(valid_cps, invalid_cps):
+def test_lang_supported(valid_cps, invalid_cp_languages):
     # Supported languages
-    assert valid_cps[0]._is_lang_supported()
-    assert valid_cps[1]._is_lang_supported()
-    assert valid_cps[2]._is_lang_supported()
+    for valid_cp in valid_cps:
+        assert valid_cp._is_lang_supported()
 
     # Not supported languages
-    assert not invalid_cps[0]._is_lang_supported()
-    assert not invalid_cps[1]._is_lang_supported()
-    assert not invalid_cps[2]._is_lang_supported()
+    for invalid_cp in invalid_cp_languages:
+        assert not invalid_cp._is_lang_supported()
 
 
-def test_create_project_folder():
-    cp_valid1 = CreateProject("/tmp/create_project/blabla", "py")
-    cp_valid2 = CreateProject("/tmp/create_project/create_me_hard", "js")
+def test_create_project_folder(valid_cps, invalid_cp_folders):
 
-    assert cp_valid1._create_project_folder()
-    assert cp_valid2._create_project_folder()
+    for valid_cp in valid_cps:
+        assert valid_cp._create_project_folder()
 
-    cp_invalid1 = CreateProject("/test_project_123", "py")
-    cp_invalid2 = CreateProject("/tmp/create_project/blabla", "js")
-
-    with pytest.raises(AssertionError):
-        assert not cp_invalid2._create_project_folder()
-        assert not cp_invalid1._create_project_folder()
+    for invalid_cp in invalid_cp_folders:
+        assert not invalid_cp._create_project_folder()
 
 
-def test_create_sub_folder(valid_db_conn):
-    # Valid
-    cp_valid1 = CreateProject("/tmp/create_project/subs1", "py")
-    cp_valid2 = CreateProject("/tmp/tmp_projects/subs2/new_proj", "js")
+def test_create_sub_folder(valid_cps):
+    for valid_cp in valid_cps:
+        assert valid_cp._create_sub_folders()
 
-    cp_valid1._conn = valid_db_conn
-    cp_valid2._conn = valid_db_conn
-    cp_valid1._cur = cp_valid1._conn.cursor()
-    cp_valid2._cur = cp_valid2._conn.cursor()
 
-    assert cp_valid1._create_project_folder()
-    assert cp_valid2._create_project_folder()
+def test_create_files(valid_cps):
+    for valid_cp in valid_cps:
+        assert valid_cp._create_files()
 
-    assert cp_valid1._create_sub_folders()
-    assert cp_valid2._create_sub_folders()
 
-    # Invalid
-    cp_invalid1 = CreateProject("/test_project_123", "py")
-    cp_invalid2 = CreateProject("/tmp/create_project/subs1", "js")
-
-    cp_invalid1._conn = valid_db_conn
-    cp_invalid2._conn = valid_db_conn
-    cp_invalid1._cur = cp_invalid1._conn.cursor()
-    cp_invalid2._cur = cp_invalid2._conn.cursor()
-
-    with pytest.raises(AssertionError):
-        assert not cp_invalid2._create_project_folder()
-        assert not cp_invalid1._create_project_folder()
-        assert not cp_invalid1._create_sub_folders()
-        assert not cp_invalid2._create_sub_folders()
+def test_copy_templates(valid_cps):
+    for valid_cp in valid_cps:
+        assert valid_cp._copy_templates()
