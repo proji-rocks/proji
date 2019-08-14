@@ -121,9 +121,10 @@ class CreateProject:
         # Create main directory
         print("Creating project folder...")
         try:
-            subprocess.run(["mkdir", "-p", self._project_name], timeout=10.0)
+            subprocess.run(["mkdir", "-p", self._project_name],
+                           timeout=10.0, check=True)
         except (subprocess.CalledProcessError, TimeoutError) as err:
-            Helper.format_err_msg("Couldn't create project folder.", err)
+            print(err)
             return False
         return True
 
@@ -145,10 +146,14 @@ class CreateProject:
                 ''',
                     (self._lang_id,)):
 
-                sub_folder = "./" + self._project_name + "/" + sub_folder[0]
-                subprocess.run(["mkdir", "-p", sub_folder], timeout=10.0)
+                sub_folder = self._project_name + "/" + sub_folder[0]
+                subprocess.run(["mkdir",
+                                "-p",
+                                sub_folder],
+                               timeout=10.0,
+                               check=True)
         except (subprocess.CalledProcessError, TimeoutError) as err:
-            Helper.format_err_msg("Couldn't create sub folders.", err)
+            print(err)
             return False
         return True
 
@@ -170,10 +175,10 @@ class CreateProject:
                 ''',
                     (self._lang_id, 0,)):
 
-                file = "./" + self._project_name + "/" + file[0]
-                subprocess.run(["touch", file], timeout=10.0)
+                file = self._project_name + "/" + file[0]
+                subprocess.run(["touch", file], timeout=10.0, check=True)
         except (subprocess.CalledProcessError, TimeoutError) as err:
-            Helper.format_err_msg("Couldn't create file.", err)
+            print(err)
             return False
         return True
 
@@ -197,8 +202,9 @@ class CreateProject:
 
                 dest = self._project_name + "/" + template[0]
                 template = CreateProject._conf_dir + template[1]
-                subprocess.run(["cp", template, dest])
+                subprocess.run(["cp", template, dest],
+                               timeout=30.0, check=True)
         except (subprocess.CalledProcessError, TimeoutError) as err:
-            Helper.format_err_msg("Couldn't copy template.", err)
+            print(err)
             return False
         return True
