@@ -90,7 +90,19 @@ def test_init_types():
         CreateProject("Test", True)
         CreateProject(True, "Test")
 
-def
+
+def test_does_dir_exist():
+    cp_valid1 = CreateProject("new_project", "py")
+    cp_valid2 = CreateProject("i_dont_exist", "js")
+
+    assert not cp_valid1._does_dir_exist()
+    assert not cp_valid2._does_dir_exist()
+
+    cp_invalid1 = CreateProject("/home", "py")
+    cp_invalid2 = CreateProject("/tmp", "js")
+
+    assert cp_invalid1._does_dir_exist()
+    assert cp_invalid2._does_dir_exist()
 
 
 def test_lang_supported(valid_cps, invalid_cps):
