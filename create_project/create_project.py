@@ -102,7 +102,7 @@ class CreateProject:
                                             '''):
             if lang_short[1] == self._lang:
                 # Found language
-                self.lang_id = lang_short[0]
+                self._lang_id = lang_short[0]
                 return True
 
         # Language not supported
@@ -143,7 +143,7 @@ class CreateProject:
                 WHERE
                     language_id=?
                 ''',
-                    (self.lang_id,)):
+                    (self._lang_id,)):
 
                 sub_folder = "./" + self._project_name + "/" + sub_folder[0]
                 subprocess.run(["mkdir", "-p", sub_folder], timeout=10.0)
@@ -168,7 +168,7 @@ class CreateProject:
                     language_id=? and
                     is_template=?
                 ''',
-                    (self.lang_id, 0,)):
+                    (self._lang_id, 0,)):
 
                 file = "./" + self._project_name + "/" + file[0]
                 subprocess.run(["touch", file], timeout=10.0)
