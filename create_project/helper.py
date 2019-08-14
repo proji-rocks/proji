@@ -31,13 +31,15 @@ class Helper:
             print(Helper.format_err_msg(
                 "Missing arguments.",
                 "Syntax: create_project <projectname> <language>"))
-            sys.exit(1)
+            return False
 
         if not str(sys.argv[1]).strip():
             print(Helper.format_err_msg(
                 "Error: Projectname needs to be specified."))
-            sys.exit(2)
+            return False
+
         if not str(sys.argv[2]).strip():
             print(Helper.format_err_msg(
                 "Error: Language needs to be specified."))
-            sys.exit(3)
+            return False
+        return True

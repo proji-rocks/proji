@@ -5,7 +5,7 @@ import sqlite3
 import subprocess
 import sys
 
-from src.helper import Helper
+from helper import Helper
 
 
 class CreateProject:
@@ -27,7 +27,8 @@ class CreateProject:
 
     def run(self):
         # Check if directory already exists
-        self.__does_dir_exist()
+        if self.__does_dir_exist():
+            return 1
 
         # Connect to database
         with sqlite3.connect(CreateProject.__db) as self.conn:
@@ -35,25 +36,34 @@ class CreateProject:
                 err_msg = Helper.format_err_msg(
                     "Could not connect to database.")
                 print(err_msg)
-                sys.exit()
+                return 2
 
             # Create cursor
             self.__cur = self.conn.cursor()
 
+            if not self.__cur:
+                return 3
+
             # Check if provided language is supported
-            self.__is_lang_supported()
+            if not self.__is_lang_supported():
+                return 4
 
             # Create the project folder
-            self.__create_project_folder()
+            if not self.__create_project_folder():
+                return 5
 
             # Create language specific sub folders
-            self.__create_sub_folders()
+            if not self.__create_sub_folders():
+                return 6
 
             # Create language specific files
-            self.__create_files()
+            if not self.__create_files():
+                return 7
 
             # Copy template files
-            self.__copy_templates()
+            if not self.__copy_templates():
+                return 8
+        return 0
 
     def get_project_name(self):
         ''' Get the project name. '''
@@ -69,7 +79,8 @@ class CreateProject:
         if os.path.exists(self.__project_name):
             err_msg = Helper.format_err_msg("Directory already exists.")
             print(err_msg)
-            sys.exit()
+            return True
+        return False
 
     def __is_lang_supported(self):
         ''' Check if the provided language is supported. '''
@@ -82,9 +93,11 @@ class CreateProject:
                                                 languages_short
                                             '''):
             if lang_short[1] == self.__lang:
+                # Found language
                 self.lang_id = lang_short[0]
-                return
+                return True
 
+        # Language not supported
         langs = self.__cur.execute(
             'SELECT name_short FROM languages_short').fetchall()
 
@@ -92,7 +105,7 @@ class CreateProject:
             "You have to specify a supported language.",
             ("Currently supported languages: " + str(langs)))
         print(err_msg)
-        sys.exit()
+        return False
 
     def __create_project_folder(self):
         ''' Create the main project directory. '''
@@ -103,8 +116,8 @@ class CreateProject:
             subprocess.run(["mkdir", "-p", self.__project_name], timeout=10.0)
         except (subprocess.CalledProcessError, TimeoutError) as err:
             Helper.format_err_msg("Couldn't create project folder.", err)
-            sys.exit()
-        return 0
+            return False
+        return True
 
     def __create_sub_folders(self):
         ''' Create sub folders depending on the specified language. '''
@@ -112,57 +125,72 @@ class CreateProject:
         # Create subfolders
         print("Creating subfolders...")
 
-        for sub_folder in self.__cur.execute(
-            '''
-            SELECT
-                relative_dest_path
-            FROM
-                folders
-            WHERE
-                language_id=?
-            ''',
-                (self.lang_id,)):
+        try:
+            for sub_folder in self.__cur.execute(
+                '''
+                SELECT
+                    relative_dest_path
+                FROM
+                    folders
+                WHERE
+                    language_id=?
+                ''',
+                    (self.lang_id,)):
 
-            sub_folder = "./" + self.__project_name + "/" + sub_folder[0]
-            subprocess.run(["mkdir", "-p", sub_folder])
+                sub_folder = "./" + self.__project_name + "/" + sub_folder[0]
+                subprocess.run(["mkdir", "-p", sub_folder], timeout=10.0)
+        except (subprocess.CalledProcessError, TimeoutError) as err:
+            Helper.format_err_msg("Couldn't create sub folders.", err)
+            return False
+        return True
 
     def __create_files(self):
         ''' Create language specific files. '''
         # Create files
         print("Creating files...")
 
-        for file in self.__cur.execute(
-            '''
-            SELECT
-                relative_dest_path
-            FROM
-                files
-            WHERE
-                language_id=? and
-                is_template=?
-            ''',
-                (self.lang_id, 0,)):
+        try:
+            for file in self.__cur.execute(
+                '''
+                SELECT
+                    relative_dest_path
+                FROM
+                    files
+                WHERE
+                    language_id=? and
+                    is_template=?
+                ''',
+                    (self.lang_id, 0,)):
 
-            file = "./" + self.__project_name + "/" + file[0]
-            subprocess.run(["touch", file])
+                file = "./" + self.__project_name + "/" + file[0]
+                subprocess.run(["touch", file], timeout=10.0)
+        except (subprocess.CalledProcessError, TimeoutError) as err:
+            Helper.format_err_msg("Couldn't create file.", err)
+            return False
+        return True
 
     def __copy_templates(self):
         ''' Create language specific files. '''
         # Create files
         print("Copying templates...")
 
-        for template in self.__cur.execute(
-            '''
-            SELECT
-                relative_dest_path,
-                absolute_orig_path
-            FROM
-                files
-            WHERE
-                language_id=? and
-                is_template=?''',
-                (self.lang_id, 1,)):
+        try:
+            for template in self.__cur.execute(
+                '''
+                SELECT
+                    relative_dest_path,
+                    absolute_orig_path
+                FROM
+                    files
+                WHERE
+                    language_id=? and
+                    is_template=?''',
+                    (self.lang_id, 1,)):
 
-            dest = self.__project_name + "/" + template[0]
-            template = CreateProject.__conf_dir + template[1]
-            subprocess.run(["cp", template, dest])
+                dest = self.__project_name + "/" + template[0]
+                template = CreateProject.__conf_dir + template[1]
+                subprocess.run(["cp", template, dest])
+        except (subprocess.CalledProcessError, TimeoutError) as err:
+            Helper.format_err_msg("Couldn't copy template.", err)
+            return False
+        return True
