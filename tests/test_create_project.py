@@ -17,7 +17,7 @@ FIXTURES
 @pytest.fixture
 def valid_db_conn():
     # Db Connection
-    return sqlite3.connect(CreateProject.get_db_path())
+    return sqlite3.connect(CreateProject.db)
 
 
 @pytest.fixture
@@ -105,8 +105,8 @@ def test_init():
     name = "name"
     lang = "lang"
     cp = CreateProject(name, lang)
-    assert cp.get_project_name() == name
-    assert cp.get_language() == lang
+    assert cp.project_name == name
+    assert cp.lang == lang
 
 
 def test_init_types():

@@ -11,19 +11,19 @@ from .helper import Helper
 class CreateProject:
 
     # Path to the database
-    _conf_dir = "/home/niko/.config/create_project/"
-    _db = _conf_dir + "db/cp.sqlite"
+    conf_dir = "/home/niko/.config/create_project/"
+    db = conf_dir + "db/cp.sqlite"
 
     def __init__(self, lang, project_name):
         if type(lang) != str:
             raise TypeError("Language name must be a string.")
         if type(project_name) != str:
             raise TypeError("Project name must be a string.")
-        self._lang = lang
-        self._project_name = project_name
-        self._lang_id = 0
-        self._conn = None
-        self._cur = None
+        self.lang = lang
+        self.project_name = project_name
+        self.lang_id = 0
+        self.conn = None
+        self.cur = None
 
     def run(self):
         # Check if directory already exists
@@ -31,7 +31,7 @@ class CreateProject:
             return 1
 
         # Connect to database
-        with sqlite3.connect(CreateProject._db) as self.conn:
+        with sqlite3.connect(CreateProject.db) as self.conn:
             if not self.conn:
                 err_msg = Helper.format_err_msg("Could not connect to database.")
                 print(err_msg)
@@ -64,26 +64,10 @@ class CreateProject:
                 return 8
         return 0
 
-    def get_project_name(self):
-        """ Get the project name. """
-        return self._project_name
-
-    def get_language(self):
-        """ Get the language. """
-        return self._lang
-
-    @staticmethod
-    def get_db_path():
-        return CreateProject._db
-
-    @staticmethod
-    def get_config_dir_path():
-        return CreateProject._conf_dir
-
     def _does_dir_exist(self):
         """ Check if directory already exists. """
 
-        if os.path.exists(self._project_name):
+        if os.path.exists(self.project_name):
             err_msg = Helper.format_err_msg("Directory already exists.")
             print(err_msg)
             return True
@@ -92,7 +76,7 @@ class CreateProject:
     def _is_lang_supported(self):
         """ Check if the provided language is supported. """
 
-        for lang_short in self._cur.execute(
+        for lang_short in self.cur.execute(
             """
             SELECT
                 language_id,
@@ -101,9 +85,9 @@ class CreateProject:
                 languages_short
             """
         ):
-            if lang_short[1] == self._lang:
+            if lang_short[1] == self.lang:
                 # Found language
-                self._lang_id = lang_short[0]
+                self.lang_id = lang_short[0]
                 return True
 
         # Language not supported
@@ -122,9 +106,7 @@ class CreateProject:
         # Create main directory
         print("Creating project folder...")
         try:
-            subprocess.run(
-                ["mkdir", "-p", self._project_name], timeout=10.0, check=True
-            )
+            subprocess.run(["mkdir", "-p", self.project_name], timeout=10.0, check=True)
         except (subprocess.CalledProcessError, TimeoutError) as err:
             print(err)
             return False
@@ -137,7 +119,7 @@ class CreateProject:
         print("Creating subfolders...")
 
         try:
-            for sub_folder in self._cur.execute(
+            for sub_folder in self.cur.execute(
                 """
                 SELECT
                     relative_dest_path
@@ -146,10 +128,10 @@ class CreateProject:
                 WHERE
                     language_id=?
                 """,
-                (self._lang_id,),
+                (self.lang_id,),
             ):
 
-                sub_folder = self._project_name + "/" + sub_folder[0]
+                sub_folder = self.project_name + "/" + sub_folder[0]
                 subprocess.run(["mkdir", "-p", sub_folder], timeout=10.0, check=True)
         except (subprocess.CalledProcessError, TimeoutError) as err:
             print(err)
@@ -172,10 +154,10 @@ class CreateProject:
                     language_id=? and
                     is_template=?
                 """,
-                (self._lang_id, 0),
+                (self.lang_id, 0),
             ):
 
-                file = self._project_name + "/" + file[0]
+                file = self.project_name + "/" + file[0]
                 subprocess.run(["touch", file], timeout=10.0, check=True)
         except (subprocess.CalledProcessError, TimeoutError) as err:
             print(err)
@@ -188,7 +170,7 @@ class CreateProject:
         print("Copying templates...")
 
         try:
-            for template in self._cur.execute(
+            for template in self.cur.execute(
                 """
                 SELECT
                     relative_dest_path,
@@ -198,11 +180,11 @@ class CreateProject:
                 WHERE
                     language_id=? and
                     is_template=?""",
-                (self._lang_id, 1),
+                (self.lang_id, 1),
             ):
 
-                dest = self._project_name + "/" + template[0]
-                template = CreateProject._conf_dir + template[1]
+                dest = self.project_name + "/" + template[0]
+                template = CreateProject.conf_dir + template[1]
                 subprocess.run(["cp", template, dest], timeout=30.0, check=True)
         except (subprocess.CalledProcessError, TimeoutError) as err:
             print(err)
