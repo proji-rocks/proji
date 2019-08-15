@@ -11,7 +11,7 @@ from .helper import Helper
 class CreateProject:
 
     # Path to the database
-    conf_dir = "/home/niko/.config/create_project/"
+    conf_dir = os.environ["HOME"] + "/.config/create_project/"
     db = conf_dir + "db/cp.sqlite"
 
     def __init__(self, lang, project_name):
