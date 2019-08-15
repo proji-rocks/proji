@@ -118,20 +118,6 @@ def test_db_conn(valid_db_conn):
     assert valid_db_conn
 
 
-def test_does_dir_exist():
-    cp_valid1 = CreateProject("py", "new_project2009")
-    cp_valid2 = CreateProject("js", "i_dont_exist")
-
-    assert not cp_valid1._does_dir_exist()
-    assert not cp_valid2._does_dir_exist()
-
-    cp_invalid1 = CreateProject("py", "/bin")
-    cp_invalid2 = CreateProject("js", "/tmp")
-
-    assert cp_invalid1._does_dir_exist()
-    assert cp_invalid2._does_dir_exist()
-
-
 def test_lang_supported(valid_cps, invalid_cp_languages):
     # Supported languages
     for valid_cp in valid_cps:
