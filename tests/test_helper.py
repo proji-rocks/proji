@@ -6,11 +6,12 @@ from create_project.helper import Helper
 
 
 def test_format_err_msg_output():
-    assert Helper.format_err_msg(
-        "TestCase") == "Error: TestCase\n", "Test failed"
-    assert (Helper.format_err_msg(
-        "Test1", "Test2", "Test3") == "Error: Test1\nTest2\nTest3\n",
-        "Test failed")
+    assert Helper.format_err_msg("TestCase") == "Error: TestCase\n", "Test failed"
+    assert (
+        Helper.format_err_msg("Test1", "Test2", "Test3")
+        == "Error: Test1\nTest2\nTest3\n",
+        "Test failed",
+    )
 
 
 def test_format_err_msg_values():

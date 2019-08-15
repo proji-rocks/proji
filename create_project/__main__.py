@@ -7,7 +7,7 @@ from .helper import Helper
 
 
 def main():
-    ''' Main function. '''
+    """ Main function. """
     # Check cli args
     are_args_valid = Helper.are_args_valid(sys.argv)
 
@@ -22,8 +22,7 @@ def main():
     run_res = cp.run()
 
     if run_res > 0:
-        print(Helper.format_err_msg(
-            f"Project creation failed with code {run_res}."))
+        print(Helper.format_err_msg(f"Project creation failed with code {run_res}."))
 
 
 if __name__ == "__main__":

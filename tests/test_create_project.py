@@ -7,11 +7,11 @@ import pytest
 from create_project.create_project import CreateProject
 
 
-'''
+"""
 
 FIXTURES
 
-'''
+"""
 
 
 @pytest.fixture
@@ -94,11 +94,11 @@ def invalid_cp_folders(valid_db_conn, valid_cps):
     return cps
 
 
-'''
+"""
 
 TESTS
 
-'''
+"""
 
 
 def test_init():
