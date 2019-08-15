@@ -15,10 +15,10 @@ def main():
         return are_args_valid
 
     # Define name and language
-    project_name = sys.argv[1]
-    lang = str(sys.argv[2]).lower()
+    lang = sys.argv[1]
+    project_name = sys.argv[2]
 
-    cp = CreateProject(project_name, lang)
+    cp = CreateProject(lang, project_name)
     run_res = cp.run()
 
     if run_res > 0:
