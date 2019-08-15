@@ -1,6 +1,7 @@
 #!.env/bin/python3
 
 import sqlite3
+import subprocess
 
 import pytest
 
@@ -131,7 +132,11 @@ def test_lang_supported(valid_cps, invalid_cp_languages):
 def test_create_project_folder(valid_cps, invalid_cp_folders):
 
     for valid_cp in valid_cps:
+        subprocess.run(["rm", "-rf", valid_cp.project_name], timeout=10.0)
         assert valid_cp._create_project_folder()
+
+    for valid_cp in valid_cps:
+        assert not valid_cp._create_project_folder()
 
     for invalid_cp in invalid_cp_folders:
         assert not invalid_cp._create_project_folder()
