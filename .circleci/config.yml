@@ -28,8 +28,8 @@ jobs:
 
       - run:
         name: run tests
-          command: |
-            pytest
+        command: |
+          pytest
 
       - store_test_results:
           path: test-results-python-3.7.4
