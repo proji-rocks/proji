@@ -1,0 +1,28 @@
+# Prevent in-source builds
+if(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
+  message(FATAL_ERROR "
+FATAL: In-source builds are not allowed.
+       You should create a separate directory for build files.
+")
+endif()
+
+# Set cmake-minumum-version
+cmake_minimum_required(VERSION 3.10)
+
+# Set project name
+project(PROJECT-NAME C)
+
+# Set c flags
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -march=native -D_GLIBCXX_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fvisibility=hidden -fpie -Wl,-pie -fstack-clash-protection -fstack-protector -g -grecord-gcc-switches -O0 -pipe -Wall -Werror -Werror=format-security -Werror=implicit-function-declaration -Wl,-z,defs -Wl,-z,now -Wl,-z,relro -Wshadow -Wnon-virtual-dtor -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual -Wpedantic -Wconversion -Wsign-conversion -Wmisleading-indentation -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wnull-dereference -Wuseless-cast -Wdouble-promotion -Wformat=2")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native -D_FORTIFY_SOURCE=2 -D_GLIBCXX_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fvisibility=hidden -fpie -Wl,-pie -fstack-clash-protection -fstack-protector -grecord-gcc-switches -O3 -pipe -Wall -Werror -Werror=format-security -Werror=implicit-function-declaration -Wl,-z,defs -Wl,-z,now -Wl,-z,relro -Wshadow -Wnon-virtual-dtor -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual -Wpedantic -Wconversion -Wsign-conversion -Wmisleading-indentation -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wnull-dereference -Wuseless-cast -Wdouble-promotion -Wformat=2")
+
+# Set paths and dirs
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
+file(GLOB SOURCES "src/*.c")
+
+# Add executable
+add_executable(PROJECT-NAME ${SOURCES})
+
+# Link libraries
+target_link_libraries(${PROJECT_NAME})
