@@ -45,3 +45,8 @@ class Helper:
             return False
 
         return True
+
+    @staticmethod
+    def create_header(title):
+        """ Create an individiual header for every project that's being created. """
+        return 50 * "#" + "\n#" + f"\n# Project {title}\n" + "#\n" + 50 * "#" + "\n"
