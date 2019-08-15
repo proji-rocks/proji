@@ -10,24 +10,24 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-        key: deps9-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+          key: deps9-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
       - run: mkdir -p ~/.config/create_project/db
       - run: sqlite3 ~/.config/create_project/db/cp.sqlite3 < scripts/create_basic_db.sql
       - run: cp -r templates ~/.config/create_project/
       - run:
-        command: |
-          virtualenv .env
-          source .env/bin/activate
-          pip install -r requirements.txt
+          command: |
+            virtualenv .env
+            source .env/bin/activate
+            pip install -r requirements.txt
 
       - save_cache:
-        key: deps9-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
-        paths:
-          - ".env"
+          key: deps9-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+          paths:
+            - ".env"
 
       - run:
-        command: |
-          pytest -v
+          command: |
+            pytest -v
 
       - store_test_results:
           path: test-results-python-3.7.4
