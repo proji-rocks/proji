@@ -38,9 +38,9 @@ class CreateProject:
                 return 2
 
             # Create cursor
-            self._cur = self.conn.cursor()
+            self.cur = self.conn.cursor()
 
-            if not self._cur:
+            if not self.cur:
                 return 3
 
             # Check if provided language is supported
@@ -91,7 +91,7 @@ class CreateProject:
                 return True
 
         # Language not supported
-        langs = self._cur.execute("SELECT name_short FROM languages_short").fetchall()
+        langs = self.cur.execute("SELECT name_short FROM languages_short").fetchall()
 
         err_msg = Helper.format_err_msg(
             "You have to specify a supported language.",
@@ -144,7 +144,7 @@ class CreateProject:
         print("Creating files...")
 
         try:
-            for file in self._cur.execute(
+            for file in self.cur.execute(
                 """
                 SELECT
                     relative_dest_path

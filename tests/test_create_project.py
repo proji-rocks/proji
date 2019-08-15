@@ -38,15 +38,14 @@ def valid_cps(valid_db_conn):
     cwd = "/tmp/create_project/valid/"
 
     # Valid
-    cps.append(CreateProject(f"{cwd}Project1", "cpp"))
-    cps.append(CreateProject(f"{cwd}Project2", "py"))
-    cps.append(CreateProject(f"{cwd}Project3", "js"))
+    cps.append(CreateProject("cpp", f"{cwd}Project1"))
+    cps.append(CreateProject("py", f"{cwd}Project2"))
+    cps.append(CreateProject("js", f"{cwd}Project3"))
 
     # Add connection to cp instances
     for cp in cps:
-        cp._conn = conn
-        cp._cur = cp._conn.cursor()
-
+        cp.conn = conn
+        cp.cur = cp.conn.cursor()
     return cps
 
 
@@ -62,15 +61,14 @@ def invalid_cp_languages(valid_db_conn):
     cwd = "/tmp/create_project/invalid/"
 
     # Invalid
-    cps.append(CreateProject(f"{cwd}Project1", "x"))
-    cps.append(CreateProject(f"{cwd}Project2", "fk"))
-    cps.append(CreateProject(f"{cwd}Project3", ""))
+    cps.append(CreateProject("x", f"{cwd}Project1"))
+    cps.append(CreateProject("fk", f"{cwd}Project2"))
+    cps.append(CreateProject("", f"{cwd}Project3"))
 
     # Add connection to cp instances
     for cp in cps:
-        cp._conn = conn
-        cp._cur = cp._conn.cursor()
-
+        cp.conn = conn
+        cp.cur = cp.conn.cursor()
     return cps
 
 
@@ -83,14 +81,13 @@ def invalid_cp_folders(valid_db_conn, valid_cps):
     cps = []
 
     # Invalid
-    cps.append(CreateProject("/test_project123", "py"))
-    cps.append(CreateProject("", "cpp"))
+    cps.append(CreateProject("py", "/test_project123"))
+    cps.append(CreateProject("cpp", ""))
 
     # Add connection to cp instances
     for cp in cps:
-        cp._conn = conn
-        cp._cur = cp._conn.cursor()
-
+        cp.conn = conn
+        cp.cur = cp.conn.cursor()
     return cps
 
 
@@ -102,11 +99,11 @@ TESTS
 
 
 def test_init():
-    name = "name"
     lang = "lang"
-    cp = CreateProject(name, lang)
-    assert cp.project_name == name
+    name = "name"
+    cp = CreateProject(lang, name)
     assert cp.lang == lang
+    assert cp.project_name == name
 
 
 def test_init_types():
@@ -122,14 +119,14 @@ def test_db_conn(valid_db_conn):
 
 
 def test_does_dir_exist():
-    cp_valid1 = CreateProject("new_project", "py")
-    cp_valid2 = CreateProject("i_dont_exist", "js")
+    cp_valid1 = CreateProject("py", "new_project2009")
+    cp_valid2 = CreateProject("js", "i_dont_exist")
 
     assert not cp_valid1._does_dir_exist()
     assert not cp_valid2._does_dir_exist()
 
-    cp_invalid1 = CreateProject("/bin", "py")
-    cp_invalid2 = CreateProject("/tmp", "js")
+    cp_invalid1 = CreateProject("py", "/bin")
+    cp_invalid2 = CreateProject("js", "/tmp")
 
     assert cp_invalid1._does_dir_exist()
     assert cp_invalid2._does_dir_exist()
