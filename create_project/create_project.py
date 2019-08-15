@@ -12,7 +12,7 @@ class CreateProject:
 
     # Path to the database
     conf_dir = os.environ["HOME"] + "/.config/create_project/"
-    db = conf_dir + "db/cp.sqlite"
+    db = conf_dir + "db/cp.sqlite3"
 
     def __init__(self, lang, project_name):
         if type(lang) != str:
