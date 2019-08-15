@@ -37,6 +37,7 @@ def valid_cps(valid_db_conn):
 
     # CWD
     cwd = "/tmp/create_project/valid/"
+    subprocess.run(["mkdir", "-p", cwd], timeout=10.0)
 
     # Valid
     cps.append(CreateProject("cpp", f"{cwd}Project1"))
@@ -60,6 +61,7 @@ def invalid_cp_languages(valid_db_conn):
 
     # CWD
     cwd = "/tmp/create_project/invalid/"
+    subprocess.run(["mkdir", "-p", cwd], timeout=10.0)
 
     # Invalid
     cps.append(CreateProject("x", f"{cwd}Project1"))
