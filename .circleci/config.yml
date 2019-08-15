@@ -5,12 +5,12 @@ jobs:
     working_directory: ~/create_project
     docker:
       - image: circleci/python:3.7.4
-      - image: circleci/sqlite3:3.29.0
 
     steps:
       - checkout
       - restore_cache:
           key: deps9-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+      - run: sudo apt install -y sqlite3 || true
       - run: mkdir -p ~/.config/create_project/db
       - run: sqlite3 ~/.config/create_project/db/cp.sqlite3 < scripts/create_basic_db.sql
       - run: cp -r templates ~/.config/create_project/
