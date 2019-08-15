@@ -1,11 +1,34 @@
 dist: xenial
 language: python
+
 python:
   - "3.7"
   - "3.7-dev"
   - "3.8-dev"
   - "nightly"
+
+cache:
+  apt: true
+  pip: true
+  directories:
+    - $HOME/download-cache
+
+addons:
+  apt_packages:
+    - sqlite3
+
+before_install:
+  - mkdir -p $HOME/download-cache
+  - mkdir -p $HOME/.config/create_project/db
+  - cp -r templates $HOME/.config/create_project/
+  - touch $HOME/.config/create_project/db/cp.sqlite3
+  - sqlite3 $HOME/.config/create_project/db/cp.sqlite3 < scripts/create_basic_db.sql
+
 install:
   - pip install -r requirements.txt
+
 script:
   - pytest
+
+notifications:
+  email: false
