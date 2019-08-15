@@ -13,14 +13,9 @@ cache:
   directories:
     - $HOME/download-cache
 
-addons:
-  apt:
-    sources:
-      - travis-ci/sqlite3
-    packages:
-      - sqlite3
-
 before_install:
+  - sudo apt-get update
+  - sudo apt-get install -y sqlite3
   - mkdir -p $HOME/download-cache
   - mkdir -p $HOME/.config/create_project/db
   - cp -r templates $HOME/.config/create_project/
