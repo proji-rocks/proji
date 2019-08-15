@@ -22,7 +22,7 @@ def main():
         projects.add(sys.argv[i])
 
     for project in projects:
-        print(f"# Project {project}...")
+        print(Helper.create_header(project))
         cp = CreateProject(lang, project)
         run_res = cp.run()
 
