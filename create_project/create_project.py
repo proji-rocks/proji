@@ -26,10 +26,6 @@ class CreateProject:
         self.cur = None
 
     def run(self):
-        # Check if directory already exists
-        if self._does_dir_exist():
-            return 1
-
         # Connect to database
         with sqlite3.connect(CreateProject.db) as self.conn:
             if not self.conn:
@@ -64,15 +60,6 @@ class CreateProject:
                 return 8
         return 0
 
-    def _does_dir_exist(self):
-        """ Check if directory already exists. """
-
-        if os.path.exists(self.project_name):
-            err_msg = Helper.format_err_msg("Directory already exists.")
-            print(err_msg)
-            return True
-        return False
-
     def _is_lang_supported(self):
         """ Check if the provided language is supported. """
 
@@ -104,9 +91,9 @@ class CreateProject:
         """ Create the main project directory. """
 
         # Create main directory
-        print("Creating project folder...")
+        print("> Creating project folder...")
         try:
-            subprocess.run(["mkdir", "-p", self.project_name], timeout=10.0, check=True)
+            subprocess.run(["mkdir", self.project_name], timeout=10.0, check=True)
         except (subprocess.CalledProcessError, TimeoutError) as err:
             print(err)
             return False
@@ -116,7 +103,7 @@ class CreateProject:
         """ Create sub folders depending on the specified language. """
 
         # Create subfolders
-        print("Creating subfolders...")
+        print("> Creating subfolders...")
 
         try:
             for sub_folder in self.cur.execute(
@@ -141,7 +128,7 @@ class CreateProject:
     def _create_files(self):
         """ Create language specific files. """
         # Create files
-        print("Creating files...")
+        print("> Creating files...")
 
         try:
             for file in self.cur.execute(
@@ -167,7 +154,7 @@ class CreateProject:
     def _copy_templates(self):
         """ Create language specific files. """
         # Create files
-        print("Copying templates...")
+        print("> Copying templates...")
 
         try:
             for template in self.cur.execute(
