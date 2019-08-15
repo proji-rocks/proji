@@ -14,13 +14,13 @@ class CreateProject:
     _conf_dir = "/home/niko/.config/create_project/"
     _db = _conf_dir + "db/cp.sqlite"
 
-    def __init__(self, project_name, lang):
-        if type(project_name) != str:
-            raise TypeError("Project name must be a string.")
+    def __init__(self, lang, project_name):
         if type(lang) != str:
             raise TypeError("Language name must be a string.")
-        self._project_name = project_name
+        if type(project_name) != str:
+            raise TypeError("Project name must be a string.")
         self._lang = lang
+        self._project_name = project_name
         self._lang_id = 0
         self._conn = None
         self._cur = None
@@ -94,12 +94,12 @@ class CreateProject:
 
         for lang_short in self._cur.execute(
             """
-                                            SELECT
-                                                language_id,
-                                                name_short
-                                            FROM
-                                                languages_short
-                                            """
+            SELECT
+                language_id,
+                name_short
+            FROM
+                languages_short
+            """
         ):
             if lang_short[1] == self._lang:
                 # Found language
