@@ -10,24 +10,24 @@ jobs:
       - checkout
 
       - run:
-          name: create config directory
+          name: Create config directory
           command: |
             mkdir -p ~/.config/create_project/db
             cp -r templates ~/.config/create_project/
 
       - run:
-          name: install and setup database
+          name: Install and setup database
           command: |
             sudo apt install -y sqlite3 || true
             sqlite3 ~/.config/create_project/db/cp.sqlite3 < scripts/create_basic_db.sql
 
       - run:
-          name: install python dependencies
+          name: Install python dependencies
           command: |
             pip install --user -r requirements.txt
 
       - run:
-          name: run tests
+          name: Run tests
           command: |
             pytest
 
