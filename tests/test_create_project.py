@@ -1,6 +1,7 @@
 #!.env/bin/python3
 
 import sqlite3
+import subprocess
 
 import pytest
 
@@ -36,6 +37,7 @@ def valid_cps(valid_db_conn):
 
     # CWD
     cwd = "/tmp/create_project/valid/"
+    subprocess.run(["mkdir", "-p", cwd], timeout=10.0)
 
     # Valid
     cps.append(CreateProject("cpp", f"{cwd}Project1"))
@@ -59,6 +61,7 @@ def invalid_cp_languages(valid_db_conn):
 
     # CWD
     cwd = "/tmp/create_project/invalid/"
+    subprocess.run(["mkdir", "-p", cwd], timeout=10.0)
 
     # Invalid
     cps.append(CreateProject("x", f"{cwd}Project1"))
@@ -118,20 +121,6 @@ def test_db_conn(valid_db_conn):
     assert valid_db_conn
 
 
-def test_does_dir_exist():
-    cp_valid1 = CreateProject("py", "new_project2009")
-    cp_valid2 = CreateProject("js", "i_dont_exist")
-
-    assert not cp_valid1._does_dir_exist()
-    assert not cp_valid2._does_dir_exist()
-
-    cp_invalid1 = CreateProject("py", "/bin")
-    cp_invalid2 = CreateProject("js", "/tmp")
-
-    assert cp_invalid1._does_dir_exist()
-    assert cp_invalid2._does_dir_exist()
-
-
 def test_lang_supported(valid_cps, invalid_cp_languages):
     # Supported languages
     for valid_cp in valid_cps:
@@ -145,7 +134,11 @@ def test_lang_supported(valid_cps, invalid_cp_languages):
 def test_create_project_folder(valid_cps, invalid_cp_folders):
 
     for valid_cp in valid_cps:
+        subprocess.run(["rm", "-rf", valid_cp.project_name], timeout=10.0)
         assert valid_cp._create_project_folder()
+
+    for valid_cp in valid_cps:
+        assert not valid_cp._create_project_folder()
 
     for invalid_cp in invalid_cp_folders:
         assert not invalid_cp._create_project_folder()
