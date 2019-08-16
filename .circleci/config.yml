@@ -1,0 +1,47 @@
+version: 2
+
+jobs:
+  build:
+    working_directory: ~/create_project
+    docker:
+      - image: circleci/python:3.7.4
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          key: deps9-{{ .Branch }}-{{ checksum "requirements.txt" }}
+
+      - run:
+          name: Create config directory
+          command: |
+            mkdir -p ~/.config/create_project/db
+            cp -r templates ~/.config/create_project/
+
+      - run:
+          name: Install and setup database
+          command: |
+            sudo apt install -y sqlite3 || true
+            sqlite3 ~/.config/create_project/db/cp.sqlite3 < scripts/create_basic_db.sql
+
+      - run:
+          name: Install python dependencies
+          command: |
+            pip install --user -r requirements.txt
+
+      - run:
+          name: Run tests
+          command: |
+            pytest
+
+      - save_cache:
+          key: deps9-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          paths:
+            - "~/.local/lib/python3.7/site-packages"
+            - "~/.cache/pip"
+
+      - store_test_results:
+          path: test-results-python-3.7.4
+      - store_artifacts:
+          path: test-results-python-3.7.4
+          destination: trp374
