@@ -38,7 +38,6 @@ jobs:
           key: deps9-{{ .Branch }}-{{ checksum "requirements.txt" }}
           paths:
             - "~/.local/lib/python3.7/site-packages"
-            - "~/.cache/pip"
 
       - store_test_results:
           path: test-results-python-3.7.4
