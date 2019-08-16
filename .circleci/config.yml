@@ -9,9 +9,6 @@ jobs:
     steps:
       - checkout
 
-      - restore_cache:
-          key: deps-{{ .Branch }}-{{ checksum "requirements.txt" }}
-
       - run:
           name: Create config directory
           command: |
@@ -33,11 +30,6 @@ jobs:
           name: Run tests
           command: |
             pytest
-
-      - save_cache:
-          key: deps-{{ .Branch }}-{{ checksum "requirements.txt" }}
-          paths:
-            - "~/.local/lib/python3.7/site-packages"
 
       - store_test_results:
           path: test-results-python-3.7.4
