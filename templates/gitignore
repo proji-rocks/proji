@@ -1,0 +1,9 @@
+.vscode/
+tmp/
+log/
+
+*.db
+*.sqlite
+*.sqlite3
+*.log
+
