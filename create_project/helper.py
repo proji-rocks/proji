@@ -16,7 +16,7 @@ class Helper:
         if not all(isinstance(i, str) for i in err_msg):
             raise TypeError("The error message must be a string.")
 
-        err_out = "> Error: "
+        err_out = "Error: "
 
         for err in err_msg:
             err_out += err + "\n"
