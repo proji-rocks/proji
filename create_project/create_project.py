@@ -17,9 +17,9 @@ class CreateProject:
     db = conf_dir + "db/cp.sqlite3"
 
     def __init__(self, lang, project_name):
-        if type(lang) != str:
+        if not type(lang) is str:
             raise TypeError("Language name must be a string.")
-        if type(project_name) != str:
+        if not type(project_name) is str:
             raise TypeError("Project name must be a string.")
         self.lang = lang
         self.project_name = project_name
