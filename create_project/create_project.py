@@ -23,7 +23,8 @@ class CreateProject:
             raise TypeError("Project name must be a string.")
         self.lang = lang
         self.project_name = project_name
-        self.lang_id = 0
+        self.project_id = None
+        self.cwd = os.getcwd()
         self.conn = None
         self.cur = None
 
@@ -48,6 +49,9 @@ class CreateProject:
             # Create the project folder
             if not self._create_project_folder():
                 return 5
+
+            # Change directory into new project folder
+            os.chdir(self.project_name)
 
             # Create language specific sub folders
             if not self._create_sub_folders():
