@@ -124,11 +124,11 @@ def test_db_conn(valid_db_conn):
 def test_lang_supported(valid_cps, invalid_cp_languages):
     # Supported languages
     for valid_cp in valid_cps:
-        assert valid_cp._is_lang_supported()
+        assert valid_cp._is_extension_supported()
 
     # Not supported languages
     for invalid_cp in invalid_cp_languages:
-        assert not invalid_cp._is_lang_supported()
+        assert not invalid_cp._is_extension_supported()
 
 
 def test_create_project_folder(valid_cps, invalid_cp_folders):
