@@ -12,16 +12,19 @@ class CreateProject:
 
     # Path to the database
     conf_dir = os.environ["HOME"] + "/.config/create_project/"
+    template_path = conf_dir + "templates/"
+    script_path = conf_dir + "scripts/"
     db = conf_dir + "db/cp.sqlite3"
 
     def __init__(self, lang, project_name):
-        if type(lang) != str:
+        if not type(lang) is str:
             raise TypeError("Language name must be a string.")
-        if type(project_name) != str:
+        if not type(project_name) is str:
             raise TypeError("Project name must be a string.")
         self.lang = lang
         self.project_name = project_name
-        self.lang_id = 0
+        self.project_id = None
+        self.cwd = os.getcwd()
         self.conn = None
         self.cur = None
 
@@ -40,12 +43,15 @@ class CreateProject:
                 return 3
 
             # Check if provided language is supported
-            if not self._is_lang_supported():
+            if not self._is_extension_supported():
                 return 4
 
             # Create the project folder
             if not self._create_project_folder():
                 return 5
+
+            # Change directory into new project folder
+            os.chdir(self.project_name)
 
             # Create language specific sub folders
             if not self._create_sub_folders():
@@ -58,39 +64,56 @@ class CreateProject:
             # Copy template files
             if not self._copy_templates():
                 return 8
+
+            # Run custom scripts
+            if not self._run_scripts():
+                return 9
+
+            # Cd back to old cwd
+            os.chdir(self.cwd)
         return 0
 
-    def _is_lang_supported(self):
-        """ Check if the provided language is supported. """
+    def _is_extension_supported(self):
+        """ Check if the provided file extension is supported. """
 
-        for lang_short in self.cur.execute(
-            """
-            SELECT
-                language_id,
-                name_short
-            FROM
-                languages_short
-            """
-        ):
-            if lang_short[1] == self.lang:
-                # Found language
-                self.lang_id = lang_short[0]
-                return True
+        try:
+            self.cur.execute(
+                """
+                SELECT
+                    project_id,
+                    extension
+                FROM
+                    file_extension
+                WHERE
+                    extension=?
+                """,
+                (self.lang,),
+            )
+
+            lang = self.cur.fetchone()
+
+        except sqlite3.Error as err:
+            print(err)
+            return False
+
+        if lang:
+            self.project_id = lang[0]
+            return True
 
         # Language not supported
-        langs = self.cur.execute("SELECT name_short FROM languages_short").fetchall()
+        extensions = self.cur.execute("SELECT extension FROM file_extension").fetchall()
 
         err_msg = Helper.format_err_msg(
-            "You have to specify a supported language.",
-            ("Currently supported languages: " + str(langs)),
+            "You have to specify a supported file extension.",
+            ("Currently supported languages: " + str(extensions)),
         )
+
         print(err_msg)
         return False
 
     def _create_project_folder(self):
         """ Create the main project directory. """
 
-        # Create main directory
         print("> Creating project folder...")
         try:
             subprocess.run(["mkdir", self.project_name], timeout=10.0, check=True)
@@ -102,78 +125,143 @@ class CreateProject:
     def _create_sub_folders(self):
         """ Create sub folders depending on the specified language. """
 
-        # Create subfolders
         print("> Creating subfolders...")
 
         try:
-            for sub_folder in self.cur.execute(
+            self.cur.execute(
                 """
                 SELECT
-                    relative_dest_path
+                    target_path
                 FROM
-                    folders
+                    project_folder
                 WHERE
-                    language_id=?
+                    (project_id=? OR project_id IS NULL)
+                    AND template_name IS NULL
                 """,
-                (self.lang_id,),
-            ):
+                (self.project_id,),
+            )
 
-                sub_folder = self.project_name + "/" + sub_folder[0]
-                subprocess.run(["mkdir", "-p", sub_folder], timeout=10.0, check=True)
-        except (subprocess.CalledProcessError, TimeoutError) as err:
+            subfolders = self.cur.fetchall()
+
+            for subfolder in subfolders:
+                subprocess.run(["mkdir", "-p", subfolder[0]], timeout=10.0, check=True)
+
+        except (sqlite3.Error, subprocess.CalledProcessError, TimeoutError) as err:
             print(err)
             return False
         return True
 
     def _create_files(self):
         """ Create language specific files. """
-        # Create files
+
         print("> Creating files...")
 
         try:
-            for file in self.cur.execute(
+            self.cur.execute(
                 """
                 SELECT
-                    relative_dest_path
+                    target_path
                 FROM
-                    files
+                    project_file
                 WHERE
-                    language_id=? and
-                    is_template=?
+                    (project_id=? OR project_id IS NULL)
+                    AND template_name IS NULL
                 """,
-                (self.lang_id, 0),
-            ):
+                (self.project_id,),
+            )
 
-                file = self.project_name + "/" + file[0]
-                subprocess.run(["touch", file], timeout=10.0, check=True)
-        except (subprocess.CalledProcessError, TimeoutError) as err:
+            files = self.cur.fetchall()
+
+            for file in files:
+                subprocess.run(["touch", file[0]], timeout=10.0, check=True)
+
+        except (sqlite3.Error, subprocess.CalledProcessError, TimeoutError) as err:
             print(err)
             return False
         return True
 
     def _copy_templates(self):
         """ Create language specific files. """
-        # Create files
+
         print("> Copying templates...")
 
         try:
-            for template in self.cur.execute(
+            self.cur.execute(
                 """
                 SELECT
-                    relative_dest_path,
-                    absolute_orig_path
+                    target_path, template_name
                 FROM
-                    files
+                    project_file
                 WHERE
-                    language_id=? and
-                    is_template=?""",
-                (self.lang_id, 1),
-            ):
+                    (project_id=? OR project_id IS NULL)
+                    AND template_name IS NOT NULL
+                """,
+                (self.project_id,),
+            )
 
-                dest = self.project_name + "/" + template[0]
-                template = CreateProject.conf_dir + template[1]
-                subprocess.run(["cp", template, dest], timeout=30.0, check=True)
-        except (subprocess.CalledProcessError, TimeoutError) as err:
+            template_files = self.cur.fetchall()
+
+            self.cur.execute(
+                """
+                SELECT
+                    target_path, template_name
+                FROM
+                    project_folder
+                WHERE
+                    (project_id=? OR project_id IS NULL)
+                    AND template_name IS NOT NULL
+                """,
+                (self.project_id,),
+            )
+
+            template_folders = self.cur.fetchall()
+
+            for file in template_files:
+                template = CreateProject.template_path + file[1]
+                target = file[0]
+                subprocess.run(["cp", template, target], timeout=30.0, check=True)
+
+            for folder in template_folders:
+                template = CreateProject.template_path + folder[1]
+                target = folder[0]
+                subprocess.run(["cp", "-r", template, target], timeout=30.0, check=True)
+
+        except (sqlite3.Error, subprocess.CalledProcessError, TimeoutError) as err:
+            print(err)
+            return False
+        return True
+
+    def _run_scripts(self):
+        """ Run custom scripts. """
+
+        try:
+            self.cur.execute(
+                """
+                SELECT
+                    script_name,
+                    run_as_sudo
+                FROM
+                    project_script
+                WHERE
+                    project_id is NULL
+                    OR project_id=?
+                ORDER BY project_id DESC
+                """,
+                (self.project_id,),
+            )
+
+            scripts = self.cur.fetchall()
+
+            for script in scripts:
+                script_path = self.script_path + script[0]
+                run_as_sudo = bool(script[1])
+
+                if run_as_sudo:
+                    subprocess.run(["sudo", script_path], timeout=60.0, check=True)
+                else:
+                    subprocess.run([script_path], timeout=60.0, check=True)
+
+        except (sqlite3.Error, subprocess.CalledProcessError, TimeoutError) as err:
             print(err)
             return False
         return True

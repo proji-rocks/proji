@@ -1,84 +1,59 @@
 --
 -- DROP TABLES
 --
-DROP TABLE IF EXISTS languages;
-DROP TABLE IF EXISTS languages_short;
-DROP TABLE IF EXISTS default_folders;
-DROP TABLE IF EXISTS folders;
-DROP TABLE IF EXISTS default_files;
-DROP TABLE IF EXISTS files;
-DROP TABLE IF EXISTS commands_general;
-DROP TABLE IF EXISTS commands_specific;
+DROP TABLE IF EXISTS project;
+DROP TABLE IF EXISTS file_extension;
+DROP TABLE IF EXISTS project_folder;
+DROP TABLE IF EXISTS project_file;
+DROP TABLE IF EXISTS project_script;
 --
 -- CREATE TABLES
 --
-CREATE TABLE IF NOT EXISTS languages(
-  id INTEGER PRIMARY KEY,
-  name VARCHAR(50) NOT NULL,
-  comment VARCHAR(255)
+CREATE TABLE IF NOT EXISTS project(
+  project_id INTEGER PRIMARY KEY,
+  title TEXT NOT NULL,
+  default_file_extension_id INTEGER REFERENCES file_extension(file_extension_id)
 );
 --
-CREATE TABLE IF NOT EXISTS languages_short(
-  id INTEGER PRIMARY KEY,
-  language_id INTEGER NOT NULL,
-  name_short VARCHAR(50) NOT NULL,
-  comment VARCHAR(255),
-  FOREIGN KEY(language_id) REFERENCES languages(id),
-  UNIQUE(name_short)
+CREATE TABLE IF NOT EXISTS file_extension(
+  file_extension_id INTEGER PRIMARY KEY,
+  project_id INTEGER REFERENCES project(project_id),
+  extension TEXT NOT NULL
 );
 --
-CREATE TABLE IF NOT EXISTS default_folders(
-  id INTEGER PRIMARY KEY,
-  relative_dest_path VARCHAR(255) NOT NULL,
-  absolute_orig_path VARCHAR(255),
-  comment VARCHAR(255),
-  UNIQUE(relative_dest_path, absolute_orig_path)
+CREATE TABLE IF NOT EXISTS project_folder(
+  project_folder_id INTEGER PRIMARY KEY,
+  project_id INTEGER REFERENCES project(project_id),
+  target_path TEXT NOT NULL,
+  template_name TEXT
 );
 --
-CREATE TABLE IF NOT EXISTS folders(
-  id INTEGER PRIMARY KEY,
-  language_id INTEGER NOT NULL,
-  relative_dest_path VARCHAR(255) NOT NULL,
-  comment VARCHAR(255),
-  FOREIGN KEY(language_id) REFERENCES languages(id),
-  UNIQUE(language_id, relative_dest_path)
+CREATE TABLE IF NOT EXISTS project_file(
+  project_file_id INTEGER PRIMARY KEY,
+  project_id INTEGER REFERENCES project(project_id),
+  target_path TEXT NOT NULL,
+  template_name TEXT
 );
 --
-CREATE TABLE IF NOT EXISTS default_files(
-  id INTEGER PRIMARY KEY,
-  relative_dest_path VARCHAR(255) NOT NULL,
-  absolute_orig_path VARCHAR(255),
-  comment VARCHAR(255),
-  UNIQUE(relative_dest_path, absolute_orig_path)
-);
---
-CREATE TABLE IF NOT EXISTS files(
-  id INTEGER PRIMARY KEY,
-  language_id INTEGER NOT NULL,
-  is_template BOOLEAN NOT NULL CHECK (is_template IN (0, 1)),
-  relative_dest_path VARCHAR(255) NOT NULL,
-  absolute_orig_path VARCHAR(255),
-  comment VARCHAR(255),
-  FOREIGN KEY(language_id) REFERENCES languages(id),
-  UNIQUE(
-    language_id,
-    relative_dest_path,
-    absolute_orig_path
-  )
+CREATE TABLE IF NOT EXISTS project_script(
+  project_script_id INTEGER PRIMARY KEY,
+  project_id INTEGER REFERENCES project(project_id),
+  script_name TEXT NOT NULL,
+  run_as_sudo INTEGER NOT NULL
 );
 --
 -- INSERT INTO TABLES
 --
 INSERT INTO
-  languages(name)
+  project(title, default_file_extension_id)
 VALUES
-  ("C-Plus-Plus"),
-  ("C"),
-  ("Python"),
-  ("Web");
+  ("C-Plus-Plus", 1),
+  ("C", 4),
+  ("Python", 6),
+  ("Web", NULL);
 --
 INSERT INTO
-  languages_short(language_id, name_short)
+  file_extension(project_id, extension)
 VALUES
   (1, "cpp"),
   (1, "c++"),
@@ -95,83 +70,72 @@ VALUES
   (4, "web");
 --
 INSERT INTO
-  default_folders(relative_dest_path, absolute_orig_path)
-VALUES(".vscode", "templates/vscode/");
---
-INSERT INTO
-  folders(language_id, relative_dest_path)
-VALUES
-  (1, "build/debug/"),
-  (1, "build/release/"),
-  (1, "doc/"),
-  (1, "include/"),
-  (1, "lib/"),
-  (1, "src/"),
-  (1, "test/"),
-  (2, "build/debug/"),
-  (2, "build/release/"),
-  (2, "doc/"),
-  (2, "include/"),
-  (2, "lib/"),
-  (2, "src/"),
-  (2, "test/"),
-  (3, "src/"),
-  (3, "doc/"),
-  (3, "test/"),
-  (4, "public_html/css/"),
-  (4, "public_html/img/"),
-  (4, "public_html/js/"),
-  (4, "public_html/fonts/"),
-  (4, "public_html/include/"),
-  (4, "resources/library"),
-  (4, "resources/templates/");
---
-INSERT INTO
-  default_files(relative_dest_path, absolute_orig_path)
-VALUES
-  (".gitignore", "templates/gitignore"),
-  ("README.md", "templates/README.md");
---
-INSERT INTO
-  files(
-    language_id,
-    is_template,
-    relative_dest_path,
-    absolute_orig_path
+  project_folder(
+    project_id,
+    target_path,
+    template_name
   )
 VALUES
+  (NULL, ".vscode", "vscode/"),
+  (1, "build/debug/", NULL),
+  (1, "build/release/", NULL),
+  (1, "doc/", NULL),
+  (1, "include/", NULL),
+  (1, "lib/", NULL),
+  (1, "src/", NULL),
+  (1, "test/", NULL),
+  (2, "build/debug/", NULL),
+  (2, "build/release/", NULL),
+  (2, "doc/", NULL),
+  (2, "include/", NULL),
+  (2, "lib/", NULL),
+  (2, "src/", NULL),
+  (2, "test/", NULL),
+  (3, "src/", NULL),
+  (3, "doc/", NULL),
+  (3, "test/", NULL),
+  (4, "public_html/css/", NULL),
+  (4, "public_html/img/", NULL),
+  (4, "public_html/js/", NULL),
+  (4, "public_html/fonts/", NULL),
+  (4, "public_html/include/", NULL),
+  (4, "resources/library", NULL),
+  (4, "resources/templates/", NULL);
+--
+INSERT INTO
+  project_file(project_id, target_path, template_name)
+VALUES
+  (NULL, ".gitignore", "gitignore"),
+  (1, "src/main.cpp", "main.cpp"),
   (
-    1,
-    1,
-    "src/main.cpp",
-    "templates/template.cpp"
-  ),
-  (
-    1,
     1,
     "CMakeLists.txt",
-    "templates/CMakeLists-cpp.txt"
+    "CMakeLists-cpp.txt"
   ),
+  (2, "src/main.c", "main.c"),
   (
     2,
-    1,
-    "src/main.c",
-    "templates/template.c"
-  ),
-  (
-    2,
-    1,
     "CMakeLists.txt",
-    "templates/CMakeLists-c.txt"
+    "CMakeLists-c.txt"
   ),
-  (3, 0, "./src/__main__.py", NULL),
-  (3, 0, "./src/__init__.py", NULL),
+  (3, "src/__main__.py", NULL),
+  (3, "src/__init__.py", NULL),
   (
     4,
-    1,
     "public_html/index.php",
-    "templates/template.php"
+    "index.php"
   ),
-  (4, 0, "public_html/css/main.css", NULL),
-  (4, 0, "public_html/css/util.css", NULL),
-  (4, 0, "public_html/js/main.js", NULL);
+  (4, "public_html/css/main.css", NULL),
+  (4, "public_html/css/util.css", NULL),
+  (4, "public_html/js/main.js", NULL);
+--
+INSERT INTO
+  project_script(project_id, script_name, run_as_sudo)
+VALUES
+  (NULL, "init_git.sh", 0),
+  (3, "init_virtualenv.sh", 0);
+CREATE UNIQUE INDEX project_idx ON project(title);
+CREATE UNIQUE INDEX file_extension_project_id_idx ON file_extension(project_id, extension);
+CREATE UNIQUE INDEX project_folder_idx ON project_folder(project_id, target_path, template_name);
+CREATE UNIQUE INDEX project_file_idx ON project_file(project_id, target_path, template_name);
+CREATE UNIQUE INDEX project_script_idx ON project_script(project_id, script_name, run_as_sudo);
