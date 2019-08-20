@@ -12,6 +12,8 @@ class CreateProject:
 
     # Path to the database
     conf_dir = os.environ["HOME"] + "/.config/create_project/"
+    template_path = conf_dir + "templates/"
+    script_path = conf_dir + "scripts/"
     db = conf_dir + "db/cp.sqlite3"
 
     def __init__(self, lang, project_name):
