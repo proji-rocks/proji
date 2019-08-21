@@ -4,4 +4,5 @@ __pycache__/
 vendor/
 *.sqlite
 *.db
-
+Gopkg.lock
+Gopkg.toml
