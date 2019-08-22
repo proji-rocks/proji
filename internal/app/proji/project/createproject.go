@@ -1,16 +1,60 @@
-package proji
+package project
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 
+	"github.com/spf13/viper"
+
 	// Import sqlite3 driver (see func (setup *Setup) Run() error)
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/nikoksr/proji/internal/app/helper"
 
 	"github.com/otiai10/copy"
 )
+
+// CreateProject will create projects.
+// It will create directories and files, copy templates and run scripts.
+func CreateProject(ext string, projects []string) error {
+	// TODO: Load values from a config file
+	configDir := helper.GetConfigDir()
+	databaseName, ok := viper.Get("database.name").(string)
+
+	if ok != true {
+		return errors.New("could not read database name from config file")
+	}
+
+	// Get current working directory
+	cwd, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	// Create setup
+	newSetup := Setup{Owd: cwd, ConfigDir: configDir, DatabaseName: databaseName, Extension: ext}
+	err = newSetup.init()
+	if err != nil {
+		return err
+	}
+	defer newSetup.stop()
+
+	// Projects loop
+	for _, projectName := range projects {
+		fmt.Println(helper.ProjectHeader(projectName))
+		newProject := Project{Name: projectName, Data: &newSetup}
+		err = newProject.create()
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+	}
+
+	return nil
+}
 
 // Setup contains necessary informations for the creation of a project.
 // Owd is the Origin Working Directory.
@@ -26,8 +70,8 @@ type Setup struct {
 	projectID    string
 }
 
-// Run starts the creation of a project
-func (setup *Setup) Run() error {
+// init initializes the setup struct. Creates a database connection and defines default directores.
+func (setup *Setup) init() error {
 	// Set dirs
 	setup.dbDir = setup.ConfigDir + "db/"
 	setup.templatesDir = setup.ConfigDir + "templates/"
@@ -48,9 +92,9 @@ func (setup *Setup) Run() error {
 	return nil
 }
 
-// Stop cleanly stops the running Setup instance.
+// stop cleanly stops the running Setup instance.
 // Currently it's only closing its open database connection.
-func (setup *Setup) Stop() {
+func (setup *Setup) stop() {
 	// Close database connection
 	if setup.db != nil {
 		setup.db.Close()
@@ -83,9 +127,9 @@ type Project struct {
 	Data *Setup
 }
 
-// Create starts the creation of a project.
+// create starts the creation of a project.
 // Returns an error on failure. Returns nil on success.
-func (project *Project) Create() error {
+func (project *Project) create() error {
 	// Create the project folder
 	fmt.Println("> Creating project folder...")
 	err := project.createProjectFolder()
