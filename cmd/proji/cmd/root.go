@@ -16,7 +16,7 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "proji COMMAND ARGS",
 	Short: "Proji is a fast and simple project creator.",
-	Long:  `Based on your favour proji creates the directory structures for a multitude of project types. Proji saves you minutes of repetetive clicking or cli instructions. With one command rofi creates you a multitude of projects based on your personal templates.`,
+	Long:  `Based on your favour proji creates the directory structures for a multitude of project types. Proji saves you hundrets of repetetive clicks or cli instructions. With one command proji creates you a multitude of projects based on your personal templates.`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -45,9 +45,8 @@ func initConfig() {
 			os.Exit(1)
 		}
 
-		// Search config in home directory with name ".proji" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".proji")
+		viper.AddConfigPath(home + "/.config/proji/")
+		viper.SetConfigName("config")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
