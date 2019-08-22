@@ -2,9 +2,12 @@ package project
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
+
+	"github.com/spf13/viper"
 
 	// Import sqlite3 driver (see func (setup *Setup) Run() error)
 	_ "github.com/mattn/go-sqlite3"
@@ -15,26 +18,27 @@ import (
 
 // CreateProject will create projects.
 // It will create directories and files, copy templates and run scripts.
-func CreateProject(ext string, projects []string) {
+func CreateProject(ext string, projects []string) error {
 	// TODO: Load values from a config file
-	homeDir := os.Getenv("HOME")
-	configDir := homeDir + "/.config/proji/"
-	databaseName := "proji.sqlite3"
+	configDir := helper.GetConfigDir()
+	databaseName, ok := viper.Get("database.name").(string)
+
+	if ok != true {
+		return errors.New("could not read database name from config file")
+	}
 
 	// Get current working directory
 	cwd, err := os.Getwd()
 
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 
 	// Create setup
 	newSetup := Setup{Owd: cwd, ConfigDir: configDir, DatabaseName: databaseName, Extension: ext}
 	err = newSetup.init()
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 	defer newSetup.stop()
 
@@ -48,6 +52,8 @@ func CreateProject(ext string, projects []string) {
 			continue
 		}
 	}
+
+	return nil
 }
 
 // Setup contains necessary informations for the creation of a project.
