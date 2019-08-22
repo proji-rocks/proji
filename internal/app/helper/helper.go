@@ -2,8 +2,11 @@ package helper
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strings"
+
+	"github.com/mitchellh/go-homedir"
 )
 
 // ProjectHeader returns an individual graphical header for a project
@@ -19,8 +22,19 @@ func ParseArgs() (string, []string, error) {
 	args := os.Args[1:]
 
 	if len(args) < 2 {
-		return "", []string{}, errors.New("Insufficient number of cli arguments.\nSyntax: create_project <extension> <project> [projects]")
+		return "", []string{}, errors.New("insufficient number of cli arguments")
 	}
 
 	return args[0], args[1:], nil
+}
+
+// GetConfigDir returns the default config directory.
+func GetConfigDir() string {
+	home, err := homedir.Dir()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	return home + "/.config/proji/"
 }
