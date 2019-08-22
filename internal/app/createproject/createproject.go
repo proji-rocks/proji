@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/exec"
 
-	// Import sqlite3 driver
+	// Import sqlite3 driver (see func (setup *Setup) Run() error)
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/otiai10/copy"
