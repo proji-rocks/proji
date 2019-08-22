@@ -18,7 +18,8 @@ func main() {
 	}
 
 	// TODO: Load values from a config file
-	configDir := "/home/niko/.config/create_project/"
+	homeDir := os.Getenv("HOME")
+	configDir := homeDir + "/.config/create_project/"
 	databaseName := "cp.sqlite3"
 
 	// Get current working directory
