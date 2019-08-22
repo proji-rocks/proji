@@ -15,7 +15,7 @@ func ProjectHeader(projectName string) string {
 
 // ParseArgs parses the cli arguments to the needed data - the extension and the project names.
 // AreArgsValid() should be run before this function.
-func ParseArgs() (extension string, projects []string, err error) {
+func ParseArgs() (string, []string, error) {
 	args := os.Args[1:]
 
 	if len(args) < 2 {
