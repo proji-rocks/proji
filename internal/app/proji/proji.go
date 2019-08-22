@@ -1,4 +1,4 @@
-package createproject
+package proji
 
 import (
 	"database/sql"
