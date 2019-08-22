@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/nikoksr/create_project/internal/app/createproject"
-	"github.com/nikoksr/create_project/internal/app/helper"
+	"github.com/nikoksr/proji/internal/app/helper"
+	"github.com/nikoksr/proji/internal/app/proji"
 )
 
 func main() {
@@ -31,7 +31,7 @@ func main() {
 	}
 
 	// Create setup
-	newSetup := createproject.Setup{Owd: cwd, ConfigDir: configDir, DatabaseName: databaseName, Extension: ext}
+	newSetup := proji.Setup{Owd: cwd, ConfigDir: configDir, DatabaseName: databaseName, Extension: ext}
 	err = newSetup.Run()
 	if err != nil {
 		fmt.Println(err)
@@ -42,7 +42,7 @@ func main() {
 	// Projects loop
 	for _, project := range projects {
 		fmt.Println(helper.ProjectHeader(project))
-		newProject := createproject.Project{Name: project, Data: &newSetup}
+		newProject := proji.Project{Name: project, Data: &newSetup}
 		err = newProject.Create()
 		if err != nil {
 			fmt.Println(err)
