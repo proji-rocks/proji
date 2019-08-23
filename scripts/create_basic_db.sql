@@ -2,7 +2,9 @@
 -- DROP TABLES
 --
 DROP TABLE IF EXISTS project;
-DROP TABLE IF EXISTS file_extension;
+DROP TABLE IF EXISTS project_status;
+DROP TABLE IF EXISTS project_class_label;
+DROP TABLE IF EXISTS project_class;
 DROP TABLE IF EXISTS project_folder;
 DROP TABLE IF EXISTS project_file;
 DROP TABLE IF EXISTS project_script;
@@ -12,32 +14,47 @@ DROP TABLE IF EXISTS project_script;
 CREATE TABLE IF NOT EXISTS project(
   project_id INTEGER PRIMARY KEY,
   title TEXT NOT NULL,
-  default_file_extension_id INTEGER REFERENCES file_extension(file_extension_id)
+  project_class_id INTEGER REFERENCES project_class(project_class_id),
+  install_path TEXT,
+  install_data TEXT,
+  project_status_id INTEGER REFERENCES project_status(project_status_id)
 );
 --
-CREATE TABLE IF NOT EXISTS file_extension(
-  file_extension_id INTEGER PRIMARY KEY,
-  project_id INTEGER REFERENCES project(project_id),
-  extension TEXT NOT NULL
+CREATE TABLE IF NOT EXISTS project_status(
+  project_status_id INTEGER PRIMARY KEY,
+  project_status TEXT NOT NULL,
+  comment TEXT
+);
+--
+CREATE TABLE IF NOT EXISTS project_class(
+  project_class_id INTEGER PRIMARY KEY,
+  class_name TEXT NOT NULL,
+  default_project_class_label_id INTEGER REFERENCES project_class_label(project_class_label_id)
+);
+--
+CREATE TABLE IF NOT EXISTS project_class_label(
+  project_class_label_id INTEGER PRIMARY KEY,
+  project_class_id INTEGER REFERENCES project_class(project_class_id),
+  label TEXT NOT NULL
 );
 --
 CREATE TABLE IF NOT EXISTS project_folder(
   project_folder_id INTEGER PRIMARY KEY,
-  project_id INTEGER REFERENCES project(project_id),
+  project_class_id INTEGER REFERENCES project_class(project_class_id),
   target_path TEXT NOT NULL,
   template_name TEXT
 );
 --
 CREATE TABLE IF NOT EXISTS project_file(
   project_file_id INTEGER PRIMARY KEY,
-  project_id INTEGER REFERENCES project(project_id),
+  project_class_id INTEGER REFERENCES project_class(project_class_id),
   target_path TEXT NOT NULL,
   template_name TEXT
 );
 --
 CREATE TABLE IF NOT EXISTS project_script(
   project_script_id INTEGER PRIMARY KEY,
-  project_id INTEGER REFERENCES project(project_id),
+  project_class_id INTEGER REFERENCES project_class(project_class_id),
   script_name TEXT NOT NULL,
   run_as_sudo INTEGER NOT NULL
 );
@@ -45,7 +62,27 @@ CREATE TABLE IF NOT EXISTS project_script(
 -- INSERT INTO TABLES
 --
 INSERT INTO
-  project(title, default_file_extension_id)
+  project_status(project_status, comment)
+VALUES
+  (
+    "active",
+    "I'm actively working on this project."
+  ),
+  (
+    "inactive",
+    "I stopped working on this project for now."
+  ),
+  (
+    "done",
+    "I finished this project. There is nothing to do."
+  ),
+  (
+    "dead",
+    "This project is dead. I'm not planning to work on it anytime soon."
+  );
+--
+INSERT INTO
+  project_class(class_name, default_project_class_label_id)
 VALUES
   ("C-Plus-Plus", 1),
   ("C", 4),
@@ -53,7 +90,7 @@ VALUES
   ("Web", NULL);
 --
 INSERT INTO
-  file_extension(project_id, extension)
+  project_class_label(project_class_id, label)
 VALUES
   (1, "cpp"),
   (1, "c++"),
@@ -71,7 +108,7 @@ VALUES
 --
 INSERT INTO
   project_folder(
-    project_id,
+    project_class_id,
     target_path,
     template_name
   )
@@ -103,7 +140,7 @@ VALUES
   (4, "resources/templates/", NULL);
 --
 INSERT INTO
-  project_file(project_id, target_path, template_name)
+  project_file(project_class_id, target_path, template_name)
 VALUES
   (NULL, ".gitignore", "gitignore"),
   (1, "src/main.cpp", "main.cpp"),
@@ -130,12 +167,12 @@ VALUES
   (4, "public_html/js/main.js", NULL);
 --
 INSERT INTO
-  project_script(project_id, script_name, run_as_sudo)
+  project_script(project_class_id, script_name, run_as_sudo)
 VALUES
   (NULL, "init_git.sh", 0),
   (3, "init_virtualenv.sh", 0);
-CREATE UNIQUE INDEX project_idx ON project(title);
-CREATE UNIQUE INDEX file_extension_project_id_idx ON file_extension(project_id, extension);
-CREATE UNIQUE INDEX project_folder_idx ON project_folder(project_id, target_path, template_name);
-CREATE UNIQUE INDEX project_file_idx ON project_file(project_id, target_path, template_name);
-CREATE UNIQUE INDEX project_script_idx ON project_script(project_id, script_name, run_as_sudo);
+CREATE UNIQUE INDEX project_class_id_class_label_idx ON project_class_label(project_class_id, label);
+CREATE UNIQUE INDEX project_class_idx ON project_class(class_name);
+CREATE UNIQUE INDEX project_folder_idx ON project_folder(project_class_id, target_path, template_name);
+CREATE UNIQUE INDEX project_file_idx ON project_file(project_class_id, target_path, template_name);
+CREATE UNIQUE INDEX project_script_idx ON project_script(project_class_id, script_name, run_as_sudo);
