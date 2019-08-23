@@ -1,7 +1,88 @@
-<h1 align="center">Create-Project</h1>
+<p align="center">
+  <a href="" rel="noopener">
+ <img width=200px height=200px src="https://i.imgur.com/6wj0hh6.jpg" alt="Project logo"></a>
+</p>
 
-<p>
+<h3 align="center">proji</h3>
 
+<div align="center">
+
+[![Status](https://img.shields.io/badge/status-active-success.svg)]()
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
 [![CircleCI](https://circleci.com/gh/nikoksr/create_project/tree/master.svg?style=svg&circle-token=437a39b49c4fbc9656f7aed86aea369d584ecb87)](https://circleci.com/gh/nikoksr/create_project/tree/master)
 
+</div>
+
+---
+
+<p align="center">Proji is a lean and mean project creator and manager.
+    <br>
 </p>
+
+## 📝 Table of Contents
+
+- [About](#about)
+- [Getting Started](#getting_started)
+- [Usage](#usage)
+- [Built Using](#built_using)
+
+## 🧐 About <a name = "about"></a>
+
+I always liked to have orderly project structures but it is so annoying to create all those folders and files each time I want to start a new project. It's so much redundant work that costs me a lot of time. This is why I created proji. Proji automates all of those tasks for me based on templates, configs and scripts I previously created once.
+
+## 🏁 Getting Started <a name = "getting_started"></a>
+
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+
+### Installing
+
+A step by step series of examples that tell you how to get a development env running.
+
+Say what the step will be
+
+```
+Probably run install.sh
+```
+
+End with an example of getting some data out of the system or using it for a little demo.
+
+## 🎈 Usage <a name="usage"></a>
+
+Let's suppose I want to create a c ++ project. Normally, I'd have to execute several commands to create various folders and files, to initialize git, etc. But since I always want to use the same structure for my C ++ programs, this process can be very well automated.
+
+With proji all I have to do is run a single command:
+
+```
+proji create cpp MyProjectName
+```
+
+Which results in a project structure like this:
+
+![proji create result](assets/proji-create-result-cpp.png)
+
+Now if I'd want to create a python project:
+
+```
+$ proji create py MyPythonProject
+```
+
+Which results in a project structure like this:
+
+![proji create result](assets/proji-create-result-python.png)
+
+As you can see the two results differ from another. The project relevant folder structure is different and some files are different.
+
+In the cpp example proji created a cpp specific `.vscode` folder which enables me to immediately debug my code in my editor of choice - `vscode`. Proji created a basic project specific `CMakeLists.txt` which enables me to build a debug or release version of my project with `cmake`.
+
+In the python example proji setup a running `virtuelenv` with all packages of my choice already installed. The `.vscode` folder now contains python specific config files.
+
+In both examples proji created barebone main-files, initialized `git` and checked out the `develop branch`.
+
+## ⛏️ Built Using <a name = "built_using"></a>
+
+- [go](https://golang.org/) - Main language
+- [sqlite3](https://www.sqlite.org/index.html) - Database
+- [mattn/go-sqlite3](https://github.com/mattn/go-sqlite3) - Go Sqlite3 Driver
+- [spf13/cobra](https://github.com/spf13/cobra) - Go CLI Librarys
+- [spf13/viper](https://github.com/spf13/viper) - Go Config Library
+- [toml-lang/toml](https://github.com/toml-lang/toml) - Config Language
