@@ -2,25 +2,22 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/nikoksr/proji/internal/app/proji/project"
 
 	"github.com/spf13/cobra"
 )
 
-// createCmd represents the create command
 var createCmd = &cobra.Command{
 	Use:   "create EXTENSION PROJECT [PROJECTS]",
 	Short: "Create new projects",
-	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 2 {
-			fmt.Println("Error: Insufficient number of cli arguments.")
-			os.Exit(1)
+			return fmt.Errorf("insufficient number of cli arguments")
 		}
 
 		project.CreateProject(args[0], args[1:])
+		return nil
 	},
 }
 
