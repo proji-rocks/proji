@@ -14,7 +14,7 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "proji COMMAND ARGS",
+	Use:   "proji",
 	Short: "Proji is a fast and simple project creator.",
 	Long:  `Based on your favour proji creates the directory structures for a multitude of project types. Proji saves you hundrets of repetetive clicks or cli instructions. With one command proji creates you a multitude of projects based on your personal templates.`,
 }
