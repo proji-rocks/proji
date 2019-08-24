@@ -11,7 +11,7 @@ import (
 
 // createCmd represents the create command
 var createCmd = &cobra.Command{
-	Use:   "create <extension> <project> [projects]",
+	Use:   "create EXTENSION PROJECT [PROJECTS]",
 	Short: "Create new projects",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
