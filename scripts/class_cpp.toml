@@ -1,0 +1,52 @@
+title = "proji class cpp"
+
+[class]
+# The actual class name
+name = "c-plus-plus"
+use_label_as_file_extension = true
+
+[labels]
+# Short list of class labels
+data = ["cpp", "c++", "cc"]
+
+[files]
+new = [
+    # Names of files to the project folder
+    # Path is relative to the pro
+    "src/main.h"
+]
+
+templates = [
+    # Origin of template and target
+    # Template and target paths are relative
+    # Template path looks for the given name/path under templates/
+    # And target creates the file realtive to the project folder
+    ["main.cpp", "src/main.cpp"],
+    ["CMakeLists-cpp.txt", "CMakeLists.txt"]
+]
+
+[folders]
+new = [
+    # Names of folders to create
+    "build",
+    "build/debug",
+    "build/release",
+    "build/docs",
+    "build/src",
+]
+
+templates = [
+    # Origin of template and target
+]
+
+
+[scripts]
+# Scripts that can be run as regular user
+user = [
+    "init-git.sh"
+]
+
+# Scripts that need sudo priviledges
+sudo = [
+
+]
