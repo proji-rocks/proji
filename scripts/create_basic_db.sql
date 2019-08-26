@@ -3,11 +3,11 @@
 --
 DROP TABLE IF EXISTS project;
 DROP TABLE IF EXISTS project_status;
-DROP TABLE IF EXISTS project_class_label;
 DROP TABLE IF EXISTS project_class;
-DROP TABLE IF EXISTS project_folder;
-DROP TABLE IF EXISTS project_file;
-DROP TABLE IF EXISTS project_script;
+DROP TABLE IF EXISTS class_label;
+DROP TABLE IF EXISTS class_folder;
+DROP TABLE IF EXISTS class_file;
+DROP TABLE IF EXISTS class_script;
 --
 -- CREATE TABLES
 --
@@ -28,32 +28,31 @@ CREATE TABLE IF NOT EXISTS project_status(
 --
 CREATE TABLE IF NOT EXISTS project_class(
   project_class_id INTEGER PRIMARY KEY,
-  class_name TEXT NOT NULL,
-  default_project_class_label_id INTEGER REFERENCES project_class_label(project_class_label_id)
+  class_name TEXT NOT NULL
 );
 --
-CREATE TABLE IF NOT EXISTS project_class_label(
-  project_class_label_id INTEGER PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS class_label(
+  class_label_id INTEGER PRIMARY KEY,
   project_class_id INTEGER REFERENCES project_class(project_class_id),
   label TEXT NOT NULL
 );
 --
-CREATE TABLE IF NOT EXISTS project_folder(
-  project_folder_id INTEGER PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS class_folder(
+  class_folder_id INTEGER PRIMARY KEY,
   project_class_id INTEGER REFERENCES project_class(project_class_id),
   target_path TEXT NOT NULL,
   template_name TEXT
 );
 --
-CREATE TABLE IF NOT EXISTS project_file(
-  project_file_id INTEGER PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS class_file(
+  class_file_id INTEGER PRIMARY KEY,
   project_class_id INTEGER REFERENCES project_class(project_class_id),
   target_path TEXT NOT NULL,
   template_name TEXT
 );
 --
-CREATE TABLE IF NOT EXISTS project_script(
-  project_script_id INTEGER PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS class_script(
+  class_script_id INTEGER PRIMARY KEY,
   project_class_id INTEGER REFERENCES project_class(project_class_id),
   script_name TEXT NOT NULL,
   run_as_sudo INTEGER NOT NULL
@@ -82,15 +81,15 @@ VALUES
   );
 --
 INSERT INTO
-  project_class(class_name, default_project_class_label_id)
+  project_class(class_name)
 VALUES
-  ("C-Plus-Plus", 1),
-  ("C", 4),
-  ("Python", 6),
-  ("Web", NULL);
+  ("C-Plus-Plus"),
+  ("C"),
+  ("Python"),
+  ("Web");
 --
 INSERT INTO
-  project_class_label(project_class_id, label)
+  class_label(project_class_id, label)
 VALUES
   (1, "cpp"),
   (1, "c++"),
@@ -107,7 +106,7 @@ VALUES
   (4, "web");
 --
 INSERT INTO
-  project_folder(
+  class_folder(
     project_class_id,
     target_path,
     template_name
@@ -140,7 +139,7 @@ VALUES
   (4, "resources/templates/", NULL);
 --
 INSERT INTO
-  project_file(project_class_id, target_path, template_name)
+  class_file(project_class_id, target_path, template_name)
 VALUES
   (NULL, ".gitignore", "gitignore"),
   (1, "src/main.cpp", "main.cpp"),
@@ -167,12 +166,17 @@ VALUES
   (4, "public_html/js/main.js", NULL);
 --
 INSERT INTO
-  project_script(project_class_id, script_name, run_as_sudo)
+  class_script(project_class_id, script_name, run_as_sudo)
 VALUES
   (NULL, "init_git.sh", 0),
   (3, "init_virtualenv.sh", 0);
-CREATE UNIQUE INDEX project_class_id_class_label_idx ON project_class_label(project_class_id, label);
+DROP INDEX IF EXISTS project_class_id_class_label_idx;
+DROP INDEX IF EXISTS project_class_idx;
+DROP INDEX IF EXISTS class_folder_idx;
+DROP INDEX IF EXISTS class_file_idx;
+DROP INDEX IF EXISTS class_script_idx;
+CREATE UNIQUE INDEX project_class_id_class_label_idx ON class_label(project_class_id, label);
 CREATE UNIQUE INDEX project_class_idx ON project_class(class_name);
-CREATE UNIQUE INDEX project_folder_idx ON project_folder(project_class_id, target_path, template_name);
-CREATE UNIQUE INDEX project_file_idx ON project_file(project_class_id, target_path, template_name);
-CREATE UNIQUE INDEX project_script_idx ON project_script(project_class_id, script_name, run_as_sudo);
+CREATE UNIQUE INDEX class_folder_idx ON class_folder(project_class_id, target_path, template_name);
+CREATE UNIQUE INDEX class_file_idx ON class_file(project_class_id, target_path, template_name);
+CREATE UNIQUE INDEX class_script_idx ON class_script(project_class_id, script_name, run_as_sudo);
