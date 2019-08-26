@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/spf13/viper"
 
@@ -35,6 +36,7 @@ func CreateProject(label string, projects []string) error {
 	}
 
 	// Create setup
+	label = strings.ToLower(label)
 	newSetup := Setup{Owd: cwd, ConfigDir: configDir, DatabaseName: databaseName, Label: label}
 	err = newSetup.init()
 	if err != nil {

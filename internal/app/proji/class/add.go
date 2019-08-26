@@ -14,6 +14,7 @@ import (
 
 // AddClassCLI adds a new class interactively through the cli to the database
 func AddClassCLI(name string) error {
+	name = strings.ToLower(name)
 	reader := bufio.NewReader(os.Stdin)
 
 	labels, err := addLabels(reader)
@@ -319,7 +320,7 @@ func insertLabels(tx *sql.Tx, classID string, labels []string) error {
 	}
 	defer stmt.Close()
 	for _, label := range labels {
-		_, err = stmt.Exec(classID, label)
+		_, err = stmt.Exec(classID, strings.ToLower(label))
 		if err != nil {
 			return err
 		}
