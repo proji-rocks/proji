@@ -318,7 +318,7 @@ func (project *Project) copyTemplates() error {
 // Returns error on failure. Returns nil on success.
 func (project *Project) runScripts() error {
 	// Query scripts
-	stmt, err := project.Data.db.Prepare("SELECT script_name, run_as_sudo FROM class_script WHERE project_class_id is NULL OR project_class_id = ? ORDER BY project_class_id DESC")
+	stmt, err := project.Data.db.Prepare("SELECT script_name, run_as_sudo FROM class_script WHERE (project_class_id is NULL OR project_class_id = ?) ORDER BY project_class_id DESC")
 	if err != nil {
 		return err
 	}
@@ -331,15 +331,26 @@ func (project *Project) runScripts() error {
 	defer scripts.Close()
 
 	// Create scripts
+	var script string
+	var runAsSudo bool
+
 	for scripts.Next() {
-		var script string
-		var runAsSudo int
 		err = scripts.Scan(&script, &runAsSudo)
 		if err != nil {
 			return err
 		}
+
 		script = project.Data.scriptsDir + script
-		err = exec.Command(script).Run()
+
+		if runAsSudo {
+			script = "sudo " + script
+		}
+
+		cmd := exec.Command(script)
+		cmd.Stdout = os.Stdout
+		cmd.Stdin = os.Stdin
+		cmd.Stderr = os.Stderr
+		err = cmd.Run()
 		if err != nil {
 			return err
 		}
