@@ -85,4 +85,5 @@ In both examples proji created barebone main-files, initialized `git` and checke
 - [mattn/go-sqlite3](https://github.com/mattn/go-sqlite3) - Go Sqlite3 Driver
 - [spf13/cobra](https://github.com/spf13/cobra) - Go CLI Librarys
 - [spf13/viper](https://github.com/spf13/viper) - Go Config Library
+- [BurntSushi/toml](https://github.com/BurntSushi/toml) - Go toml parser
 - [toml-lang/toml](https://github.com/toml-lang/toml) - Config Language
