@@ -34,12 +34,12 @@ func AddClassCLI(className string) error {
 		return err
 	}
 
-	err = addClassToDB(className, labels, folders, files, scripts)
+	err = AddClassToDB(className, labels, folders, files, scripts)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Added class %s successfully.\n", className)
+	fmt.Printf("> Added class %s successfully.\n", className)
 	return nil
 }
 
@@ -215,7 +215,8 @@ func addScripts(reader *bufio.Reader) (map[string]bool, error) {
 	return allScripts, nil
 }
 
-func addClassToDB(className string, labels []string, folders, files map[string]string, scripts map[string]bool) error {
+// AddClassToDB adds a new class and its dependencies to a database
+func AddClassToDB(className string, labels []string, folders, files map[string]string, scripts map[string]bool) error {
 	// Connect to database
 	DBDir := helper.GetConfigDir() + "/db/"
 	databaseName, ok := viper.Get("database.name").(string)
