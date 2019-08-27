@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"os"
@@ -37,4 +38,29 @@ func GetConfigDir() string {
 	}
 
 	return home + "/.config/proji/"
+}
+
+// QueryClassID queries the id of namely specified class
+func QueryClassID(tx *sql.Tx, className string) (int, error) {
+	stmt, err := tx.Prepare("SELECT project_class_id FROM project_class WHERE class_name = ?")
+	if err != nil {
+		return -1, err
+	}
+	defer stmt.Close()
+
+	queryClassID, err := stmt.Query(className)
+	if err != nil {
+		return -1, err
+	}
+	defer queryClassID.Close()
+
+	var classID int
+	if !queryClassID.Next() {
+		return -1, fmt.Errorf("could not find class %s in database", className)
+	}
+	err = queryClassID.Scan(&classID)
+	if err != nil {
+		return -1, err
+	}
+	return classID, nil
 }
