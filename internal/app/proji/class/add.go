@@ -13,8 +13,8 @@ import (
 )
 
 // AddClassCLI adds a new class interactively through the cli to the database
-func AddClassCLI(name string) error {
-	name = strings.ToLower(name)
+func AddClassCLI(className string) error {
+	className = strings.ToLower(className)
 	reader := bufio.NewReader(os.Stdin)
 
 	labels, err := addLabels(reader)
@@ -34,12 +34,12 @@ func AddClassCLI(name string) error {
 		return err
 	}
 
-	err = addClassToDB(name, labels, folders, files, scripts)
+	err = addClassToDB(className, labels, folders, files, scripts)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Added class %s successfully.\n", name)
+	fmt.Printf("Added class %s successfully.\n", className)
 	return nil
 }
 
@@ -240,7 +240,7 @@ func addClassToDB(className string, labels []string, folders, files map[string]s
 	}
 
 	// Get id of new class
-	classID, err := queryClassID(tx, className)
+	classID, err := helper.QueryClassID(tx, className)
 	if err != nil {
 		return err
 	}
@@ -269,7 +269,10 @@ func addClassToDB(className string, labels []string, folders, files map[string]s
 		return err
 	}
 
-	tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -287,33 +290,8 @@ func insertClass(tx *sql.Tx, className string) error {
 	return nil
 }
 
-// queryClassID queries the id of namely specified class
-func queryClassID(tx *sql.Tx, className string) (string, error) {
-	stmt, err := tx.Prepare("SELECT project_class_id FROM project_class WHERE class_name = ?")
-	if err != nil {
-		return "", err
-	}
-	defer stmt.Close()
-
-	queryClassID, err := stmt.Query(className)
-	if err != nil {
-		return "", err
-	}
-	defer queryClassID.Close()
-
-	var classID string
-	if !queryClassID.Next() {
-		return "", fmt.Errorf("could not find class in database")
-	}
-	err = queryClassID.Scan(&classID)
-	if err != nil {
-		return "", err
-	}
-	return classID, nil
-}
-
 // insertLabels inserts new class labels into the database
-func insertLabels(tx *sql.Tx, classID string, labels []string) error {
+func insertLabels(tx *sql.Tx, classID int, labels []string) error {
 	stmt, err := tx.Prepare("INSERT INTO class_label(project_class_id, label) VALUES(?, ?)")
 	if err != nil {
 		return err
@@ -329,7 +307,7 @@ func insertLabels(tx *sql.Tx, classID string, labels []string) error {
 }
 
 // insertFolders inserts new class folders into the database
-func insertFolders(tx *sql.Tx, classID string, folders map[string]string) error {
+func insertFolders(tx *sql.Tx, classID int, folders map[string]string) error {
 	stmt, err := tx.Prepare("INSERT INTO class_folder(project_class_id, target_path, template_name) VALUES(?, ?, ?)")
 	if err != nil {
 		return err
@@ -349,7 +327,7 @@ func insertFolders(tx *sql.Tx, classID string, folders map[string]string) error 
 }
 
 // insertFiles inserts new class files into the database
-func insertFiles(tx *sql.Tx, classID string, files map[string]string) error {
+func insertFiles(tx *sql.Tx, classID int, files map[string]string) error {
 	stmt, err := tx.Prepare("INSERT INTO class_file(project_class_id, target_path, template_name) VALUES(?, ?, ?)")
 	if err != nil {
 		return err
@@ -369,7 +347,7 @@ func insertFiles(tx *sql.Tx, classID string, files map[string]string) error {
 }
 
 // insertScripts inserts new class scripts into the database
-func insertScripts(tx *sql.Tx, classID string, scripts map[string]bool) error {
+func insertScripts(tx *sql.Tx, classID int, scripts map[string]bool) error {
 	stmt, err := tx.Prepare("INSERT INTO class_script(project_class_id, script_name, run_as_sudo) VALUES(?, ?, ?)")
 	if err != nil {
 		return err
