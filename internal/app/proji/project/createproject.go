@@ -20,7 +20,6 @@ import (
 // CreateProject will create projects.
 // It will create directories and files, copy templates and run scripts.
 func CreateProject(label string, projects []string) error {
-	// TODO: Load values from a config file
 	configDir := helper.GetConfigDir()
 	databaseName, ok := viper.Get("database.name").(string)
 
