@@ -170,12 +170,12 @@ INSERT INTO
 VALUES
   (NULL, "init_git.sh", 0),
   (3, "init_virtualenv.sh", 0);
-DROP INDEX IF EXISTS project_class_id_class_label_idx;
+DROP INDEX IF EXISTS class_label_idx;
 DROP INDEX IF EXISTS project_class_idx;
 DROP INDEX IF EXISTS class_folder_idx;
 DROP INDEX IF EXISTS class_file_idx;
 DROP INDEX IF EXISTS class_script_idx;
-CREATE UNIQUE INDEX project_class_id_class_label_idx ON class_label(project_class_id, label);
+CREATE UNIQUE INDEX class_label_idx ON class_label(label);
 CREATE UNIQUE INDEX project_class_idx ON project_class(class_name);
 CREATE UNIQUE INDEX class_folder_idx ON class_folder(project_class_id, target_path, template_name);
 CREATE UNIQUE INDEX class_file_idx ON class_file(project_class_id, target_path, template_name);
