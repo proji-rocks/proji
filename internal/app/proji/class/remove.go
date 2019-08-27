@@ -65,7 +65,7 @@ func RemoveClass(className string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Removed class %s successfully.\n", className)
+	fmt.Printf("> Removed class %s successfully.\n", className)
 	return nil
 }
 
