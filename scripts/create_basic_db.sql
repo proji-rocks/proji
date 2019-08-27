@@ -83,10 +83,10 @@ VALUES
 INSERT INTO
   project_class(class_name)
 VALUES
-  ("C-Plus-Plus"),
-  ("C"),
-  ("Python"),
-  ("Web");
+  ("c-plus-plus"),
+  ("c"),
+  ("python"),
+  ("web");
 --
 INSERT INTO
   class_label(project_class_id, label)
