@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/spf13/viper"
 
@@ -19,7 +20,6 @@ import (
 // CreateProject will create projects.
 // It will create directories and files, copy templates and run scripts.
 func CreateProject(label string, projects []string) error {
-	// TODO: Load values from a config file
 	configDir := helper.GetConfigDir()
 	databaseName, ok := viper.Get("database.name").(string)
 
@@ -35,6 +35,7 @@ func CreateProject(label string, projects []string) error {
 	}
 
 	// Create setup
+	label = strings.ToLower(label)
 	newSetup := Setup{Owd: cwd, ConfigDir: configDir, DatabaseName: databaseName, Label: label}
 	err = newSetup.init()
 	if err != nil {
@@ -104,7 +105,7 @@ func (setup *Setup) stop() {
 // isLabelSupported checks if the given label is found in the database.
 // Returns nil if found, returns error if not found
 func (setup *Setup) isLabelSupported() error {
-	stmt, err := setup.db.Prepare("SELECT project_class_id FROM project_class_label WHERE label = ?")
+	stmt, err := setup.db.Prepare("SELECT project_class_id FROM class_label WHERE label = ?")
 	if err != nil {
 		return err
 	}
@@ -189,7 +190,7 @@ func (project *Project) createProjectFolder() error {
 // Returns error on failure. Returns nil on success.
 func (project *Project) createSubFolders() error {
 	// Query subfolders
-	stmt, err := project.Data.db.Prepare("SELECT target_path FROM project_folder WHERE (project_class_id = ? OR project_class_id IS NULL) AND template_name IS NULL")
+	stmt, err := project.Data.db.Prepare("SELECT target_path FROM class_folder WHERE (project_class_id = ? OR project_class_id IS NULL) AND template_name IS NULL")
 	if err != nil {
 		return err
 	}
@@ -221,7 +222,7 @@ func (project *Project) createSubFolders() error {
 // Returns error on failure. Returns nil on success.
 func (project *Project) createFiles() error {
 	// Query files
-	stmt, err := project.Data.db.Prepare("SELECT target_path FROM project_file WHERE (project_class_id = ? OR project_class_id IS NULL) AND template_name IS NULL")
+	stmt, err := project.Data.db.Prepare("SELECT target_path FROM class_file WHERE (project_class_id = ? OR project_class_id IS NULL) AND template_name IS NULL")
 	if err != nil {
 		return err
 	}
@@ -255,7 +256,7 @@ func (project *Project) createFiles() error {
 func (project *Project) copyTemplates() error {
 	// Query template folders
 	stmt, err := project.Data.db.Prepare(
-		"SELECT target_path, template_name FROM project_folder WHERE (project_class_id = ? OR project_class_id IS NULL) AND template_name IS NOT NULL")
+		"SELECT target_path, template_name FROM class_folder WHERE (project_class_id = ? OR project_class_id IS NULL) AND template_name IS NOT NULL")
 	if err != nil {
 		return err
 	}
@@ -283,7 +284,7 @@ func (project *Project) copyTemplates() error {
 
 	// Query template files
 	stmt, err = project.Data.db.Prepare(
-		"SELECT target_path, template_name FROM project_file WHERE (project_class_id = ? OR project_class_id IS NULL) AND template_name IS NOT NULL")
+		"SELECT target_path, template_name FROM class_file WHERE (project_class_id = ? OR project_class_id IS NULL) AND template_name IS NOT NULL")
 	if err != nil {
 		return err
 	}
@@ -316,7 +317,7 @@ func (project *Project) copyTemplates() error {
 // Returns error on failure. Returns nil on success.
 func (project *Project) runScripts() error {
 	// Query scripts
-	stmt, err := project.Data.db.Prepare("SELECT script_name, run_as_sudo FROM project_script WHERE project_class_id is NULL OR project_class_id = ? ORDER BY project_class_id DESC")
+	stmt, err := project.Data.db.Prepare("SELECT script_name, run_as_sudo FROM class_script WHERE (project_class_id is NULL OR project_class_id = ?) ORDER BY project_class_id DESC")
 	if err != nil {
 		return err
 	}
@@ -329,15 +330,26 @@ func (project *Project) runScripts() error {
 	defer scripts.Close()
 
 	// Create scripts
+	var script string
+	var runAsSudo bool
+
 	for scripts.Next() {
-		var script string
-		var runAsSudo int
 		err = scripts.Scan(&script, &runAsSudo)
 		if err != nil {
 			return err
 		}
+
 		script = project.Data.scriptsDir + script
-		err = exec.Command(script).Run()
+
+		if runAsSudo {
+			script = "sudo " + script
+		}
+
+		cmd := exec.Command(script)
+		cmd.Stdout = os.Stdout
+		cmd.Stdin = os.Stdin
+		cmd.Stderr = os.Stderr
+		err = cmd.Run()
 		if err != nil {
 			return err
 		}

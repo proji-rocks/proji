@@ -1,0 +1,58 @@
+# Proji class template file
+title = "Niko's cpp proji class"
+
+
+[class]
+# The actual class name.
+# Must be unique and expressive.
+name = "c-plus-plus"
+
+
+
+[labels]
+# One or more short class labels. Labels must be unique and
+# should ideally be descriptive. These labels will be
+# used later on to create your projects.
+# e.g.: proji create YOUR-LABEL my-new-project
+# The first label will be used as the default file extension.
+data = ["cpp", "c++", "cc"] # Good
+# data = ["cpp"] Good
+# data = ["my-cpp-label"] Bad - too long
+# data = ["i-like-turtles"] Bad - unrelated to class name
+
+
+[folders]
+# Folders to create in or copy to the project folder.
+# Target is a relative path inside the project folder.
+# Template is a relative path inside the configs template folder.
+# (~/.config/proji/templates/)
+# If you don't want to create a folder by copying a template, just leave
+# out the template field and only specify the target. This will create an
+# empty file.
+
+# Synatx: "TARGET" = "TEMPLATE"
+"build/" = ""
+"build/debug" = ""
+"build/release" = ""
+"docs/" = ""
+"src/" = ""
+
+
+[files]
+# Files to create in or copy to the project folder.
+# See [folders] for instructions.
+
+"README.md" = ""
+"src/main.cpp" = "main.cpp"
+"CMakeLists.txt" = "CMakeLists-cpp.txt"
+
+
+[scripts]
+# Scripts you want to execute after the project structure was created.
+# First value should be a script that lies inside the scripts folder.
+# The second value is of type boolean and should be true or false
+# respectively if the script needs to be executed as root or not.
+
+# Syntax: "SCRIPTNAME" = RUN_AS_SUDO
+"myScript.sh" = false
+"mySudoScript.sh" = true

@@ -1,0 +1,168 @@
+package class
+
+import (
+	"database/sql"
+	"errors"
+	"fmt"
+	"strings"
+
+	"github.com/nikoksr/proji/internal/app/helper"
+	"github.com/spf13/viper"
+)
+
+// Show shows detailed information abour a given class
+func Show(className string) error {
+	className = strings.ToLower(className)
+
+	// Connect to database
+	DBDir := helper.GetConfigDir() + "/db/"
+	databaseName, ok := viper.Get("database.name").(string)
+
+	if ok != true {
+		return errors.New("could not read database name from config file")
+	}
+
+	db, err := sql.Open("sqlite3", DBDir+databaseName)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	// Get class id
+	classID, err := helper.QueryClassID(tx, className)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(helper.ProjectHeader(className))
+
+	err = showLabels(tx, classID)
+	if err != nil {
+		return nil
+	}
+
+	err = showFolders(tx, classID)
+	if err != nil {
+		return nil
+	}
+
+	err = showFiles(tx, classID)
+	if err != nil {
+		return nil
+	}
+
+	err = showScripts(tx, classID)
+	if err != nil {
+		return nil
+	}
+
+	return nil
+}
+
+// showLabels shows all labels of a given class
+func showLabels(tx *sql.Tx, classID int) error {
+	stmt, err := tx.Prepare("SELECT label FROM class_label WHERE project_class_id = ? ORDER BY label ASC")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	query, err := stmt.Query(classID)
+	if err != nil {
+		return err
+	}
+	defer query.Close()
+
+	fmt.Println("Labels:")
+	var label string
+	for query.Next() {
+		query.Scan(&label)
+		fmt.Println(" " + label)
+	}
+	fmt.Println()
+	return nil
+}
+
+// showFolders shows all folders of a given class
+func showFolders(tx *sql.Tx, classID int) error {
+	stmt, err := tx.Prepare("SELECT target_path, template_name FROM class_folder WHERE project_class_id = ? ORDER BY target_path")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	query, err := stmt.Query(classID)
+	if err != nil {
+		return err
+	}
+	defer query.Close()
+
+	fmt.Println("Folders:")
+	var target, template string
+	for query.Next() {
+		query.Scan(&target, &template)
+		fmt.Printf(" %s - %s\n", target, template)
+	}
+	fmt.Println()
+	return nil
+}
+
+// showFiles shows all files of a given class
+func showFiles(tx *sql.Tx, classID int) error {
+	stmt, err := tx.Prepare("SELECT target_path, template_name FROM class_file WHERE project_class_id = ? ORDER BY target_path")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	query, err := stmt.Query(classID)
+	if err != nil {
+		return err
+	}
+	defer query.Close()
+
+	fmt.Println("Files:")
+	var target, template string
+	for query.Next() {
+		query.Scan(&target, &template)
+		fmt.Printf(" %s - %s\n", target, template)
+	}
+	fmt.Println()
+	return nil
+}
+
+// showScripts shows all scripts of a given class
+func showScripts(tx *sql.Tx, classID int) error {
+	stmt, err := tx.Prepare("SELECT script_name, run_as_sudo FROM class_script WHERE project_class_id = ? ORDER BY run_as_sudo ASC")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	query, err := stmt.Query(classID)
+	if err != nil {
+		return err
+	}
+	defer query.Close()
+
+	fmt.Println("Scripts:")
+	var scriptName string
+	var runAsSudo bool
+	var sudo string
+	for query.Next() {
+		query.Scan(&scriptName, &runAsSudo)
+		if runAsSudo {
+			sudo = "sudo"
+		} else {
+			sudo = ""
+		}
+		fmt.Printf(" %s %s\n", scriptName, sudo)
+	}
+	fmt.Println()
+	return nil
+}

@@ -1,4 +1,4 @@
-title = "proji"
+title = "proji main config"
 
 [database]
 name = "proji.sqlite3"
