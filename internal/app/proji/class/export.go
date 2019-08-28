@@ -2,7 +2,8 @@ package class
 
 import (
 	"database/sql"
-	"errors"
+	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -20,7 +21,7 @@ func Export(className string) error {
 	databaseName, ok := viper.Get("database.name").(string)
 
 	if ok != true {
-		return errors.New("could not read database name from config file")
+		return fmt.Errorf("could not read database name from config file")
 	}
 
 	db, err := sql.Open("sqlite3", DBDir+databaseName)
@@ -88,6 +89,43 @@ func Export(className string) error {
 		return err
 	}
 	return nil
+}
+
+// ExportExample exports an example class config
+func ExportExample(destFolder string) error {
+
+	exampleDir, ok := viper.Get("examples.location").(string)
+	if ok != true {
+		return fmt.Errorf("could not read example file location from config file")
+	}
+	exampleFile, ok := viper.Get("examples.class").(string)
+	if ok != true {
+		return fmt.Errorf("could not read example file name from config file")
+	}
+
+	exampleFile = helper.GetConfigDir() + exampleDir + exampleFile
+	sourceFileStat, err := os.Stat(exampleFile)
+	if err != nil {
+		return err
+	}
+
+	if !sourceFileStat.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file", exampleFile)
+	}
+
+	source, err := os.Open(exampleFile)
+	if err != nil {
+		return err
+	}
+	defer source.Close()
+
+	destination, err := os.Create(destFolder + "/proji-class-example.toml")
+	if err != nil {
+		return err
+	}
+	defer destination.Close()
+	_, err = io.Copy(destination, source)
+	return err
 }
 
 // exportLabels exports all labels of a given class
