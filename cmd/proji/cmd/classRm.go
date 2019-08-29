@@ -7,8 +7,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var classRemoveCmd = &cobra.Command{
-	Use:   "remove CLASS [CLASS...]",
+var classRmCmd = &cobra.Command{
+	Use:   "rm CLASS [CLASS...]",
 	Short: "Remove existing classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
@@ -26,5 +26,5 @@ var classRemoveCmd = &cobra.Command{
 }
 
 func init() {
-	classCmd.AddCommand(classRemoveCmd)
+	classCmd.AddCommand(classRmCmd)
 }
