@@ -292,8 +292,6 @@ func (project *Project) copyTemplates() error {
 		}
 
 		target = re.ReplaceAllString(target, project.Name)
-		src = re.ReplaceAllString(src, project.Name)
-
 		src = project.Data.templatesDir + src
 		err := copy.Copy(src, target)
 		if err != nil {
@@ -323,8 +321,6 @@ func (project *Project) copyTemplates() error {
 		}
 
 		target = re.ReplaceAllString(target, project.Name)
-		src = re.ReplaceAllString(src, project.Name)
-
 		src = project.Data.templatesDir + src
 		err := copy.Copy(src, target)
 		if err != nil {
