@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -203,12 +204,18 @@ func (project *Project) createSubFolders() error {
 	defer subFolders.Close()
 
 	// Create subfolders
+	re := regexp.MustCompile(`__PROJECT_NAME__`)
+
 	for subFolders.Next() {
 		var subFolder string
 		err = subFolders.Scan(&subFolder)
 		if err != nil {
 			return err
 		}
+
+		// Replace env variables
+		subFolder = re.ReplaceAllString(subFolder, project.Name)
+
 		err = os.MkdirAll(subFolder, os.ModePerm)
 		if err != nil {
 			return err
@@ -235,12 +242,18 @@ func (project *Project) createFiles() error {
 	defer files.Close()
 
 	// Create files
+	re := regexp.MustCompile(`__PROJECT_NAME__`)
+
 	for files.Next() {
 		var file string
 		err = files.Scan(&file)
 		if err != nil {
 			return err
 		}
+
+		// Replace env variables
+		file = re.ReplaceAllString(file, project.Name)
+
 		f, err := os.OpenFile(file, os.O_RDONLY|os.O_CREATE, os.ModePerm)
 		if err != nil {
 			return err
@@ -269,12 +282,16 @@ func (project *Project) copyTemplates() error {
 	defer folders.Close()
 
 	// Copy template files
+	re := regexp.MustCompile(`__PROJECT_NAME__`)
+
 	for folders.Next() {
 		var target, src string
 		err = folders.Scan(&target, &src)
 		if err != nil {
 			return err
 		}
+
+		target = re.ReplaceAllString(target, project.Name)
 		src = project.Data.templatesDir + src
 		err := copy.Copy(src, target)
 		if err != nil {
@@ -302,6 +319,8 @@ func (project *Project) copyTemplates() error {
 		if err != nil {
 			return err
 		}
+
+		target = re.ReplaceAllString(target, project.Name)
 		src = project.Data.templatesDir + src
 		err := copy.Copy(src, target)
 		if err != nil {

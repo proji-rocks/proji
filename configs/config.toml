@@ -1,8 +1,0 @@
-title = "proji main config"
-
-[database]
-name = "proji.sqlite3"
-location = "${HOME}/.config/proji/db/"
-
-[editor]
-name = "code"
