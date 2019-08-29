@@ -1,8 +1,12 @@
-.env/
+# Folders
 .vscode/
-__pycache__/
+templates/
 vendor/
+
+# File Extensions
 *.sqlite
 *.db
+
+# Files
 Gopkg.lock
 Gopkg.toml
