@@ -1,12 +1,12 @@
 # Proji class template file
-title = "Niko's cpp proji class"
+title = "proji class example"
 
 
 [class]
 # The actual class name.
 # Must be unique and expressive.
-name = "c-plus-plus"
-
+# name = "myTestClass" <- Good
+# name = "t1"          <- Bad, too short and not expressive
 
 
 [labels]
@@ -15,10 +15,10 @@ name = "c-plus-plus"
 # used later on to create your projects.
 # e.g.: proji create YOUR-LABEL my-new-project
 # The first label will be used as the default file extension.
-data = ["cpp", "c++", "cc"] # Good
-# data = ["cpp"] Good
-# data = ["my-cpp-label"] Bad - too long
-# data = ["i-like-turtles"] Bad - unrelated to class name
+# data = ["mtc"]                <- Good
+# data = ["mtc", "tc"]          <- Okay, 'tc' is not directly derived from class name
+# data = ["myTestClassLabel"]   <- Bad - too long
+# data = ["ilt"]                <- Bad - unrelated to class name
 
 
 [folders]
@@ -31,20 +31,16 @@ data = ["cpp", "c++", "cc"] # Good
 # empty file.
 
 # Synatx: "TARGET" = "TEMPLATE"
-"build/" = ""
-"build/debug" = ""
-"build/release" = ""
-"docs/" = ""
-"src/" = ""
+# "myNewFolder/" = ""                <- no template, just create the file
+# "myTargetFolder/" = "templateName" <- copy template to target location
 
 
 [files]
 # Files to create in or copy to the project folder.
 # See [folders] for instructions.
 
-"README.md" = ""
-"src/main.cpp" = "main.cpp"
-"CMakeLists.txt" = "CMakeLists-cpp.txt"
+# "text/myFile.txt" = ""
+# "myTargetFile.txt" = "templateFile.txt"
 
 
 [scripts]
@@ -54,5 +50,5 @@ data = ["cpp", "c++", "cc"] # Good
 # respectively if the script needs to be executed as root or not.
 
 # Syntax: "SCRIPTNAME" = RUN_AS_SUDO
-"myScript.sh" = false
-"mySudoScript.sh" = true
+# "myScript.sh" = false    <- run my script as regular user
+# "mySudoScript.sh" = true <- run my script as root
