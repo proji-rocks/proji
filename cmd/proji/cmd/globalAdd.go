@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var globalType string
+var globalAddType string
 
 var globalAddCmd = &cobra.Command{
 	Use:   "add TARGET [TEMPLATE]",
@@ -20,10 +20,10 @@ var globalAddCmd = &cobra.Command{
 		if len(args) > 2 {
 			return fmt.Errorf("too many arguments were given")
 		}
-		if err := isTypeValid(globalType); err != nil {
+		if err := isTypeValid(globalAddType); err != nil {
 			return err
 		}
-		return global.AddGlobal(globalType, args)
+		return global.AddGlobal(globalAddType, args)
 	},
 }
 
@@ -31,7 +31,7 @@ func init() {
 	globalCmd.AddCommand(globalAddCmd)
 
 	// Flag to export an example config
-	globalAddCmd.PersistentFlags().StringVarP(&globalType, "type", "t", "", "type of global - folder, file or script")
+	globalAddCmd.PersistentFlags().StringVarP(&globalAddType, "type", "t", "", "type of global - folder, file or script")
 	globalAddCmd.MarkPersistentFlagRequired("type")
 }
 
