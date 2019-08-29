@@ -9,10 +9,10 @@ import (
 
 var classImportCmd = &cobra.Command{
 	Use:   "import FILE",
-	Short: "Import a proji class from a config file",
+	Short: "import a proji class from a config file",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("Missing configfile name")
+			return fmt.Errorf("missing configfile name")
 		}
 
 		for _, configName := range args {
