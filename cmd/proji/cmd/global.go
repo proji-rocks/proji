@@ -6,7 +6,7 @@ import (
 
 var globalCmd = &cobra.Command{
 	Use:   "global",
-	Short: "Work on proji globals",
+	Short: "work on proji globals",
 }
 
 func init() {

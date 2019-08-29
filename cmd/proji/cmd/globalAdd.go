@@ -12,7 +12,7 @@ var globalType string
 
 var globalAddCmd = &cobra.Command{
 	Use:   "add TARGET [TEMPLATE]",
-	Short: "Add a new global",
+	Short: "add a new global",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			return fmt.Errorf("missing global name")
@@ -31,7 +31,7 @@ func init() {
 	globalCmd.AddCommand(globalAddCmd)
 
 	// Flag to export an example config
-	globalAddCmd.PersistentFlags().StringVarP(&globalType, "type", "t", "", "Type of global - folder, file or script")
+	globalAddCmd.PersistentFlags().StringVarP(&globalType, "type", "t", "", "type of global - folder, file or script")
 	globalAddCmd.MarkPersistentFlagRequired("type")
 }
 

@@ -9,10 +9,10 @@ import (
 
 var classAddCmd = &cobra.Command{
 	Use:   "add CLASS",
-	Short: "Add a new class",
+	Short: "add a new class",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
-			return fmt.Errorf("Missing class name")
+			return fmt.Errorf("missing class name")
 		}
 
 		err := class.AddClassCLI(args[0])

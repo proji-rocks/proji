@@ -10,7 +10,7 @@ import (
 
 var createCmd = &cobra.Command{
 	Use:   "create LABEL PROJECTNAME [PROJECTNAME...]",
-	Short: "Create new projects",
+	Short: "create new projects",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 2 {
 			return fmt.Errorf("insufficient number of cli arguments")

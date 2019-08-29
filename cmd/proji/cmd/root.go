@@ -15,7 +15,7 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "proji",
-	Short: "A lean and mean project creator and manager. ",
+	Short: "a lean and mean project creator and manager. ",
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

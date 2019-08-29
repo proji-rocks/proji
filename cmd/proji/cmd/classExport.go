@@ -11,7 +11,7 @@ var exportExample bool
 
 var classExportCmd = &cobra.Command{
 	Use:   "export CLASS [CLASS...]",
-	Short: "Export proji classes to config files",
+	Short: "export proji classes to config files",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		numArgs := len(args)
 		if exportExample {
@@ -28,7 +28,7 @@ var classExportCmd = &cobra.Command{
 		}
 
 		if numArgs < 1 {
-			return fmt.Errorf("Missing class name")
+			return fmt.Errorf("missing class name")
 		}
 		for _, className := range args {
 			err := class.Export(className)
@@ -44,5 +44,5 @@ func init() {
 	classCmd.AddCommand(classExportCmd)
 
 	// Flag to export an example config
-	classExportCmd.Flags().BoolVarP(&exportExample, "example", "e", false, "Export example config")
+	classExportCmd.Flags().BoolVarP(&exportExample, "example", "e", false, "export example config")
 }
