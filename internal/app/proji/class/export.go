@@ -130,7 +130,7 @@ func ExportExample(destFolder string) error {
 
 // exportLabels exports all labels of a given class
 func exportLabels(tx *sql.Tx, classID int) ([]string, error) {
-	stmt, err := tx.Prepare("SELECT label FROM class_label WHERE project_class_id = ? ORDER BY label ASC")
+	stmt, err := tx.Prepare("SELECT label FROM class_label WHERE class_id = ? ORDER BY label ASC")
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func exportLabels(tx *sql.Tx, classID int) ([]string, error) {
 
 // exportFolders exports all folders of a given class
 func exportFolders(tx *sql.Tx, classID int) (map[string]string, error) {
-	stmt, err := tx.Prepare("SELECT target_path, template_name FROM class_folder WHERE project_class_id = ? ORDER BY target_path")
+	stmt, err := tx.Prepare("SELECT target_path, template_name FROM class_folder WHERE class_id = ? ORDER BY target_path")
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func exportFolders(tx *sql.Tx, classID int) (map[string]string, error) {
 
 // exportFiles exports all files of a given class
 func exportFiles(tx *sql.Tx, classID int) (map[string]string, error) {
-	stmt, err := tx.Prepare("SELECT target_path, template_name FROM class_file WHERE project_class_id = ? ORDER BY target_path")
+	stmt, err := tx.Prepare("SELECT target_path, template_name FROM class_file WHERE class_id = ? ORDER BY target_path")
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +203,7 @@ func exportFiles(tx *sql.Tx, classID int) (map[string]string, error) {
 
 // exportScripts exports all scripts of a given class
 func exportScripts(tx *sql.Tx, classID int) (map[string]bool, error) {
-	stmt, err := tx.Prepare("SELECT script_name, run_as_sudo FROM class_script WHERE project_class_id = ? ORDER BY script_name ASC")
+	stmt, err := tx.Prepare("SELECT script_name, run_as_sudo FROM class_script WHERE class_id = ? ORDER BY script_name ASC")
 	if err != nil {
 		return nil, err
 	}

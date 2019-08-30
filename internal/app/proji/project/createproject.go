@@ -106,7 +106,7 @@ func (setup *Setup) stop() {
 // isLabelSupported checks if the given label is found in the database.
 // Returns nil if found, returns error if not found
 func (setup *Setup) isLabelSupported() error {
-	stmt, err := setup.db.Prepare("SELECT project_class_id FROM class_label WHERE label = ?")
+	stmt, err := setup.db.Prepare("SELECT class_id FROM class_label WHERE label = ?")
 	if err != nil {
 		return err
 	}
@@ -191,7 +191,7 @@ func (project *Project) createProjectFolder() error {
 // Returns error on failure. Returns nil on success.
 func (project *Project) createSubFolders() error {
 	// Query subfolders
-	stmt, err := project.Data.db.Prepare("SELECT target_path FROM class_folder WHERE (project_class_id = ? OR project_class_id IS NULL) AND template_name IS NULL")
+	stmt, err := project.Data.db.Prepare("SELECT target_path FROM class_folder WHERE (class_id = ? OR class_id IS NULL) AND template_name IS NULL")
 	if err != nil {
 		return err
 	}
@@ -229,7 +229,7 @@ func (project *Project) createSubFolders() error {
 // Returns error on failure. Returns nil on success.
 func (project *Project) createFiles() error {
 	// Query files
-	stmt, err := project.Data.db.Prepare("SELECT target_path FROM class_file WHERE (project_class_id = ? OR project_class_id IS NULL) AND template_name IS NULL")
+	stmt, err := project.Data.db.Prepare("SELECT target_path FROM class_file WHERE (class_id = ? OR class_id IS NULL) AND template_name IS NULL")
 	if err != nil {
 		return err
 	}
@@ -269,7 +269,7 @@ func (project *Project) createFiles() error {
 func (project *Project) copyTemplates() error {
 	// Query template folders
 	stmt, err := project.Data.db.Prepare(
-		"SELECT target_path, template_name FROM class_folder WHERE (project_class_id = ? OR project_class_id IS NULL) AND template_name IS NOT NULL")
+		"SELECT target_path, template_name FROM class_folder WHERE (class_id = ? OR class_id IS NULL) AND template_name IS NOT NULL")
 	if err != nil {
 		return err
 	}
@@ -301,7 +301,7 @@ func (project *Project) copyTemplates() error {
 
 	// Query template files
 	stmt, err = project.Data.db.Prepare(
-		"SELECT target_path, template_name FROM class_file WHERE (project_class_id = ? OR project_class_id IS NULL) AND template_name IS NOT NULL")
+		"SELECT target_path, template_name FROM class_file WHERE (class_id = ? OR class_id IS NULL) AND template_name IS NOT NULL")
 	if err != nil {
 		return err
 	}
@@ -336,7 +336,7 @@ func (project *Project) copyTemplates() error {
 // Returns error on failure. Returns nil on success.
 func (project *Project) runScripts() error {
 	// Query scripts
-	stmt, err := project.Data.db.Prepare("SELECT script_name, run_as_sudo FROM class_script WHERE (project_class_id is NULL OR project_class_id = ?) ORDER BY project_class_id DESC")
+	stmt, err := project.Data.db.Prepare("SELECT script_name, run_as_sudo FROM class_script WHERE (class_id is NULL OR class_id = ?) ORDER BY class_id DESC")
 	if err != nil {
 		return err
 	}

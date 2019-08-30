@@ -71,7 +71,7 @@ func RemoveClass(className string) error {
 
 // removeClass removes an existing class from the database
 func removeClass(tx *sql.Tx, classID int) error {
-	stmt, err := tx.Prepare("DELETE FROM project_class WHERE project_class_id = ?")
+	stmt, err := tx.Prepare("DELETE FROM class WHERE class_id = ?")
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func removeClass(tx *sql.Tx, classID int) error {
 
 // removeLabels removes all class labels from the database
 func removeLabels(tx *sql.Tx, classID int) error {
-	stmt, err := tx.Prepare("DELETE FROM class_label WHERE project_class_id = ?")
+	stmt, err := tx.Prepare("DELETE FROM class_label WHERE class_id = ?")
 	if err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func removeLabels(tx *sql.Tx, classID int) error {
 
 // removeFolders removes all class folders from the database
 func removeFolders(tx *sql.Tx, classID int) error {
-	stmt, err := tx.Prepare("DELETE FROM class_folder WHERE project_class_id = ?")
+	stmt, err := tx.Prepare("DELETE FROM class_folder WHERE class_id = ?")
 	if err != nil {
 		return err
 	}
@@ -113,7 +113,7 @@ func removeFolders(tx *sql.Tx, classID int) error {
 
 // removeFiles removes all class files from the database
 func removeFiles(tx *sql.Tx, classID int) error {
-	stmt, err := tx.Prepare("DELETE FROM class_file WHERE project_class_id = ?")
+	stmt, err := tx.Prepare("DELETE FROM class_file WHERE class_id = ?")
 	if err != nil {
 		return err
 	}
@@ -127,7 +127,7 @@ func removeFiles(tx *sql.Tx, classID int) error {
 
 // removeScripts removes all class scripts from the database
 func removeScripts(tx *sql.Tx, classID int) error {
-	stmt, err := tx.Prepare("DELETE FROM class_script WHERE project_class_id = ?")
+	stmt, err := tx.Prepare("DELETE FROM class_script WHERE class_id = ?")
 	if err != nil {
 		return err
 	}

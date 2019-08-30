@@ -50,7 +50,7 @@ func Show(globalType, globalID string) error {
 
 // showGlobalFolder shows detailed information about a global folder
 func showGlobalFolder(tx *sql.Tx, globalID string) error {
-	stmt, err := tx.Prepare("SELECT target_path, template_name FROM class_folder WHERE project_class_id IS NULL and class_folder_id = ? ORDER BY target_path")
+	stmt, err := tx.Prepare("SELECT target_path, template_name FROM class_folder WHERE class_id IS NULL and class_folder_id = ? ORDER BY target_path")
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func showGlobalFolder(tx *sql.Tx, globalID string) error {
 
 // showGlobalFile shows detailed information about a global file
 func showGlobalFile(tx *sql.Tx, globalID string) error {
-	stmt, err := tx.Prepare("SELECT target_path, template_name FROM class_file WHERE project_class_id IS NULL and class_file_id = ? ORDER BY target_path")
+	stmt, err := tx.Prepare("SELECT target_path, template_name FROM class_file WHERE class_id IS NULL and class_file_id = ? ORDER BY target_path")
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func showGlobalFile(tx *sql.Tx, globalID string) error {
 
 // showGlobalScript shows detailed information about a global script
 func showGlobalScript(tx *sql.Tx, globalID string) error {
-	stmt, err := tx.Prepare("SELECT script_name, run_as_sudo FROM class_script WHERE project_class_id IS NULL and class_script_id = ? ORDER BY script_name")
+	stmt, err := tx.Prepare("SELECT script_name, run_as_sudo FROM class_script WHERE class_id IS NULL and class_script_id = ? ORDER BY script_name")
 	if err != nil {
 		return err
 	}
