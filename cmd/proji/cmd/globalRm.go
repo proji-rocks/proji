@@ -11,7 +11,7 @@ var globalRmType string
 
 var globalRmCmd = &cobra.Command{
 	Use:   "rm GLOBAL-ID [GLOBAL-ID...]",
-	Short: "Remove existing globals by id",
+	Short: "remove existing globals by id",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			return fmt.Errorf("missing global id")
