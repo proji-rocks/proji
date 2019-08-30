@@ -42,7 +42,7 @@ func GetConfigDir() string {
 
 // QueryClassID queries the id of namely specified class
 func QueryClassID(tx *sql.Tx, className string) (int, error) {
-	stmt, err := tx.Prepare("SELECT project_class_id FROM project_class WHERE class_name = ?")
+	stmt, err := tx.Prepare("SELECT class_id FROM class WHERE name = ?")
 	if err != nil {
 		return -1, err
 	}

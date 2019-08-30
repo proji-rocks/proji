@@ -29,15 +29,15 @@ func ListAll() error {
 	}
 
 	if err = showGlobalFolders(tx); err != nil {
-		return nil
+		return err
 	}
 
 	if err = showGlobalFiles(tx); err != nil {
-		return nil
+		return err
 	}
 
 	if err = showGlobalScripts(tx); err != nil {
-		return nil
+		return err
 	}
 
 	return tx.Commit()
@@ -45,7 +45,7 @@ func ListAll() error {
 
 // showGlobalFolders shows all global folders
 func showGlobalFolders(tx *sql.Tx) error {
-	stmt, err := tx.Prepare("SELECT class_folder_id, target_path, template_name FROM class_folder WHERE project_class_id is NULL ORDER BY target_path")
+	stmt, err := tx.Prepare("SELECT global_folder_id, target, template FROM global_folder ORDER BY global_folder_id ASC")
 	if err != nil {
 		return err
 	}
@@ -69,7 +69,7 @@ func showGlobalFolders(tx *sql.Tx) error {
 
 // showGlobalFiles shows all global files
 func showGlobalFiles(tx *sql.Tx) error {
-	stmt, err := tx.Prepare("SELECT class_file_id, target_path, template_name FROM class_file WHERE project_class_id is NULL ORDER BY target_path")
+	stmt, err := tx.Prepare("SELECT global_file_id, target, template FROM global_file ORDER BY global_file_id ASC")
 	if err != nil {
 		return err
 	}
@@ -93,7 +93,7 @@ func showGlobalFiles(tx *sql.Tx) error {
 
 // showGlobalScripts shows all global scripts
 func showGlobalScripts(tx *sql.Tx) error {
-	stmt, err := tx.Prepare("SELECT class_script_id, script_name, run_as_sudo FROM class_script WHERE project_class_id is NULL ORDER BY script_name")
+	stmt, err := tx.Prepare("SELECT global_script_id, name, run_as_sudo FROM global_script ORDER BY global_script_id")
 	if err != nil {
 		return err
 	}
