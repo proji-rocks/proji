@@ -8,7 +8,7 @@ import (
 // lsCmd represents the ls command
 var classLsCmd = &cobra.Command{
 	Use:   "ls",
-	Short: "List existing classes",
+	Short: "list existing classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		err := class.ListAll()
 		if err != nil {

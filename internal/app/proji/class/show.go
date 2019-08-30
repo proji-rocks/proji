@@ -61,7 +61,7 @@ func Show(className string) error {
 		return nil
 	}
 
-	return nil
+	return tx.Commit()
 }
 
 // showLabels shows all labels of a given class

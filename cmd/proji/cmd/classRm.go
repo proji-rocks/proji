@@ -7,12 +7,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var classRemoveCmd = &cobra.Command{
-	Use:   "remove CLASS [CLASS...]",
-	Short: "Remove existing classes",
+var classRmCmd = &cobra.Command{
+	Use:   "rm CLASS [CLASS...]",
+	Short: "remove existing classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("Missing class name")
+			return fmt.Errorf("missing class name")
 		}
 
 		for _, className := range args {
@@ -26,5 +26,5 @@ var classRemoveCmd = &cobra.Command{
 }
 
 func init() {
-	classCmd.AddCommand(classRemoveCmd)
+	classCmd.AddCommand(classRmCmd)
 }

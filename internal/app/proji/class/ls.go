@@ -47,5 +47,5 @@ func ListAll() error {
 		fmt.Println(" " + className)
 	}
 
-	return nil
+	return tx.Commit()
 }
