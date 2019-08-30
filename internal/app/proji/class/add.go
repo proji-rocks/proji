@@ -349,7 +349,7 @@ func insertFiles(tx *sql.Tx, classID int, files map[string]string) error {
 
 // insertScripts inserts new class scripts into the database
 func insertScripts(tx *sql.Tx, classID int, scripts map[string]bool) error {
-	stmt, err := tx.Prepare("INSERT INTO class_script(class_id, script_name, run_as_sudo) VALUES(?, ?, ?)")
+	stmt, err := tx.Prepare("INSERT INTO class_script(class_id, name, run_as_sudo) VALUES(?, ?, ?)")
 	if err != nil {
 		return err
 	}

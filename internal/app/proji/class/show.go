@@ -138,7 +138,7 @@ func showFiles(tx *sql.Tx, classID int) error {
 
 // showScripts shows all scripts of a given class
 func showScripts(tx *sql.Tx, classID int) error {
-	stmt, err := tx.Prepare("SELECT script_name, run_as_sudo FROM class_script WHERE class_id = ? ORDER BY run_as_sudo ASC")
+	stmt, err := tx.Prepare("SELECT name, run_as_sudo FROM class_script WHERE class_id = ? ORDER BY run_as_sudo ASC")
 	if err != nil {
 		return err
 	}

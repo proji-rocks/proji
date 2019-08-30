@@ -88,7 +88,7 @@ func insertGlobalFile(tx *sql.Tx, file []string) error {
 
 // insertGlobalScript inserts a new global script into the database
 func insertGlobalScript(tx *sql.Tx, script []string) error {
-	stmt, err := tx.Prepare("INSERT INTO class_script(script_name, run_as_sudo) VALUES(?, ?)")
+	stmt, err := tx.Prepare("INSERT INTO class_script(name, run_as_sudo) VALUES(?, ?)")
 	if err != nil {
 		return err
 	}

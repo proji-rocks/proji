@@ -336,7 +336,7 @@ func (project *Project) copyTemplates() error {
 // Returns error on failure. Returns nil on success.
 func (project *Project) runScripts() error {
 	// Query scripts
-	stmt, err := project.Data.db.Prepare("SELECT script_name, run_as_sudo FROM class_script WHERE (class_id is NULL OR class_id = ?) ORDER BY class_id DESC")
+	stmt, err := project.Data.db.Prepare("SELECT name, run_as_sudo FROM class_script WHERE (class_id is NULL OR class_id = ?) ORDER BY class_id DESC")
 	if err != nil {
 		return err
 	}

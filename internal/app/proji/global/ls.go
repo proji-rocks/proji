@@ -93,7 +93,7 @@ func showGlobalFiles(tx *sql.Tx) error {
 
 // showGlobalScripts shows all global scripts
 func showGlobalScripts(tx *sql.Tx) error {
-	stmt, err := tx.Prepare("SELECT class_script_id, script_name, run_as_sudo FROM class_script WHERE class_id is NULL ORDER BY script_name")
+	stmt, err := tx.Prepare("SELECT class_script_id, name, run_as_sudo FROM class_script WHERE class_id is NULL ORDER BY name")
 	if err != nil {
 		return err
 	}

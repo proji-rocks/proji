@@ -203,7 +203,7 @@ func exportFiles(tx *sql.Tx, classID int) (map[string]string, error) {
 
 // exportScripts exports all scripts of a given class
 func exportScripts(tx *sql.Tx, classID int) (map[string]bool, error) {
-	stmt, err := tx.Prepare("SELECT script_name, run_as_sudo FROM class_script WHERE class_id = ? ORDER BY script_name ASC")
+	stmt, err := tx.Prepare("SELECT name, run_as_sudo FROM class_script WHERE class_id = ? ORDER BY name ASC")
 	if err != nil {
 		return nil, err
 	}
