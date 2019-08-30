@@ -54,7 +54,7 @@ func AddGlobal(globalType string, newGlobal []string) error {
 
 // insertGlobalFolder inserts a new global folder into the database
 func insertGlobalFolder(tx *sql.Tx, folder []string) error {
-	stmt, err := tx.Prepare("INSERT INTO class_folder(target_path, template_name) VALUES(?, ?)")
+	stmt, err := tx.Prepare("INSERT INTO global_folder(target, template) VALUES(?, ?)")
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func insertGlobalFolder(tx *sql.Tx, folder []string) error {
 
 // insertGlobalFile inserts a new global file into the database
 func insertGlobalFile(tx *sql.Tx, file []string) error {
-	stmt, err := tx.Prepare("INSERT INTO class_file(target_path, template_name) VALUES(?, ?)")
+	stmt, err := tx.Prepare("INSERT INTO global_file(target, template) VALUES(?, ?)")
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func insertGlobalFile(tx *sql.Tx, file []string) error {
 
 // insertGlobalScript inserts a new global script into the database
 func insertGlobalScript(tx *sql.Tx, script []string) error {
-	stmt, err := tx.Prepare("INSERT INTO class_script(script_name, run_as_sudo) VALUES(?, ?)")
+	stmt, err := tx.Prepare("INSERT INTO global_script(name, run_as_sudo) VALUES(?, ?)")
 	if err != nil {
 		return err
 	}

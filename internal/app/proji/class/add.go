@@ -279,7 +279,7 @@ func AddClassToDB(className string, labels []string, folders, files map[string]s
 
 // insertClass inserts a new class name into the database
 func insertClass(tx *sql.Tx, className string) error {
-	stmt, err := tx.Prepare("INSERT INTO project_class(class_name) VALUES(?)")
+	stmt, err := tx.Prepare("INSERT INTO class(name) VALUES(?)")
 	if err != nil {
 		return err
 	}
@@ -293,7 +293,7 @@ func insertClass(tx *sql.Tx, className string) error {
 
 // insertLabels inserts new class labels into the database
 func insertLabels(tx *sql.Tx, classID int, labels []string) error {
-	stmt, err := tx.Prepare("INSERT INTO class_label(project_class_id, label) VALUES(?, ?)")
+	stmt, err := tx.Prepare("INSERT INTO class_label(class_id, label) VALUES(?, ?)")
 	if err != nil {
 		return err
 	}
@@ -309,7 +309,7 @@ func insertLabels(tx *sql.Tx, classID int, labels []string) error {
 
 // insertFolders inserts new class folders into the database
 func insertFolders(tx *sql.Tx, classID int, folders map[string]string) error {
-	stmt, err := tx.Prepare("INSERT INTO class_folder(project_class_id, target_path, template_name) VALUES(?, ?, ?)")
+	stmt, err := tx.Prepare("INSERT INTO class_folder(class_id, target, template) VALUES(?, ?, ?)")
 	if err != nil {
 		return err
 	}
@@ -329,7 +329,7 @@ func insertFolders(tx *sql.Tx, classID int, folders map[string]string) error {
 
 // insertFiles inserts new class files into the database
 func insertFiles(tx *sql.Tx, classID int, files map[string]string) error {
-	stmt, err := tx.Prepare("INSERT INTO class_file(project_class_id, target_path, template_name) VALUES(?, ?, ?)")
+	stmt, err := tx.Prepare("INSERT INTO class_file(class_id, target, template) VALUES(?, ?, ?)")
 	if err != nil {
 		return err
 	}
@@ -349,7 +349,7 @@ func insertFiles(tx *sql.Tx, classID int, files map[string]string) error {
 
 // insertScripts inserts new class scripts into the database
 func insertScripts(tx *sql.Tx, classID int, scripts map[string]bool) error {
-	stmt, err := tx.Prepare("INSERT INTO class_script(project_class_id, script_name, run_as_sudo) VALUES(?, ?, ?)")
+	stmt, err := tx.Prepare("INSERT INTO class_script(class_id, name, run_as_sudo) VALUES(?, ?, ?)")
 	if err != nil {
 		return err
 	}

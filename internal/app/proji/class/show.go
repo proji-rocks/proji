@@ -66,7 +66,7 @@ func Show(className string) error {
 
 // showLabels shows all labels of a given class
 func showLabels(tx *sql.Tx, classID int) error {
-	stmt, err := tx.Prepare("SELECT label FROM class_label WHERE project_class_id = ? ORDER BY label ASC")
+	stmt, err := tx.Prepare("SELECT label FROM class_label WHERE class_id = ? ORDER BY label ASC")
 	if err != nil {
 		return err
 	}
@@ -90,7 +90,7 @@ func showLabels(tx *sql.Tx, classID int) error {
 
 // showFolders shows all folders of a given class
 func showFolders(tx *sql.Tx, classID int) error {
-	stmt, err := tx.Prepare("SELECT target_path, template_name FROM class_folder WHERE project_class_id = ? ORDER BY target_path")
+	stmt, err := tx.Prepare("SELECT target, template FROM class_folder WHERE class_id = ? ORDER BY target")
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func showFolders(tx *sql.Tx, classID int) error {
 
 // showFiles shows all files of a given class
 func showFiles(tx *sql.Tx, classID int) error {
-	stmt, err := tx.Prepare("SELECT target_path, template_name FROM class_file WHERE project_class_id = ? ORDER BY target_path")
+	stmt, err := tx.Prepare("SELECT target, template FROM class_file WHERE class_id = ? ORDER BY target")
 	if err != nil {
 		return err
 	}
@@ -138,7 +138,7 @@ func showFiles(tx *sql.Tx, classID int) error {
 
 // showScripts shows all scripts of a given class
 func showScripts(tx *sql.Tx, classID int) error {
-	stmt, err := tx.Prepare("SELECT script_name, run_as_sudo FROM class_script WHERE project_class_id = ? ORDER BY run_as_sudo ASC")
+	stmt, err := tx.Prepare("SELECT name, run_as_sudo FROM class_script WHERE class_id = ? ORDER BY run_as_sudo ASC")
 	if err != nil {
 		return err
 	}

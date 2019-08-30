@@ -39,17 +39,17 @@ func RemoveGlobal(globalType string, globalID []string) error {
 	var stmt *sql.Stmt
 	switch globalType {
 	case "folder":
-		stmt, err = tx.Prepare("DELETE FROM class_folder WHERE class_folder_id = ? AND project_class_id IS NULL")
+		stmt, err = tx.Prepare("DELETE FROM global_folder WHERE global_folder_id = ?")
 		if err != nil {
 			return err
 		}
 	case "file":
-		stmt, err = tx.Prepare("DELETE FROM class_file WHERE class_file_id = ? AND project_class_id IS NULL")
+		stmt, err = tx.Prepare("DELETE FROM global_file WHERE global_file_id = ?")
 		if err != nil {
 			return err
 		}
 	case "script":
-		stmt, err = tx.Prepare("DELETE FROM class_script WHERE class_script_id = ? AND project_class_id IS NULL")
+		stmt, err = tx.Prepare("DELETE FROM global_script WHERE global_script_id = ?")
 		if err != nil {
 			return err
 		}
