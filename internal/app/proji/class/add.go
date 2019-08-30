@@ -279,7 +279,7 @@ func AddClassToDB(className string, labels []string, folders, files map[string]s
 
 // insertClass inserts a new class name into the database
 func insertClass(tx *sql.Tx, className string) error {
-	stmt, err := tx.Prepare("INSERT INTO class(class_name) VALUES(?)")
+	stmt, err := tx.Prepare("INSERT INTO class(name) VALUES(?)")
 	if err != nil {
 		return err
 	}

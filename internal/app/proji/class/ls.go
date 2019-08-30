@@ -29,7 +29,7 @@ func ListAll() error {
 		return err
 	}
 
-	stmt, err := tx.Prepare("SELECT class_name FROM class ORDER BY class_name ASC")
+	stmt, err := tx.Prepare("SELECT name FROM class ORDER BY name ASC")
 	if err != nil {
 		return err
 	}
