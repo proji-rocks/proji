@@ -90,7 +90,7 @@ func showLabels(tx *sql.Tx, classID int) error {
 
 // showFolders shows all folders of a given class
 func showFolders(tx *sql.Tx, classID int) error {
-	stmt, err := tx.Prepare("SELECT target_path, template_name FROM class_folder WHERE class_id = ? ORDER BY target_path")
+	stmt, err := tx.Prepare("SELECT target, template FROM class_folder WHERE class_id = ? ORDER BY target")
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func showFolders(tx *sql.Tx, classID int) error {
 
 // showFiles shows all files of a given class
 func showFiles(tx *sql.Tx, classID int) error {
-	stmt, err := tx.Prepare("SELECT target_path, template_name FROM class_file WHERE class_id = ? ORDER BY target_path")
+	stmt, err := tx.Prepare("SELECT target, template FROM class_file WHERE class_id = ? ORDER BY target")
 	if err != nil {
 		return err
 	}

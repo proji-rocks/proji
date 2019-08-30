@@ -153,7 +153,7 @@ func exportLabels(tx *sql.Tx, classID int) ([]string, error) {
 
 // exportFolders exports all folders of a given class
 func exportFolders(tx *sql.Tx, classID int) (map[string]string, error) {
-	stmt, err := tx.Prepare("SELECT target_path, template_name FROM class_folder WHERE class_id = ? ORDER BY target_path")
+	stmt, err := tx.Prepare("SELECT target, template FROM class_folder WHERE class_id = ? ORDER BY target")
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func exportFolders(tx *sql.Tx, classID int) (map[string]string, error) {
 
 // exportFiles exports all files of a given class
 func exportFiles(tx *sql.Tx, classID int) (map[string]string, error) {
-	stmt, err := tx.Prepare("SELECT target_path, template_name FROM class_file WHERE class_id = ? ORDER BY target_path")
+	stmt, err := tx.Prepare("SELECT target, template FROM class_file WHERE class_id = ? ORDER BY target")
 	if err != nil {
 		return nil, err
 	}

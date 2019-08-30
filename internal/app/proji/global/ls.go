@@ -45,7 +45,7 @@ func ListAll() error {
 
 // showGlobalFolders shows all global folders
 func showGlobalFolders(tx *sql.Tx) error {
-	stmt, err := tx.Prepare("SELECT class_folder_id, target_path, template_name FROM class_folder WHERE class_id is NULL ORDER BY target_path")
+	stmt, err := tx.Prepare("SELECT class_folder_id, target, template FROM class_folder WHERE class_id is NULL ORDER BY target")
 	if err != nil {
 		return err
 	}
@@ -69,7 +69,7 @@ func showGlobalFolders(tx *sql.Tx) error {
 
 // showGlobalFiles shows all global files
 func showGlobalFiles(tx *sql.Tx) error {
-	stmt, err := tx.Prepare("SELECT class_file_id, target_path, template_name FROM class_file WHERE class_id is NULL ORDER BY target_path")
+	stmt, err := tx.Prepare("SELECT class_file_id, target, template FROM class_file WHERE class_id is NULL ORDER BY target")
 	if err != nil {
 		return err
 	}

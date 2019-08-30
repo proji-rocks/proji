@@ -309,7 +309,7 @@ func insertLabels(tx *sql.Tx, classID int, labels []string) error {
 
 // insertFolders inserts new class folders into the database
 func insertFolders(tx *sql.Tx, classID int, folders map[string]string) error {
-	stmt, err := tx.Prepare("INSERT INTO class_folder(class_id, target_path, template_name) VALUES(?, ?, ?)")
+	stmt, err := tx.Prepare("INSERT INTO class_folder(class_id, target, template) VALUES(?, ?, ?)")
 	if err != nil {
 		return err
 	}
@@ -329,7 +329,7 @@ func insertFolders(tx *sql.Tx, classID int, folders map[string]string) error {
 
 // insertFiles inserts new class files into the database
 func insertFiles(tx *sql.Tx, classID int, files map[string]string) error {
-	stmt, err := tx.Prepare("INSERT INTO class_file(class_id, target_path, template_name) VALUES(?, ?, ?)")
+	stmt, err := tx.Prepare("INSERT INTO class_file(class_id, target, template) VALUES(?, ?, ?)")
 	if err != nil {
 		return err
 	}
