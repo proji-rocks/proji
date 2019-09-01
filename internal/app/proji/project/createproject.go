@@ -30,7 +30,6 @@ func CreateProject(label string, projects []string) error {
 
 	// Get current working directory
 	cwd, err := os.Getwd()
-
 	if err != nil {
 		return err
 	}
@@ -42,6 +41,12 @@ func CreateProject(label string, projects []string) error {
 		return err
 	}
 	defer newSetup.stop()
+
+	// Check if label is supported
+	id, err := newSetup.isLabelSupported()
+	if err != nil {
+		return err
+	}
 
 	// Projects loop
 	for _, projectName := range projects {
@@ -84,12 +89,6 @@ func (setup *Setup) init() error {
 		return err
 	}
 	setup.db = db
-
-	// Check if label is supported
-	err = setup.isLabelSupported()
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
