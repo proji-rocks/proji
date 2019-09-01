@@ -17,6 +17,8 @@ DROP INDEX IF EXISTS u_global_script_idx;
 --DROP INDEX IF EXISTS global_file_idx;
 --DROP INDEX IF EXISTS global_script_idx;
 -- CREATE
+-- PROJECT UNIQUE
+CREATE UNIQUE INDEX u_project_idx ON project(install_path);
 -- CLASS UNIQUE
 CREATE UNIQUE INDEX u_class_idx ON class('name');
 CREATE UNIQUE INDEX u_class_label_idx ON class_label(label);
