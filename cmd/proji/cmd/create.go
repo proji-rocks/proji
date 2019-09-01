@@ -15,9 +15,7 @@ var createCmd = &cobra.Command{
 		if len(args) < 2 {
 			return fmt.Errorf("insufficient number of cli arguments")
 		}
-
-		project.CreateProject(args[0], args[1:])
-		return nil
+		return project.CreateProject(args[0], args[1:])
 	},
 }
 
