@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/spf13/viper"
 
@@ -50,11 +51,16 @@ func CreateProject(label string, projects []string) error {
 
 	// Projects loop
 	for _, projectName := range projects {
+		// Header
 		fmt.Println(helper.ProjectHeader(projectName))
 		newProject := Project{Name: projectName, Data: &newSetup}
-		err = newProject.create()
-		if err != nil {
-			fmt.Println(err)
+		// Track
+		if err = newProject.track(); err != nil {
+			return fmt.Errorf("could not create project %s: %v", projectName, err)
+		}
+		// Create
+		if err = newProject.create(id); err != nil {
+			fmt.Printf("could not create project %s: %v", projectName, err)
 			continue
 		}
 	}
@@ -179,6 +185,27 @@ func (project *Project) create(projectID int) error {
 		return err
 	}
 	return nil
+}
+
+// track tracks a created project in the database
+func (project *Project) track() error {
+	t := time.Now().Local()
+	_, err := project.Data.db.Exec(
+		"INSERT INTO project(name, class_id, install_path, install_date, project_status_id) VALUES(?, ?, ?, ?, ?)",
+		project.Name,
+		project.ID,
+		project.InstallDir,
+		t,
+		1,
+	)
+
+	if sqliteErr, ok := err.(sqlite3.Error); ok {
+		if sqliteErr.Code == sqlite3.ErrConstraint {
+			return fmt.Errorf("project already exists")
+		}
+	}
+
+	return err
 }
 
 // createProjectFolder tries to create the main project folder.
