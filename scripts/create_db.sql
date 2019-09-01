@@ -16,10 +16,10 @@ DROP TABLE IF EXISTS global_script;
 --
 CREATE TABLE IF NOT EXISTS project(
   project_id INTEGER PRIMARY KEY,
-  title TEXT NOT NULL,
+  'name' TEXT NOT NULL,
   class_id INTEGER REFERENCES class(class_id),
   install_path TEXT,
-  install_data TEXT,
+  install_date TEXT,
   project_status_id INTEGER REFERENCES project_status(project_status_id)
 );
 --
