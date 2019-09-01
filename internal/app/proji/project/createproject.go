@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/viper"
 
 	// Import sqlite3 driver (see func (setup *Setup) Run() error)
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/mattn/go-sqlite3"
 	"github.com/nikoksr/proji/internal/app/helper"
 
 	"github.com/otiai10/copy"
