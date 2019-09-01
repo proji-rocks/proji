@@ -83,6 +83,10 @@ func (setup *Setup) init() error {
 	setup.templatesDir = setup.ConfigDir + "templates/"
 	setup.scriptsDir = setup.ConfigDir + "scripts/"
 
+	if setup.Owd[:len(setup.Owd)-1] != "/" {
+		setup.Owd += "/"
+	}
+
 	// Connect to database
 	db, err := sql.Open("sqlite3", setup.dbDir+setup.DatabaseName)
 	if err != nil {
