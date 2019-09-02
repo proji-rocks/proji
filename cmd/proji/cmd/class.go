@@ -6,7 +6,7 @@ import (
 
 var classCmd = &cobra.Command{
 	Use:   "class",
-	Short: "Work on proji classes",
+	Short: "work on proji classes",
 }
 
 func init() {
