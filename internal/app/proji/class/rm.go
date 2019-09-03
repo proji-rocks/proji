@@ -91,10 +91,7 @@ func removeLabels(tx *sql.Tx, classID int) error {
 	}
 	defer stmt.Close()
 	_, err = stmt.Exec(classID)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // removeFolders removes all class folders from the database
@@ -105,10 +102,7 @@ func removeFolders(tx *sql.Tx, classID int) error {
 	}
 	defer stmt.Close()
 	_, err = stmt.Exec(classID)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // removeFiles removes all class files from the database
@@ -119,10 +113,7 @@ func removeFiles(tx *sql.Tx, classID int) error {
 	}
 	defer stmt.Close()
 	_, err = stmt.Exec(classID)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // removeScripts removes all class scripts from the database
@@ -133,8 +124,5 @@ func removeScripts(tx *sql.Tx, classID int) error {
 	}
 	defer stmt.Close()
 	_, err = stmt.Exec(classID)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }

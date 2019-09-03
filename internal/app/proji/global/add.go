@@ -44,12 +44,7 @@ func AddGlobal(globalType string, newGlobal []string) error {
 		return err
 	}
 
-	if err = tx.Commit(); err != nil {
-		return err
-	}
-
-	fmt.Printf("> Added global %s successfully.\n", newGlobal)
-	return nil
+	return tx.Commit()
 }
 
 // insertGlobalFolder inserts a new global folder into the database

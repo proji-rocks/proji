@@ -120,10 +120,8 @@ func (setup *Setup) isLabelSupported() (int, error) {
 	}
 	defer stmt.Close()
 	var id int
-	if err = stmt.QueryRow(setup.Label).Scan(&id); err != nil {
-		return -1, err
-	}
-	return id, nil
+	err = stmt.QueryRow(setup.Label).Scan(&id)
+	return id, err
 }
 
 // Project struct represents a project that will be build.
@@ -145,46 +143,37 @@ func (project *Project) create(projectID int) error {
 
 	// Create the project folder
 	fmt.Println("> Creating project folder...")
-	err := project.createProjectFolder()
-	if err != nil {
+	if err := project.createProjectFolder(); err != nil {
 		return err
 	}
 
 	// Chdir into the new project folder and defer chdir back to old cwd
-	err = os.Chdir(project.Name)
-	if err != nil {
+	if err := os.Chdir(project.Name); err != nil {
 		return err
 	}
 	defer os.Chdir(project.Data.Owd)
 
 	// Create subfolders
 	fmt.Println("> Creating subfolders...")
-	err = project.createSubFolders()
-	if err != nil {
+	if err := project.createSubFolders(); err != nil {
 		return err
 	}
 
 	// Create files
 	fmt.Println("> Creating files...")
-	err = project.createFiles()
-	if err != nil {
+	if err := project.createFiles(); err != nil {
 		return err
 	}
 
 	// Copy templates
 	fmt.Println("> Copying templates...")
-	err = project.copyTemplates()
-	if err != nil {
+	if err := project.copyTemplates(); err != nil {
 		return err
 	}
 
 	// Run scripts
 	fmt.Println("> Running scripts...")
-	err = project.runScripts()
-	if err != nil {
-		return err
-	}
-	return nil
+	return project.runScripts()
 }
 
 // track tracks a created project in the database
@@ -211,11 +200,7 @@ func (project *Project) track() error {
 // createProjectFolder tries to create the main project folder.
 // Returns an error on failure.
 func (project *Project) createProjectFolder() error {
-	err := os.Mkdir(project.Name, os.ModePerm)
-	if err != nil {
-		return err
-	}
-	return nil
+	return os.Mkdir(project.Name, os.ModePerm)
 }
 
 // createSubFolders queries all subfolder from the database related to the projectId.
@@ -255,8 +240,7 @@ func (project *Project) createSubFolders() error {
 	for _, subFolders := range allSubFolders {
 		for subFolders.Next() {
 			var subFolder string
-			err = subFolders.Scan(&subFolder)
-			if err != nil {
+			if err = subFolders.Scan(&subFolder); err != nil {
 				return err
 			}
 
@@ -264,8 +248,7 @@ func (project *Project) createSubFolders() error {
 			subFolder = re.ReplaceAllString(subFolder, project.Name)
 
 			// Create folder
-			err = os.MkdirAll(subFolder, os.ModePerm)
-			if err != nil {
+			if err = os.MkdirAll(subFolder, os.ModePerm); err != nil {
 				return err
 			}
 		}
@@ -309,8 +292,7 @@ func (project *Project) createFiles() error {
 	for _, files := range allFiles {
 		for files.Next() {
 			var file string
-			err = files.Scan(&file)
-			if err != nil {
+			if err = files.Scan(&file); err != nil {
 				return err
 			}
 
@@ -318,8 +300,7 @@ func (project *Project) createFiles() error {
 			file = re.ReplaceAllString(file, project.Name)
 
 			// Create file
-			_, err := os.OpenFile(file, os.O_RDONLY|os.O_CREATE, os.ModePerm)
-			if err != nil {
+			if _, err := os.OpenFile(file, os.O_RDONLY|os.O_CREATE, os.ModePerm); err != nil {
 				return err
 			}
 		}
@@ -379,14 +360,12 @@ func (project *Project) copyTemplates() error {
 	for _, templateData := range templatesData {
 		for templateData.Next() {
 			var target, template string
-			err = templateData.Scan(&target, &template)
-			if err != nil {
+			if err = templateData.Scan(&target, &template); err != nil {
 				return err
 			}
 
 			template = project.Data.templatesDir + template
-			err := copy.Copy(template, target)
-			if err != nil {
+			if err = copy.Copy(template, target); err != nil {
 				return err
 			}
 		}
@@ -429,8 +408,7 @@ func (project *Project) runScripts() error {
 		for scripts.Next() {
 			var script string
 			var runAsSudo bool
-			err = scripts.Scan(&script, &runAsSudo)
-			if err != nil {
+			if err = scripts.Scan(&script, &runAsSudo); err != nil {
 				return err
 			}
 
@@ -444,8 +422,7 @@ func (project *Project) runScripts() error {
 			cmd.Stdout = os.Stdout
 			cmd.Stdin = os.Stdin
 			cmd.Stderr = os.Stderr
-			err = cmd.Run()
-			if err != nil {
+			if err = cmd.Run(); err != nil {
 				return err
 			}
 		}

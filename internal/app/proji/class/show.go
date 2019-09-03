@@ -41,24 +41,20 @@ func Show(className string) error {
 
 	fmt.Println(helper.ProjectHeader(className))
 
-	err = showLabels(tx, classID)
-	if err != nil {
-		return nil
+	if err = showLabels(tx, classID); err != nil {
+		return err
 	}
 
-	err = showFolders(tx, classID)
-	if err != nil {
-		return nil
+	if err = showFolders(tx, classID); err != nil {
+		return err
 	}
 
-	err = showFiles(tx, classID)
-	if err != nil {
-		return nil
+	if err = showFiles(tx, classID); err != nil {
+		return err
 	}
 
-	err = showScripts(tx, classID)
-	if err != nil {
-		return nil
+	if err = showScripts(tx, classID); err != nil {
+		return err
 	}
 
 	return tx.Commit()
@@ -77,8 +73,8 @@ func showLabels(tx *sql.Tx, classID int) error {
 		return err
 	}
 	defer query.Close()
-
 	fmt.Println("Labels:")
+
 	var label string
 	for query.Next() {
 		query.Scan(&label)
@@ -101,8 +97,8 @@ func showFolders(tx *sql.Tx, classID int) error {
 		return err
 	}
 	defer query.Close()
-
 	fmt.Println("Folders:")
+
 	var target, template string
 	for query.Next() {
 		query.Scan(&target, &template)
@@ -125,8 +121,8 @@ func showFiles(tx *sql.Tx, classID int) error {
 		return err
 	}
 	defer query.Close()
-
 	fmt.Println("Files:")
+
 	var target, template string
 	for query.Next() {
 		query.Scan(&target, &template)
@@ -149,17 +145,15 @@ func showScripts(tx *sql.Tx, classID int) error {
 		return err
 	}
 	defer query.Close()
-
 	fmt.Println("Scripts:")
+
 	var scriptName string
 	var runAsSudo bool
-	var sudo string
 	for query.Next() {
+		sudo := ""
 		query.Scan(&scriptName, &runAsSudo)
 		if runAsSudo {
 			sudo = "sudo"
-		} else {
-			sudo = ""
 		}
 		fmt.Printf(" %s %s\n", scriptName, sudo)
 	}

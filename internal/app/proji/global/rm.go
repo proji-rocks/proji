@@ -73,6 +73,5 @@ func RemoveGlobal(globalType string, globalID []string) error {
 		}
 	}
 
-	err = tx.Commit()
-	return err
+	return tx.Commit()
 }

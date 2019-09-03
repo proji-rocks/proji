@@ -16,8 +16,7 @@ var classShowCmd = &cobra.Command{
 		}
 
 		for _, className := range args {
-			err := class.Show(className)
-			if err != nil {
+			if err := class.Show(className); err != nil {
 				return err
 			}
 		}

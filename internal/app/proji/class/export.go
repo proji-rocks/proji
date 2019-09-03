@@ -85,10 +85,7 @@ func Export(className string) error {
 		return err
 	}
 	defer conf.Close()
-	if err := toml.NewEncoder(conf).Encode(configTxt); err != nil {
-		return err
-	}
-	return nil
+	return toml.NewEncoder(conf).Encode(configTxt)
 }
 
 // ExportExample exports an example class config

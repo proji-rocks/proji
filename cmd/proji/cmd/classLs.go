@@ -10,11 +10,7 @@ var classLsCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "list existing classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		err := class.ListAll()
-		if err != nil {
-			return err
-		}
-		return nil
+		return class.ListAll()
 	},
 }
 

@@ -34,13 +34,7 @@ func AddClassCLI(className string) error {
 		return err
 	}
 
-	err = AddClassToDB(className, labels, folders, files, scripts)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("> Added class %s successfully.\n", className)
-	return nil
+	return AddClassToDB(className, labels, folders, files, scripts)
 }
 
 // addLabels adds the labels related to the new class
@@ -235,8 +229,7 @@ func AddClassToDB(className string, labels []string, folders, files map[string]s
 	tx, err := db.Begin()
 
 	// Insert new class
-	err = insertClass(tx, className)
-	if err != nil {
+	if err = insertClass(tx, className); err != nil {
 		return err
 	}
 
@@ -247,34 +240,26 @@ func AddClassToDB(className string, labels []string, folders, files map[string]s
 	}
 
 	// Insert class labels
-	err = insertLabels(tx, classID, labels)
-	if err != nil {
+	if err = insertLabels(tx, classID, labels); err != nil {
 		return err
 	}
 
 	// Insert class folders
-	err = insertFolders(tx, classID, folders)
-	if err != nil {
+	if err = insertFolders(tx, classID, folders); err != nil {
 		return err
 	}
 
 	// Insert class files
-	err = insertFiles(tx, classID, files)
-	if err != nil {
+	if err = insertFiles(tx, classID, files); err != nil {
 		return err
 	}
 
 	// Insert class scripts
-	err = insertScripts(tx, classID, scripts)
-	if err != nil {
+	if err = insertScripts(tx, classID, scripts); err != nil {
 		return err
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		return err
-	}
-	return nil
+	return tx.Commit()
 }
 
 // insertClass inserts a new class name into the database
@@ -285,10 +270,7 @@ func insertClass(tx *sql.Tx, className string) error {
 	}
 	defer stmt.Close()
 	_, err = stmt.Exec(className)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // insertLabels inserts new class labels into the database
@@ -299,8 +281,7 @@ func insertLabels(tx *sql.Tx, classID int, labels []string) error {
 	}
 	defer stmt.Close()
 	for _, label := range labels {
-		_, err = stmt.Exec(classID, strings.ToLower(label))
-		if err != nil {
+		if _, err = stmt.Exec(classID, strings.ToLower(label)); err != nil {
 			return err
 		}
 	}

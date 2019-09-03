@@ -2,7 +2,6 @@ package helper
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -15,18 +14,6 @@ func ProjectHeader(projectName string) string {
 	separatorLine := strings.Repeat("#", 50) + "\n"
 	projectLine := "# " + projectName + "\n"
 	return (separatorLine + "#\n" + projectLine + "#\n" + separatorLine)
-}
-
-// ParseArgs parses the cli arguments to the needed data - the extension and the project names.
-// AreArgsValid() should be run before this function.
-func ParseArgs() (string, []string, error) {
-	args := os.Args[1:]
-
-	if len(args) < 2 {
-		return "", []string{}, errors.New("insufficient number of cli arguments")
-	}
-
-	return args[0], args[1:], nil
 }
 
 // GetConfigDir returns the default config directory.
@@ -54,13 +41,11 @@ func QueryClassID(tx *sql.Tx, className string) (int, error) {
 	}
 	defer queryClassID.Close()
 
-	var classID int
 	if !queryClassID.Next() {
 		return -1, fmt.Errorf("could not find class %s in database", className)
 	}
+
+	var classID int
 	err = queryClassID.Scan(&classID)
-	if err != nil {
-		return -1, err
-	}
-	return classID, nil
+	return classID, err
 }
