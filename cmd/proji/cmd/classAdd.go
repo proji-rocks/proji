@@ -14,12 +14,7 @@ var classAddCmd = &cobra.Command{
 		if len(args) != 1 {
 			return fmt.Errorf("missing class name")
 		}
-
-		err := class.AddClassCLI(args[0])
-		if err != nil {
-			return err
-		}
-		return nil
+		return class.AddClassCLI(args[0])
 	},
 }
 

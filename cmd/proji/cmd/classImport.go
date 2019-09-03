@@ -16,8 +16,7 @@ var classImportCmd = &cobra.Command{
 		}
 
 		for _, configName := range args {
-			err := class.Import(configName)
-			if err != nil {
+			if err := class.Import(configName); err != nil {
 				return err
 			}
 		}

@@ -17,10 +17,10 @@ var classExportCmd = &cobra.Command{
 		if exportExample {
 			var destFolder string
 			switch numArgs {
-			case 1:
-				destFolder = args[0]
 			case 0:
 				destFolder = "."
+			case 1:
+				destFolder = args[0]
 			default:
 				return fmt.Errorf("invalid number of destination folders")
 			}
@@ -31,8 +31,7 @@ var classExportCmd = &cobra.Command{
 			return fmt.Errorf("missing class name")
 		}
 		for _, className := range args {
-			err := class.Export(className)
-			if err != nil {
+			if err := class.Export(className); err != nil {
 				return err
 			}
 		}

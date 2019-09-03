@@ -54,13 +54,11 @@ func QueryClassID(tx *sql.Tx, className string) (int, error) {
 	}
 	defer queryClassID.Close()
 
-	var classID int
 	if !queryClassID.Next() {
 		return -1, fmt.Errorf("could not find class %s in database", className)
 	}
+
+	var classID int
 	err = queryClassID.Scan(&classID)
-	if err != nil {
-		return -1, err
-	}
-	return classID, nil
+	return classID, err
 }

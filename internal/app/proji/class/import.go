@@ -24,10 +24,5 @@ func Import(configName string) error {
 	}
 
 	fmt.Printf("> Importing %s...\n", conf.Title)
-	err := AddClassToDB(conf.Class["name"], conf.Labels["data"], conf.Folders, conf.Files, conf.Scripts)
-	if err != nil {
-		return err
-	}
-	fmt.Println("> Done...")
-	return nil
+	return AddClassToDB(conf.Class["name"], conf.Labels["data"], conf.Folders, conf.Files, conf.Scripts)
 }

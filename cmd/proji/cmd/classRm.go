@@ -16,8 +16,7 @@ var classRmCmd = &cobra.Command{
 		}
 
 		for _, className := range args {
-			err := class.RemoveClass(className)
-			if err != nil {
+			if err := class.RemoveClass(className); err != nil {
 				return err
 			}
 		}
