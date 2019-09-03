@@ -25,8 +25,6 @@ var globalRmCmd = &cobra.Command{
 
 func init() {
 	globalCmd.AddCommand(globalRmCmd)
-
-	// Flag to define type of global
 	globalRmCmd.PersistentFlags().StringVarP(&globalRmType, "type", "t", "", "type of global - folder, file or script")
 	globalRmCmd.MarkPersistentFlagRequired("type")
 }

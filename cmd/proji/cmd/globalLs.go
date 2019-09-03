@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// globalLsCmd represents the globalLs command
 var globalLsCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "list all globals",

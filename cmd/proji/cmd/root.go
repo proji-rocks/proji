@@ -12,7 +12,6 @@ import (
 
 var cfgFile string
 
-// rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "proji",
 	Short: "a lean and mean project creator and manager. ",
@@ -31,17 +30,15 @@ func init() {
 	cobra.OnInitialize(initConfig)
 }
 
-// initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	if cfgFile != "" {
-		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
 		viper.AddConfigPath(helper.GetConfigDir())
 		viper.SetConfigName("config")
 	}
 
-	viper.AutomaticEnv() // read in environment variables that match
+	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Printf("Error: Could not read config file %s", viper.ConfigFileUsed())

@@ -29,8 +29,6 @@ var globalAddCmd = &cobra.Command{
 
 func init() {
 	globalCmd.AddCommand(globalAddCmd)
-
-	// Flag to export an example config
 	globalAddCmd.PersistentFlags().StringVarP(&globalAddType, "type", "t", "", "type of global - folder, file or script")
 	globalAddCmd.MarkPersistentFlagRequired("type")
 }
