@@ -215,7 +215,7 @@ func AddClassToDB(className string, labels []string, folders, files map[string]s
 	DBDir := helper.GetConfigDir() + "/db/"
 	databaseName, ok := viper.Get("database.name").(string)
 
-	if ok != true {
+	if !ok {
 		return errors.New("could not read database name from config file")
 	}
 
@@ -227,6 +227,9 @@ func AddClassToDB(className string, labels []string, folders, files map[string]s
 
 	// Insert data
 	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
 
 	// Insert new class
 	if err = insertClass(tx, className); err != nil {

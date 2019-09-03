@@ -15,7 +15,7 @@ func Show(globalType, globalID string) error {
 	DBDir := helper.GetConfigDir() + "/db/"
 	databaseName, ok := viper.Get("database.name").(string)
 
-	if ok != true {
+	if !ok {
 		return errors.New("could not read database name from config file")
 	}
 
@@ -36,7 +36,7 @@ func Show(globalType, globalID string) error {
 	case "file":
 		err = showGlobalFile(tx, globalID)
 	case "script":
-		err = showGlobalFile(tx, globalID)
+		err = showGlobalScript(tx, globalID)
 	default:
 		err = fmt.Errorf("global type not valid")
 	}

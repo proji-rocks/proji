@@ -20,7 +20,7 @@ func Export(className string) error {
 	DBDir := helper.GetConfigDir() + "/db/"
 	databaseName, ok := viper.Get("database.name").(string)
 
-	if ok != true {
+	if !ok {
 		return fmt.Errorf("could not read database name from config file")
 	}
 
@@ -92,11 +92,11 @@ func Export(className string) error {
 func ExportExample(destFolder string) error {
 
 	exampleDir, ok := viper.Get("examples.location").(string)
-	if ok != true {
+	if !ok {
 		return fmt.Errorf("could not read example file location from config file")
 	}
 	exampleFile, ok := viper.Get("examples.class").(string)
-	if ok != true {
+	if !ok {
 		return fmt.Errorf("could not read example file name from config file")
 	}
 

@@ -13,7 +13,7 @@ func ListAll() error {
 	DBDir := helper.GetConfigDir() + "/db/"
 	databaseName, ok := viper.Get("database.name").(string)
 
-	if ok != true {
+	if !ok {
 		return fmt.Errorf("could not read database name from config file")
 	}
 

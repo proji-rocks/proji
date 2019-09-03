@@ -18,7 +18,7 @@ func RemoveClass(className string) error {
 	DBDir := helper.GetConfigDir() + "/db/"
 	databaseName, ok := viper.Get("database.name").(string)
 
-	if ok != true {
+	if !ok {
 		return errors.New("could not read database name from config file")
 	}
 

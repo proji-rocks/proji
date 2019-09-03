@@ -16,7 +16,7 @@ func AddGlobal(globalType string, newGlobal []string) error {
 	DBDir := helper.GetConfigDir() + "/db/"
 	databaseName, ok := viper.Get("database.name").(string)
 
-	if ok != true {
+	if !ok {
 		return errors.New("could not read database name from config file")
 	}
 
@@ -28,6 +28,9 @@ func AddGlobal(globalType string, newGlobal []string) error {
 
 	// Insert data
 	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
 
 	switch globalType {
 	case "folder":
@@ -35,9 +38,9 @@ func AddGlobal(globalType string, newGlobal []string) error {
 	case "file":
 		err = insertGlobalFile(tx, newGlobal)
 	case "script":
-		err = insertGlobalFile(tx, newGlobal)
+		err = insertGlobalScript(tx, newGlobal)
 	default:
-		err = fmt.Errorf("Global type not valid")
+		err = fmt.Errorf("global type not valid")
 	}
 
 	if err != nil {
