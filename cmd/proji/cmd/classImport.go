@@ -8,8 +8,8 @@ import (
 )
 
 var classImportCmd = &cobra.Command{
-	Use:   "import FILE",
-	Short: "import a proji class from a config file",
+	Use:   "import FILE [FILE...]",
+	Short: "import classes from config files",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			return fmt.Errorf("missing configfile name")
