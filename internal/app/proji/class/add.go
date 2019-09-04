@@ -2,128 +2,64 @@ package class
 
 import (
 	"bufio"
-	"database/sql"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
-
-	"github.com/nikoksr/proji/internal/app/helper"
-	"github.com/spf13/viper"
 )
 
-// AddClassCLI adds a new class interactively through the cli to the database
-func AddClassCLI(className string) error {
-	className = strings.ToLower(className)
+// Add adds a new class interactively through the cli.
+func Add(name string) (*Class, error) {
+	c := New(name)
 	reader := bufio.NewReader(os.Stdin)
 
-	labels, err := addLabels(reader)
-	if err != nil {
-		return err
+	if err := c.addLabels(reader); err != nil {
+		return nil, err
 	}
-	folders, err := addFolders(reader)
-	if err != nil {
-		return err
+	if err := c.addFolders(reader); err != nil {
+		return nil, err
 	}
-	files, err := addFiles(reader)
-	if err != nil {
-		return err
+	if err := c.addFiles(reader); err != nil {
+		return nil, err
 	}
-	scripts, err := addScripts(reader)
-	if err != nil {
-		return err
+	if err := c.addScripts(reader); err != nil {
+		return nil, err
 	}
 
-	return AddClassToDB(className, labels, folders, files, scripts)
+	return c, c.Save()
 }
 
-// addLabels adds the labels related to the new class
-func addLabels(reader *bufio.Reader) ([]string, error) {
+// addLabels adds labels to the class.
+func (c *Class) addLabels(reader *bufio.Reader) error {
 	fmt.Print("Labels: ")
 	text, err := reader.ReadString('\n')
-
 	if err != nil {
-		return []string{}, err
+		return err
 	}
 
-	labels := strings.Fields(text)
-
-	if len(labels) < 1 {
-		return labels, fmt.Errorf("you have to specify atleast one label")
+	c.Labels = strings.Fields(text)
+	if len(c.Labels) < 1 {
+		return fmt.Errorf("you have to specify atleast one label")
 	}
 
 	fmt.Println()
-	return labels, nil
+	return nil
 }
 
-// addFiles adds the files related to the new class
-func addFiles(reader *bufio.Reader) (map[string]string, error) {
-	fmt.Println("Files: ")
-	allFiles := make(map[string]string)
-
-	for {
-		// Read in files
-		// Syntax: target [source]
-		fmt.Print("> ")
-		input, err := reader.ReadString('\n')
-		files := strings.Fields(input)
-
-		if err != nil {
-			return map[string]string{}, err
-		}
-
-		numFiles := len(files)
-
-		// End if no input given
-		if numFiles < 1 {
-			break
-		}
-		if numFiles > 2 {
-			fmt.Println("Warning: More than two files were given.")
-			continue
-		}
-
-		target := files[0]
-
-		// Check if target exists
-		// A target should only exist once
-		// A source can be used multiple times
-		if _, ok := allFiles[target]; ok {
-			fmt.Printf("Warning: Target file %s is already associated to a source file.\n", target)
-			continue
-		}
-
-		// Add source if given
-		source := ""
-
-		if numFiles > 1 {
-			source = files[1]
-		}
-
-		// Add file(s) to map
-		allFiles[target] = source
-	}
-	fmt.Println()
-	return allFiles, nil
-}
-
-// addFolders adds the folders related to the new class
-func addFolders(reader *bufio.Reader) (map[string]string, error) {
+// addFolders adds folders to the class.
+func (c *Class) addFolders(reader *bufio.Reader) error {
 	fmt.Println("Folders: ")
-	allFolders := make(map[string]string)
 
 	for {
 		// Read in folders
 		// Syntax: Target [Source]
 		fmt.Print("> ")
 		input, err := reader.ReadString('\n')
-		folders := strings.Fields(input)
-
 		if err != nil {
-			return map[string]string{}, err
+			return err
 		}
 
-		numFolders := len(folders)
+		folderPair := strings.Fields(input)
+		numFolders := len(folderPair)
 
 		// End if no input given
 		if numFolders < 1 {
@@ -134,219 +70,125 @@ func addFolders(reader *bufio.Reader) (map[string]string, error) {
 			continue
 		}
 
-		target := folders[0]
+		target := folderPair[0]
 
 		// Check if target exists
 		// A target should only exist once
 		// A source can be used multiple times
-		if _, ok := allFolders[target]; ok {
-			fmt.Printf("Warning: Target folder %s is already associated to a source folder.\n", target)
+		if src, ok := c.Folders[target]; ok {
+			fmt.Printf("Warning: Target folder %s is already associated to source folder %s.\n", target, src)
 			continue
 		}
 
 		// Add source if given
-		source := ""
-
+		src := ""
 		if numFolders > 1 {
-			source = folders[1]
+			src = folderPair[1]
 		}
 
 		// Add folder(s) to map
-		allFolders[target] = source
+		c.Folders[target] = src
 	}
 	fmt.Println()
-	return allFolders, nil
+	return nil
 }
 
-// addScripts adds the scripts related to the new class
-func addScripts(reader *bufio.Reader) (map[string]bool, error) {
+// addFiles adds files to the class.
+func (c *Class) addFiles(reader *bufio.Reader) error {
+	fmt.Println("Files: ")
+
+	for {
+		// Read in files
+		// Syntax: target [source]
+		fmt.Print("> ")
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			return err
+		}
+
+		filePair := strings.Fields(input)
+		numFiles := len(filePair)
+
+		// End if no input given
+		if numFiles < 1 {
+			break
+		}
+		if numFiles > 2 {
+			fmt.Println("Warning: More than two files were given.")
+			continue
+		}
+
+		// Check if target exists
+		// A target should only exist once
+		// A source can be used multiple times
+		target := filePair[0]
+
+		if src, ok := c.Files[target]; ok {
+			fmt.Printf("Warning: Target file %s is already associated to source file %s.\n", target, src)
+			continue
+		}
+
+		// Add source if given
+		src := ""
+		if numFiles > 1 {
+			src = filePair[1]
+		}
+
+		// Add file(s) to map
+		c.Files[target] = src
+	}
+	fmt.Println()
+	return nil
+}
+
+// addScripts adds scripts to the class.
+func (c *Class) addScripts(reader *bufio.Reader) error {
 	fmt.Println("Scripts: ")
-	allScripts := make(map[string]bool)
 
 	for {
 		// Read in scripts
 		// Syntax: script [sudo]
 		fmt.Print("> ")
 		input, err := reader.ReadString('\n')
-		scripts := strings.Fields(input)
-
 		if err != nil {
-			return map[string]bool{}, err
+			return err
 		}
 
-		numScripts := len(scripts)
+		scriptData := strings.Fields(input)
+		lenData := len(scriptData)
 
 		// End if no input given
-		if numScripts < 1 {
+		if lenData < 1 {
 			break
 		}
-		if numScripts > 2 {
+		if lenData > 2 {
 			fmt.Println("Warning: More than two files were given.")
 			continue
 		}
 
-		script := scripts[0]
+		// Set sudo to true if given
+		var sudo bool
+		script := scriptData[0]
+
+		if lenData == 2 {
+			if scriptData[0] != "sudo" {
+				fmt.Printf("Warning: %s invalid. Has to be 'sudo' or ''(empty).", scriptData[0])
+			}
+			sudo = true
+			script = scriptData[1]
+		}
 
 		// Check if target exists
 		// A target should only exist once
 		// A source can be used multiple times
-		if _, ok := allScripts[script]; ok {
-			fmt.Printf("Warning: Script %s is already in excution list.\n", script)
+		if _, ok := c.Scripts[script]; ok {
+			fmt.Printf("Warning: Script %s is already in execution list.\n", script)
 			continue
 		}
 
-		// Add source if given
-		sudo := false
-
-		if numScripts > 1 && scripts[1] == "sudo" {
-			sudo = true
-		}
-
 		// Add folder(s) to map
-		allScripts[script] = sudo
+		c.Scripts[script] = sudo
 	}
 	fmt.Println()
-	return allScripts, nil
-}
-
-// AddClassToDB adds a new class and its dependencies to a database
-func AddClassToDB(className string, labels []string, folders, files map[string]string, scripts map[string]bool) error {
-	// Connect to database
-	DBDir := helper.GetConfigDir() + "/db/"
-	databaseName, ok := viper.Get("database.name").(string)
-
-	if !ok {
-		return errors.New("could not read database name from config file")
-	}
-
-	db, err := sql.Open("sqlite3", DBDir+databaseName)
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-
-	// Insert data
-	tx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-
-	// Insert new class
-	if err = insertClass(tx, className); err != nil {
-		return err
-	}
-
-	// Get id of new class
-	classID, err := helper.QueryClassID(tx, className)
-	if err != nil {
-		return err
-	}
-
-	// Insert class labels
-	if err = insertLabels(tx, classID, labels); err != nil {
-		return err
-	}
-
-	// Insert class folders
-	if err = insertFolders(tx, classID, folders); err != nil {
-		return err
-	}
-
-	// Insert class files
-	if err = insertFiles(tx, classID, files); err != nil {
-		return err
-	}
-
-	// Insert class scripts
-	if err = insertScripts(tx, classID, scripts); err != nil {
-		return err
-	}
-
-	return tx.Commit()
-}
-
-// insertClass inserts a new class name into the database
-func insertClass(tx *sql.Tx, className string) error {
-	stmt, err := tx.Prepare("INSERT INTO class(name) VALUES(?)")
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-	_, err = stmt.Exec(className)
-	return err
-}
-
-// insertLabels inserts new class labels into the database
-func insertLabels(tx *sql.Tx, classID int, labels []string) error {
-	stmt, err := tx.Prepare("INSERT INTO class_label(class_id, label) VALUES(?, ?)")
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-	for _, label := range labels {
-		if _, err = stmt.Exec(classID, strings.ToLower(label)); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// insertFolders inserts new class folders into the database
-func insertFolders(tx *sql.Tx, classID int, folders map[string]string) error {
-	stmt, err := tx.Prepare("INSERT INTO class_folder(class_id, target, template) VALUES(?, ?, ?)")
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-	for target, template := range folders {
-		if len(template) > 0 {
-			_, err = stmt.Exec(classID, target, template)
-		} else {
-			_, err = stmt.Exec(classID, target, nil)
-		}
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// insertFiles inserts new class files into the database
-func insertFiles(tx *sql.Tx, classID int, files map[string]string) error {
-	stmt, err := tx.Prepare("INSERT INTO class_file(class_id, target, template) VALUES(?, ?, ?)")
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-	for target, template := range files {
-		if len(template) > 0 {
-			_, err = stmt.Exec(classID, target, template)
-		} else {
-			_, err = stmt.Exec(classID, target, nil)
-		}
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// insertScripts inserts new class scripts into the database
-func insertScripts(tx *sql.Tx, classID int, scripts map[string]bool) error {
-	stmt, err := tx.Prepare("INSERT INTO class_script(class_id, name, run_as_sudo) VALUES(?, ?, ?)")
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-	for script, asSudo := range scripts {
-		if asSudo {
-			_, err = stmt.Exec(classID, script, 1)
-		} else {
-			_, err = stmt.Exec(classID, script, 0)
-		}
-		if err != nil {
-			return err
-		}
-	}
 	return nil
 }

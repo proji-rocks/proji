@@ -6,23 +6,13 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-// classConfig represents a class config file
-type classConfig struct {
-	Title   string
-	Class   map[string]string
-	Labels  map[string][]string
-	Folders map[string]string
-	Files   map[string]string
-	Scripts map[string]bool
-}
-
 // Import imports a new class from a given config file.
-func Import(configName string) error {
-	var conf classConfig
-	if _, err := toml.DecodeFile(configName, &conf); err != nil {
-		return err
+func Import(configName string) (*Class, error) {
+	var c Class
+	if _, err := toml.DecodeFile(configName, &c); err != nil {
+		return nil, err
 	}
 
-	fmt.Printf("> Importing %s...\n", conf.Title)
-	return AddClassToDB(conf.Class["name"], conf.Labels["data"], conf.Folders, conf.Files, conf.Scripts)
+	fmt.Printf("> Importing %s...\n", c.Name)
+	return &c, c.Save()
 }

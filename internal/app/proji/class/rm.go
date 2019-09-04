@@ -3,16 +3,13 @@ package class
 import (
 	"database/sql"
 	"errors"
-	"fmt"
-	"strings"
 
 	"github.com/nikoksr/proji/internal/app/helper"
 	"github.com/spf13/viper"
 )
 
-// RemoveClass removes an existing class and all of its depending settings in other tables from the database
-func RemoveClass(className string) error {
-	className = strings.ToLower(className)
+// Remove removes an existing class and all of its depending settings in other tables from the database.
+func (c *Class) Remove() error {
 
 	// Connect to database
 	DBDir := helper.GetConfigDir() + "/db/"
@@ -28,101 +25,61 @@ func RemoveClass(className string) error {
 	}
 	defer db.Close()
 
+	if err = c.loadID(db); err != nil {
+		return err
+	}
+
 	tx, err := db.Begin()
 	if err != nil {
 		return err
 	}
 
-	// Get class id
-	classID, err := helper.QueryClassID(tx, className)
-	if err != nil {
-		return err
-	}
-
 	// Remove class and dependencies
-	err = removeClass(tx, classID)
-	if err != nil {
+	if err = c.removeName(tx); err != nil {
 		return err
 	}
-	err = removeLabels(tx, classID)
-	if err != nil {
+	if err = c.removeLabels(tx); err != nil {
 		return err
 	}
-	err = removeFolders(tx, classID)
-	if err != nil {
+	if err = c.removeFolders(tx); err != nil {
 		return err
 	}
-	err = removeFiles(tx, classID)
-	if err != nil {
+	if err = c.removeFiles(tx); err != nil {
 		return err
 	}
-	err = removeScripts(tx, classID)
-	if err != nil {
+	if err = c.removeScripts(tx); err != nil {
 		return err
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		return err
-	}
-	fmt.Printf("> Removed class %s successfully.\n", className)
-	return nil
+	return tx.Commit()
 }
 
-// removeClass removes an existing class from the database
-func removeClass(tx *sql.Tx, classID int) error {
-	stmt, err := tx.Prepare("DELETE FROM class WHERE class_id = ?")
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-	_, err = stmt.Exec(classID)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// removeLabels removes all class labels from the database
-func removeLabels(tx *sql.Tx, classID int) error {
-	stmt, err := tx.Prepare("DELETE FROM class_label WHERE class_id = ?")
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-	_, err = stmt.Exec(classID)
+// removeName removes an existing class name.
+func (c *Class) removeName(tx *sql.Tx) error {
+	_, err := tx.Exec("DELETE FROM class WHERE class_id = ?", c.ID)
 	return err
 }
 
-// removeFolders removes all class folders from the database
-func removeFolders(tx *sql.Tx, classID int) error {
-	stmt, err := tx.Prepare("DELETE FROM class_folder WHERE class_id = ?")
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-	_, err = stmt.Exec(classID)
+// removeLabels removes all class labels.
+func (c *Class) removeLabels(tx *sql.Tx) error {
+	_, err := tx.Exec("DELETE FROM class_label WHERE class_id = ?", c.ID)
 	return err
 }
 
-// removeFiles removes all class files from the database
-func removeFiles(tx *sql.Tx, classID int) error {
-	stmt, err := tx.Prepare("DELETE FROM class_file WHERE class_id = ?")
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-	_, err = stmt.Exec(classID)
+// removeFolders removes all class folders.
+func (c *Class) removeFolders(tx *sql.Tx) error {
+	_, err := tx.Exec("DELETE FROM class_folder WHERE class_id = ?", c.ID)
 	return err
 }
 
-// removeScripts removes all class scripts from the database
-func removeScripts(tx *sql.Tx, classID int) error {
-	stmt, err := tx.Prepare("DELETE FROM class_script WHERE class_id = ?")
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-	_, err = stmt.Exec(classID)
+// removeFiles removes all class files.
+func (c *Class) removeFiles(tx *sql.Tx) error {
+	_, err := tx.Exec("DELETE FROM class_file WHERE class_id = ?", c.ID)
+	return err
+}
+
+// removeScripts removes all class scripts.
+func (c *Class) removeScripts(tx *sql.Tx) error {
+	_, err := tx.Exec("DELETE FROM class_script WHERE class_id = ?", c.ID)
 	return err
 }

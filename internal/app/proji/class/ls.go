@@ -24,28 +24,17 @@ func ListAll() error {
 	}
 	defer db.Close()
 
-	tx, err := db.Begin()
+	names, err := db.Query("SELECT name FROM class ORDER BY name")
 	if err != nil {
 		return err
 	}
+	defer names.Close()
 
-	stmt, err := tx.Prepare("SELECT name FROM class ORDER BY name ASC")
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	queryClass, err := stmt.Query()
-	if err != nil {
-		return err
-	}
-	defer queryClass.Close()
-
-	var className string
-	for queryClass.Next() {
-		queryClass.Scan(&className)
-		fmt.Println(" " + className)
+	for names.Next() {
+		var name string
+		names.Scan(&name)
+		fmt.Println(name)
 	}
 
-	return tx.Commit()
+	return nil
 }
