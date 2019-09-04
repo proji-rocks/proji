@@ -15,8 +15,8 @@ var classImportCmd = &cobra.Command{
 			return fmt.Errorf("missing configfile name")
 		}
 
-		for _, configName := range args {
-			if err := class.Import(configName); err != nil {
+		for _, config := range args {
+			if _, err := class.Import(config); err != nil {
 				return err
 			}
 		}

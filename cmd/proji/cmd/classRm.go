@@ -15,8 +15,9 @@ var classRmCmd = &cobra.Command{
 			return fmt.Errorf("missing class name")
 		}
 
-		for _, className := range args {
-			if err := class.RemoveClass(className); err != nil {
+		for _, name := range args {
+			c := class.New(name)
+			if err := c.Remove(); err != nil {
 				return err
 			}
 		}
