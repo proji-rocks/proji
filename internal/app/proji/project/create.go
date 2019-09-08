@@ -214,43 +214,25 @@ func (project *Project) createSubFolders() error {
 	}
 	defer stmtClass.Close()
 
-	subFoldersClass, err := stmtClass.Query(project.ID)
+	subFolders, err := stmtClass.Query(project.ID)
 	if err != nil {
 		return err
 	}
-	defer subFoldersClass.Close()
-
-	// Prepare statement for global folders
-	stmtGlobal, err := project.Data.db.Prepare("SELECT target FROM global_folder WHERE template IS NULL")
-	if err != nil {
-		return err
-	}
-	defer stmtClass.Close()
-
-	subFoldersGlobal, err := stmtGlobal.Query()
-	if err != nil {
-		return err
-	}
-	defer subFoldersGlobal.Close()
-
-	// Create subfolders
-	allSubFolders := []*sql.Rows{subFoldersClass, subFoldersGlobal}
+	defer subFolders.Close()
 	re := regexp.MustCompile(`__PROJECT_NAME__`)
 
-	for _, subFolders := range allSubFolders {
-		for subFolders.Next() {
-			var subFolder string
-			if err = subFolders.Scan(&subFolder); err != nil {
-				return err
-			}
+	for subFolders.Next() {
+		var subFolder string
+		if err = subFolders.Scan(&subFolder); err != nil {
+			return err
+		}
 
-			// Replace env variables
-			subFolder = re.ReplaceAllString(subFolder, project.Name)
+		// Replace variable with project name
+		subFolder = re.ReplaceAllString(subFolder, project.Name)
 
-			// Create folder
-			if err = os.MkdirAll(subFolder, os.ModePerm); err != nil {
-				return err
-			}
+		// Create folder
+		if err = os.MkdirAll(subFolder, os.ModePerm); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -267,42 +249,25 @@ func (project *Project) createFiles() error {
 	}
 	defer stmtClass.Close()
 
-	filesClass, err := stmtClass.Query(project.ID)
+	files, err := stmtClass.Query(project.ID)
 	if err != nil {
 		return err
 	}
-	defer filesClass.Close()
-
-	// Prepare statement for global files
-	stmtGlobal, err := project.Data.db.Prepare("SELECT target FROM global_file WHERE template IS NULL")
-	if err != nil {
-		return err
-	}
-	defer stmtClass.Close()
-
-	filesGlobal, err := stmtGlobal.Query()
-	if err != nil {
-		return err
-	}
-	defer filesGlobal.Close()
-
-	allFiles := []*sql.Rows{filesClass, filesGlobal}
+	defer files.Close()
 	re := regexp.MustCompile(`__PROJECT_NAME__`)
 
-	for _, files := range allFiles {
-		for files.Next() {
-			var file string
-			if err = files.Scan(&file); err != nil {
-				return err
-			}
+	for files.Next() {
+		var file string
+		if err = files.Scan(&file); err != nil {
+			return err
+		}
 
-			// Replace env variables
-			file = re.ReplaceAllString(file, project.Name)
+		// Replace variable with project name
+		file = re.ReplaceAllString(file, project.Name)
 
-			// Create file
-			if _, err := os.OpenFile(file, os.O_RDONLY|os.O_CREATE, os.ModePerm); err != nil {
-				return err
-			}
+		// Create file
+		if _, err := os.OpenFile(file, os.O_RDONLY|os.O_CREATE, os.ModePerm); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -319,43 +284,23 @@ func (project *Project) copyTemplates() error {
 	}
 	defer stmt.Close()
 
-	subFoldersClass, err := stmt.Query(project.ID)
+	subFolders, err := stmt.Query(project.ID)
 	if err != nil {
 		return err
 	}
-	defer subFoldersClass.Close()
-
-	// Prepare statement for global folders
-	if stmt, err = project.Data.db.Prepare("SELECT target, template FROM global_folder WHERE template IS NOT NULL"); err != nil {
-		return err
-	}
-	subFoldersGlobal, err := stmt.Query()
-	if err != nil {
-		return err
-	}
-	defer subFoldersGlobal.Close()
+	defer subFolders.Close()
 
 	// Prepare statement for class files
 	if stmt, err = project.Data.db.Prepare("SELECT target, template FROM class_file WHERE class_id = ? AND template IS NOT NULL"); err != nil {
 		return err
 	}
-	filesClass, err := stmt.Query(project.ID)
+	files, err := stmt.Query(project.ID)
 	if err != nil {
 		return err
 	}
-	defer filesClass.Close()
+	defer files.Close()
 
-	// Prepare statement for global files
-	if stmt, err = project.Data.db.Prepare("SELECT target, template FROM global_file WHERE template IS NOT NULL"); err != nil {
-		return err
-	}
-	filesGlobal, err := stmt.Query()
-	if err != nil {
-		return err
-	}
-	defer filesGlobal.Close()
-
-	templatesData := []*sql.Rows{subFoldersClass, subFoldersGlobal, filesClass, filesGlobal}
+	templatesData := []*sql.Rows{subFolders, files}
 
 	for _, templateData := range templatesData {
 		for templateData.Next() {
@@ -384,47 +329,32 @@ func (project *Project) runScripts() error {
 	}
 	defer stmt.Close()
 
-	classScripts, err := stmt.Query(project.ID)
+	scripts, err := stmt.Query(project.ID)
 	if err != nil {
 		return err
 	}
-	defer classScripts.Close()
-
-	// Prepare statement for global scripts
-	if stmt, err = project.Data.db.Prepare("SELECT name, run_as_sudo FROM global_script"); err != nil {
-		return err
-	}
-
-	globalScripts, err := stmt.Query()
-	if err != nil {
-		return err
-	}
-	defer globalScripts.Close()
-
-	allScripts := []*sql.Rows{classScripts, globalScripts}
+	defer scripts.Close()
 
 	// Create scripts
-	for _, scripts := range allScripts {
-		for scripts.Next() {
-			var script string
-			var runAsSudo bool
-			if err = scripts.Scan(&script, &runAsSudo); err != nil {
-				return err
-			}
+	for scripts.Next() {
+		var script string
+		var runAsSudo bool
+		if err = scripts.Scan(&script, &runAsSudo); err != nil {
+			return err
+		}
 
-			script = project.Data.scriptsDir + script
+		script = project.Data.scriptsDir + script
 
-			if runAsSudo {
-				script = "sudo " + script
-			}
+		if runAsSudo {
+			script = "sudo " + script
+		}
 
-			cmd := exec.Command(script)
-			cmd.Stdout = os.Stdout
-			cmd.Stdin = os.Stdin
-			cmd.Stderr = os.Stderr
-			if err = cmd.Run(); err != nil {
-				return err
-			}
+		cmd := exec.Command(script)
+		cmd.Stdout = os.Stdout
+		cmd.Stdin = os.Stdin
+		cmd.Stderr = os.Stderr
+		if err = cmd.Run(); err != nil {
+			return err
 		}
 	}
 	return nil
