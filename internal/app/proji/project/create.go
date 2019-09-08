@@ -19,9 +19,9 @@ import (
 	"github.com/otiai10/copy"
 )
 
-// CreateProject will create projects.
+// CreateProject will create a new project or return an error if the project already exists.
 // It will create directories and files, copy templates and run scripts.
-func CreateProject(label string, projects []string) error {
+func CreateProject(label string, project string) error {
 	configDir := helper.GetConfigDir()
 	databaseName, ok := viper.Get("database.name").(string)
 
@@ -49,20 +49,16 @@ func CreateProject(label string, projects []string) error {
 		return err
 	}
 
-	// Projects loop
-	for _, projectName := range projects {
-		// Header
-		fmt.Println(helper.ProjectHeader(projectName))
-		newProject := Project{Name: projectName, Data: &newSetup}
-		// Track
-		if err = newProject.track(); err != nil {
-			return fmt.Errorf("could not create project %s: %v", projectName, err)
-		}
-		// Create
-		if err = newProject.create(id); err != nil {
-			fmt.Printf("could not create project %s: %v", projectName, err)
-			continue
-		}
+	// Header
+	fmt.Println(helper.ProjectHeader(project))
+	proj := Project{Name: project, Data: &newSetup}
+	// Track
+	if err = proj.track(); err != nil {
+		return fmt.Errorf("could not create project %s: %v", project, err)
+	}
+	// Create
+	if err = proj.create(id); err != nil {
+		return fmt.Errorf("could not create project %s: %v", project, err)
 	}
 
 	return nil

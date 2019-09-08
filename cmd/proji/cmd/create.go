@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/nikoksr/proji/internal/app/proji/project"
-
 	"github.com/spf13/cobra"
 )
 
@@ -13,9 +12,16 @@ var createCmd = &cobra.Command{
 	Short: "create new projects",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 2 {
-			return fmt.Errorf("insufficient number of cli arguments")
+			return fmt.Errorf("atleast one project name has to be specified")
 		}
-		return project.CreateProject(args[0], args[1:])
+		label := args[0]
+		projects := args[1:]
+		for _, projectName := range projects {
+			if err := project.CreateProject(label, projectName); err != nil {
+				return err
+			}
+		}
+		return nil
 	},
 }
 
