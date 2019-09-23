@@ -3,7 +3,7 @@ package class
 import (
 	"fmt"
 
-	"github.com/nikoksr/proji/internal/app/helper"
+	"github.com/nikoksr/proji/pkg/helper"
 )
 
 // Show shows detailed information abour a given class

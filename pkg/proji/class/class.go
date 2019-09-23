@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/nikoksr/proji/internal/app/helper"
+	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/spf13/viper"
 )
 

@@ -13,7 +13,7 @@ import (
 
 	// Import sqlite3 driver (see func (setup *Setup) Run() error)
 
-	"github.com/nikoksr/proji/internal/app/helper"
+	"github.com/nikoksr/proji/pkg/helper"
 
 	"github.com/otiai10/copy"
 )
