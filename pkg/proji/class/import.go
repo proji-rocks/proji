@@ -1,8 +1,6 @@
 package class
 
 import (
-	"fmt"
-
 	"github.com/BurntSushi/toml"
 )
 
@@ -13,6 +11,5 @@ func Import(configName string) (*Class, error) {
 		return nil, err
 	}
 
-	fmt.Printf("> Importing %s...\n", c.Name)
 	return &c, c.Save()
 }
