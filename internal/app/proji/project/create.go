@@ -8,12 +8,11 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/spf13/viper"
 
 	// Import sqlite3 driver (see func (setup *Setup) Run() error)
-	"github.com/mattn/go-sqlite3"
+
 	"github.com/nikoksr/proji/internal/app/helper"
 
 	"github.com/otiai10/copy"
@@ -57,140 +56,11 @@ func CreateProject(label string, project string) error {
 		return fmt.Errorf("could not create project %s: %v", project, err)
 	}
 	// Create
-	if err = proj.create(id); err != nil {
+	if err = proj.new(id); err != nil {
 		return fmt.Errorf("could not create project %s: %v", project, err)
 	}
 
 	return nil
-}
-
-// Setup contains necessary informations for the creation of a project.
-// Owd is the Origin Working Directory.
-type Setup struct {
-	Owd          string
-	DatabaseName string
-	Label        string
-	ConfigDir    string
-	InstallDir   string
-	templatesDir string
-	scriptsDir   string
-	dbDir        string
-	db           *sql.DB
-}
-
-// init initializes the setup struct. Creates a database connection and defines default directores.
-func (setup *Setup) init() error {
-	// Set dirs
-	setup.dbDir = setup.ConfigDir + "db/"
-	setup.templatesDir = setup.ConfigDir + "templates/"
-	setup.scriptsDir = setup.ConfigDir + "scripts/"
-
-	if setup.Owd[:len(setup.Owd)-1] != "/" {
-		setup.Owd += "/"
-	}
-
-	// Connect to database
-	db, err := sql.Open("sqlite3", setup.dbDir+setup.DatabaseName)
-	if err != nil {
-		return err
-	}
-	setup.db = db
-	return nil
-}
-
-// stop cleanly stops the running Setup instance.
-// Currently it's only closing its open database connection.
-func (setup *Setup) stop() {
-	// Close database connection
-	if setup.db != nil {
-		setup.db.Close()
-	}
-}
-
-// isLabelSupported checks if the given label is found in the database.
-// Returns nil if found, returns error if not found
-func (setup *Setup) isLabelSupported() (int, error) {
-	stmt, err := setup.db.Prepare("SELECT class_id FROM class_label WHERE label = ?")
-	if err != nil {
-		return -1, err
-	}
-	defer stmt.Close()
-	var id int
-	err = stmt.QueryRow(setup.Label).Scan(&id)
-	return id, err
-}
-
-// Project struct represents a project that will be build.
-// Containing information about project name and label.
-// The setup struct includes information about config paths and a open database connection.
-type Project struct {
-	ID         int
-	Name       string
-	InstallDir string
-	Data       *Setup
-}
-
-// create starts the creation of a project.
-// Returns an error on failure. Returns nil on success.
-func (project *Project) create(projectID int) error {
-	// Set id and installDir
-	project.ID = projectID
-	project.InstallDir = project.Data.Owd + project.Name
-
-	// Create the project folder
-	fmt.Println("> Creating project folder...")
-	if err := project.createProjectFolder(); err != nil {
-		return err
-	}
-
-	// Chdir into the new project folder and defer chdir back to old cwd
-	if err := os.Chdir(project.Name); err != nil {
-		return err
-	}
-	defer os.Chdir(project.Data.Owd)
-
-	// Create subfolders
-	fmt.Println("> Creating subfolders...")
-	if err := project.createSubFolders(); err != nil {
-		return err
-	}
-
-	// Create files
-	fmt.Println("> Creating files...")
-	if err := project.createFiles(); err != nil {
-		return err
-	}
-
-	// Copy templates
-	fmt.Println("> Copying templates...")
-	if err := project.copyTemplates(); err != nil {
-		return err
-	}
-
-	// Run scripts
-	fmt.Println("> Running scripts...")
-	return project.runScripts()
-}
-
-// track tracks a created project in the database
-func (project *Project) track() error {
-	t := time.Now().Local()
-	_, err := project.Data.db.Exec(
-		"INSERT INTO project(name, class_id, install_path, install_date, project_status_id) VALUES(?, ?, ?, ?, ?)",
-		project.Name,
-		project.ID,
-		project.InstallDir,
-		t,
-		1,
-	)
-
-	if sqliteErr, ok := err.(sqlite3.Error); ok {
-		if sqliteErr.Code == sqlite3.ErrConstraint {
-			return fmt.Errorf("project already exists")
-		}
-	}
-
-	return err
 }
 
 // createProjectFolder tries to create the main project folder.
@@ -305,7 +175,7 @@ func (project *Project) copyTemplates() error {
 				return err
 			}
 
-			template = project.Data.templatesDir + template
+			template = project.Data.ConfigDir + "/templates/" + template
 			if err = copy.Copy(template, target); err != nil {
 				return err
 			}
@@ -339,7 +209,7 @@ func (project *Project) runScripts() error {
 			return err
 		}
 
-		script = project.Data.scriptsDir + script
+		script = project.Data.ConfigDir + "/scripts/" + script
 
 		if runAsSudo {
 			script = "sudo " + script
