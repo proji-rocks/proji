@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/mitchellh/go-homedir"
+	"github.com/spf13/viper"
 )
 
 // ProjectHeader returns an individual graphical header for a project
@@ -24,4 +25,14 @@ func GetConfigDir() string {
 	}
 
 	return home + "/.config/proji/"
+}
+
+// GetSqlitePath returns the default location for the sqlite3 db.
+func GetSqlitePath() (string, error) {
+	dbPath, ok := viper.Get("sqlite3.path").(string)
+	if !ok {
+		return "", fmt.Errorf("could not read database name from config file")
+	}
+
+	return GetConfigDir() + dbPath, nil
 }
