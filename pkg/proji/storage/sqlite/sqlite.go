@@ -312,7 +312,7 @@ func (s *sqlite) LoadClassID(name string) (uint, error) {
 }
 
 func (s *sqlite) LoadAllClasses() ([]*storage.Class, error) {
-	query := "SELECT name FROM class ORDER BY name"
+	query := "SELECT name FROM class ORDER BY class_id"
 
 	classRows, err := s.db.Query(query)
 	if err != nil {
