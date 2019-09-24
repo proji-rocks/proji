@@ -70,7 +70,25 @@ func New(path string) (storage.Service, error) {
 				class_id INTEGER NOT NULL REFERENCES class(class_id),
 				'name' TEXT NOT NULL,
 				run_as_sudo INTEGER NOT NULL
-		  	);
+			);
+			INSERT INTO project_status(project_status, comment)
+			VALUES
+  			(
+  			  "active",
+  			  "Actively working on this project."
+  			),
+  			(
+  			  "inactive",
+  			  "Stopped working on this project for now."
+  			),
+  			(
+  			  "done",
+  			  "Nothing more to do."
+  			),
+  			(
+  			  "dead",
+  			  "This project is dead."
+  			);
 		  	CREATE UNIQUE INDEX u_class_idx ON class('name');
 			CREATE UNIQUE INDEX u_class_label_idx ON class_label(label);
 			CREATE UNIQUE INDEX u_class_folder_idx ON class_folder(class_id, 'target');
