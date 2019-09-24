@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nikoksr/proji/pkg/helper"
+
 	"github.com/mattn/go-sqlite3"
 	"github.com/nikoksr/proji/pkg/proji/storage"
 )
@@ -18,16 +20,77 @@ type sqlite struct {
 
 // New creates a new connection to a sqlite database.
 func New(path string) (storage.Service, error) {
-	db, err := sql.Open("sqlite3", path)
-	if err != nil {
-		return nil, err
+	var db *sql.DB
+	var err error
+
+	if !helper.DoesFileExist(path) {
+		db, err = sql.Open("sqlite3", path)
+		if err != nil {
+			return nil, err
+		}
+
+		// Create tables
+		if _, err = db.Exec(
+			`CREATE TABLE IF NOT EXISTS project(
+				project_id INTEGER PRIMARY KEY,
+				'name' TEXT NOT NULL,
+				class_id INTEGER REFERENCES class(class_id),
+				install_path TEXT,
+				install_date TEXT,
+				project_status_id INTEGER REFERENCES project_status(project_status_id)
+		  	);
+		  	CREATE TABLE IF NOT EXISTS project_status(
+				project_status_id INTEGER PRIMARY KEY,
+				project_status TEXT NOT NULL,
+				comment TEXT
+			);
+		  	CREATE TABLE IF NOT EXISTS class(
+				class_id INTEGER PRIMARY KEY,
+				'name' TEXT NOT NULL
+		  	);
+		  	CREATE TABLE IF NOT EXISTS class_label(
+				class_label_id INTEGER PRIMARY KEY,
+				class_id INTEGER NOT NULL REFERENCES class(class_id),
+				label TEXT NOT NULL
+		  	);
+		  	CREATE TABLE IF NOT EXISTS class_folder(
+				class_folder_id INTEGER PRIMARY KEY,
+				class_id INTEGER NOT NULL REFERENCES class(class_id),
+				'target' TEXT NOT NULL,
+				template TEXT
+		  	);
+		  	CREATE TABLE IF NOT EXISTS class_file(
+				class_file_id INTEGER PRIMARY KEY,
+				class_id INTEGER NOT NULL REFERENCES class(class_id),
+				'target' TEXT NOT NULL,
+				template TEXT
+		  	);
+		  	CREATE TABLE IF NOT EXISTS class_script(
+				class_script_id INTEGER PRIMARY KEY,
+				class_id INTEGER NOT NULL REFERENCES class(class_id),
+				'name' TEXT NOT NULL,
+				run_as_sudo INTEGER NOT NULL
+		  	);
+		  	CREATE UNIQUE INDEX u_class_idx ON class('name');
+			CREATE UNIQUE INDEX u_class_label_idx ON class_label(label);
+			CREATE UNIQUE INDEX u_class_folder_idx ON class_folder(class_id, 'target');
+			CREATE UNIQUE INDEX u_class_file_idx ON class_file(class_id, 'target');
+			CREATE UNIQUE INDEX u_class_script_idx ON class_script(class_id, 'name');`,
+		); err != nil {
+			db.Close()
+			return nil, err
+		}
+	} else {
+		db, err = sql.Open("sqlite3", path)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Verify connection
 	if err = db.Ping(); err != nil {
 		return nil, err
 	}
-
 	return &sqlite{db, nil}, nil
 }
 
