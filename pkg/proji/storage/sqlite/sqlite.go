@@ -272,7 +272,7 @@ func (s *sqlite) LoadClassByName(name string) (*storage.Class, error) {
 }
 
 func (s *sqlite) LoadClassByID(id uint) (*storage.Class, error) {
-	class, err := storage.NewClass("")
+	class, err := storage.NewClass("temp")
 	if err != nil {
 		return nil, err
 	}
