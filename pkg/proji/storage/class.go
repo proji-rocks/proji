@@ -75,7 +75,7 @@ func (c *Class) ImportData(configName string) error {
 }
 
 // Export exports a given class to a toml config file
-func (c *Class) Export() error {
+func (c *Class) Export() (string, error) {
 	// Create config string
 	var configTxt = map[string]interface{}{
 		"name":    c.Name,
@@ -89,10 +89,10 @@ func (c *Class) Export() error {
 	confName := "proji-" + c.Name + ".toml"
 	conf, err := os.Create(confName)
 	if err != nil {
-		return err
+		return confName, err
 	}
 	defer conf.Close()
-	return toml.NewEncoder(conf).Encode(configTxt)
+	return confName, toml.NewEncoder(conf).Encode(configTxt)
 }
 
 // ExportExample exports an example class config

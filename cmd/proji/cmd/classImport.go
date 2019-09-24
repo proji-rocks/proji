@@ -19,8 +19,10 @@ var classImportCmd = &cobra.Command{
 
 		for _, config := range args {
 			if err := ImportClass(config); err != nil {
-				return err
+				fmt.Printf("Import of file %s failed: %v\n", config, err)
+				continue
 			}
+			fmt.Printf("File %s was successfully imported.\n", config)
 		}
 		return nil
 	},

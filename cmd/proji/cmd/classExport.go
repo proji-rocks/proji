@@ -23,9 +23,12 @@ var classExportCmd = &cobra.Command{
 			return fmt.Errorf("missing class name")
 		}
 		for _, name := range args {
-			if err := ExportClass(name); err != nil {
-				return err
+			var file string
+			if file, err := ExportClass(name); err != nil {
+				fmt.Printf("Export of class %s to file %s failed: %v\n", name, file, err)
+				continue
 			}
+			fmt.Printf("Class %s was successfully exported to file %s.\n", name, file)
 		}
 		return nil
 	},
@@ -37,21 +40,22 @@ func init() {
 }
 
 // ExportClass exports a class to a toml file.
-func ExportClass(name string) error {
+// Returns the filename on success.
+func ExportClass(name string) (string, error) {
 	// Setup storage service
 	sqlitePath, err := helper.GetSqlitePath()
 	if err != nil {
-		return err
+		return "", err
 	}
 	s, err := sqlite.New(sqlitePath)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer s.Close()
 
 	c, err := s.LoadClassByName(name)
 	if err != nil {
-		return err
+		return "", err
 	}
 	return c.Export()
 }

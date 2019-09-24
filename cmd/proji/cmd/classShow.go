@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/jedib0t/go-pretty/table"
 	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
@@ -48,7 +50,7 @@ func ShowClass(name string) error {
 		return err
 	}
 
-	fmt.Println(helper.ProjectHeader(c.Name))
+	// fmt.Println(helper.ProjectHeader(c.Name))
 	showLabels(c)
 	showFolders(c)
 	showFiles(c)
@@ -58,44 +60,66 @@ func ShowClass(name string) error {
 
 // showLabels shows all labels of a given class
 func showLabels(class *storage.Class) {
-	fmt.Println("Labels:")
+	// Table header
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"Label"})
 
 	for _, label := range class.Labels {
-		fmt.Println(" " + label)
+		t.AppendRow([]interface{}{label})
 	}
+	// Print the table
+	t.Render()
 	fmt.Println()
 }
 
 // showFolders shows all folders of a given class
 func showFolders(class *storage.Class) {
-	fmt.Println("Folders:")
+	// Table header
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"Folder", "Template"})
 
-	for target, template := range class.Folders {
-		fmt.Println(" " + target + " : " + template)
+	// Fill table
+	for folder, template := range class.Folders {
+		t.AppendRow([]interface{}{folder, template})
 	}
+
+	// Print the table
+	t.Render()
 	fmt.Println()
 }
 
 // showFiles shows all files of a given class
 func showFiles(class *storage.Class) {
-	fmt.Println("Files:")
+	// Table header
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"File", "Template"})
 
-	for target, template := range class.Files {
-		fmt.Println(" " + target + " : " + template)
+	// Fill table
+	for folder, template := range class.Files {
+		t.AppendRow([]interface{}{folder, template})
 	}
+
+	// Print the table
+	t.Render()
 	fmt.Println()
 }
 
 // showScripts shows all scripts of a given class
 func showScripts(class *storage.Class) {
-	fmt.Println("Scripts:")
+	// Table header
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"Script", "As sudo"})
 
+	// Fill table
 	for script, runAsSudo := range class.Scripts {
-		sudo := ""
-		if runAsSudo {
-			sudo = "sudo "
-		}
-		fmt.Println(" " + sudo + script)
+		t.AppendRow([]interface{}{script, runAsSudo})
 	}
+
+	// Print the table
+	t.Render()
 	fmt.Println()
 }
