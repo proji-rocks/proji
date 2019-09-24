@@ -3,7 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/nikoksr/proji/internal/app/proji/class"
+	"github.com/nikoksr/proji/pkg/helper"
+	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
 	"github.com/spf13/cobra"
 )
 
@@ -15,8 +16,8 @@ var classRmCmd = &cobra.Command{
 			return fmt.Errorf("missing class name")
 		}
 
-		for _, className := range args {
-			if err := class.RemoveClass(className); err != nil {
+		for _, name := range args {
+			if err := RemoveClass(name); err != nil {
 				return err
 			}
 		}
@@ -26,4 +27,20 @@ var classRmCmd = &cobra.Command{
 
 func init() {
 	classCmd.AddCommand(classRmCmd)
+}
+
+// RemoveClass removes a class from storage.
+func RemoveClass(name string) error {
+	// Setup storage service
+	sqlitePath, err := helper.GetSqlitePath()
+	if err != nil {
+		return err
+	}
+	s, err := sqlite.New(sqlitePath)
+	if err != nil {
+		return err
+	}
+	defer s.Close()
+
+	return s.RemoveClass(name)
 }

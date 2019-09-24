@@ -66,18 +66,3 @@ INSERT INTO
   class_script(class_id, 'name', run_as_sudo)
 VALUES
   (2, "init_virtualenv.sh", 0);
---
-INSERT INTO
-  global_folder('target', template)
-VALUES
-  (".vscode", "vscode");
---
-INSERT INTO
-  global_file('target', template)
-VALUES
-  (".gitignore", "gitignore");
---
-INSERT INTO
-  global_script('name', run_as_sudo)
-VALUES
-  ("init_git.sh", 0);

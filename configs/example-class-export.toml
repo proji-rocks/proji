@@ -1,24 +1,21 @@
 # Proji class template file
-title = "proji class example"
 
-
-[class]
 # The actual class name.
 # Must be unique and expressive.
 # name = "myTestClass" <- Good
 # name = "t1"          <- Bad, too short and not expressive
 
 
-[labels]
 # One or more short class labels. Labels must be unique and
 # should ideally be descriptive. These labels will be
 # used later on to create your projects.
 # e.g.: proji create YOUR-LABEL my-new-project
 # The first label will be used as the default file extension.
-# data = ["mtc"]                <- Good
-# data = ["mtc", "tc"]          <- Okay, 'tc' is not directly derived from class name
-# data = ["myTestClassLabel"]   <- Bad - too long
-# data = ["ilt"]                <- Bad - unrelated to class name
+# labels = ["mtc"]                <- Good
+# labels = ["mtc", "tc"]          <- Okay, 'tc' is not directly derived from class name
+# labels = ["myTestClassLabel"]   <- Bad - too long
+# labels = ["ilt"]                <- Bad - unrelated to class name
+# labels = ["mtc", "mtc"]         <- Invalid - Labels not unique
 
 
 [folders]

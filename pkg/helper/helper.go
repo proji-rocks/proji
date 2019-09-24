@@ -1,12 +1,12 @@
 package helper
 
 import (
-	"database/sql"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/mitchellh/go-homedir"
+	"github.com/spf13/viper"
 )
 
 // ProjectHeader returns an individual graphical header for a project
@@ -27,25 +27,12 @@ func GetConfigDir() string {
 	return home + "/.config/proji/"
 }
 
-// QueryClassID queries the id of namely specified class
-func QueryClassID(tx *sql.Tx, className string) (int, error) {
-	stmt, err := tx.Prepare("SELECT class_id FROM class WHERE name = ?")
-	if err != nil {
-		return -1, err
-	}
-	defer stmt.Close()
-
-	queryClassID, err := stmt.Query(className)
-	if err != nil {
-		return -1, err
-	}
-	defer queryClassID.Close()
-
-	if !queryClassID.Next() {
-		return -1, fmt.Errorf("could not find class %s in database", className)
+// GetSqlitePath returns the default location for the sqlite3 db.
+func GetSqlitePath() (string, error) {
+	dbPath, ok := viper.Get("sqlite3.path").(string)
+	if !ok {
+		return "", fmt.Errorf("could not read database name from config file")
 	}
 
-	var classID int
-	err = queryClassID.Scan(&classID)
-	return classID, err
+	return GetConfigDir() + dbPath, nil
 }
