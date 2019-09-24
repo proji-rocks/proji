@@ -37,7 +37,10 @@ func init() {
 // AddClass adds a new class interactively through the cli.
 func AddClass(name string) error {
 	// Create class and fill it with data from the cli
-	c := storage.NewClass(name)
+	c, err := storage.NewClass(name)
+	if err != nil {
+		return err
+	}
 
 	reader := bufio.NewReader(os.Stdin)
 

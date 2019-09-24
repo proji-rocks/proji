@@ -33,7 +33,10 @@ func init() {
 // ImportClass imports a class from a config file.
 func ImportClass(config string) error {
 	// Import class data
-	c := storage.NewClass("")
+	c, err := storage.NewClass("")
+	if err != nil {
+		return err
+	}
 	if err := c.ImportData(config); err != nil {
 		return err
 	}
