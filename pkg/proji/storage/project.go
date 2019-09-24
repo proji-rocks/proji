@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"regexp"
@@ -62,8 +61,6 @@ func NewProject(name, label, cwd string, store Service) (*Project, error) {
 
 // Create starts the creation of a project.
 func (proj *Project) Create() error {
-	// Create the project folder
-	fmt.Println("> Creating project folder...")
 	if err := proj.createProjectFolder(); err != nil {
 		return err
 	}
@@ -74,26 +71,15 @@ func (proj *Project) Create() error {
 	}
 	defer os.Chdir(proj.owd)
 
-	// Create subfolders
-	fmt.Println("> Creating subfolders...")
 	if err := proj.createSubFolders(); err != nil {
 		return err
 	}
-
-	// Create files
-	fmt.Println("> Creating files...")
 	if err := proj.createFiles(); err != nil {
 		return err
 	}
-
-	// Copy templates
-	fmt.Println("> Copying templates...")
 	if err := proj.copyTemplates(); err != nil {
 		return err
 	}
-
-	// Run scripts
-	fmt.Println("> Running scripts...")
 	return proj.runScripts()
 }
 
@@ -150,7 +136,7 @@ func (proj *Project) copyTemplates() error {
 
 			// Replace keyword with project name
 			fifo = re.ReplaceAllString(fifo, proj.Name)
-			template = helper.GetConfigDir() + "/templates/" + template
+			template = helper.GetConfigDir() + "templates/" + template
 			if err := copy.Copy(template, fifo); err != nil {
 				return err
 			}
@@ -161,7 +147,7 @@ func (proj *Project) copyTemplates() error {
 
 func (proj *Project) runScripts() error {
 	for script, runAsSudo := range proj.Class.Scripts {
-		script = helper.GetConfigDir() + "/scripts/" + script
+		script = helper.GetConfigDir() + "scripts/" + script
 
 		if runAsSudo {
 			script = "sudo " + script
