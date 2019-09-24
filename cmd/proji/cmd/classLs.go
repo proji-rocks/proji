@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"fmt"
+	"os"
 
+	"github.com/jedib0t/go-pretty/table"
 	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
 	"github.com/spf13/cobra"
@@ -39,9 +40,17 @@ func ListClasses() error {
 		return err
 	}
 
+	// Table header
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"#", "Name", "Labels"})
+
+	// Fill table
 	for _, class := range classes {
-		fmt.Println(class.Name)
+		t.AppendRow([]interface{}{class.ID, class.Name, class.Labels})
 	}
 
+	// Print the table
+	t.Render()
 	return nil
 }
