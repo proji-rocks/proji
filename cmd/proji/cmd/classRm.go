@@ -18,8 +18,10 @@ var classRmCmd = &cobra.Command{
 
 		for _, name := range args {
 			if err := RemoveClass(name); err != nil {
-				return err
+				fmt.Printf("Removing class %s failed: %v\n", name, err)
+				continue
 			}
+			fmt.Printf("Class %s was successfully removed.\n", name)
 		}
 		return nil
 	},

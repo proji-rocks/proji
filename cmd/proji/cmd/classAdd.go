@@ -23,8 +23,10 @@ var classAddCmd = &cobra.Command{
 
 		for _, name := range args {
 			if err := AddClass(name); err != nil {
-				fmt.Printf("Failed adding class %s: %v\n", name, err)
+				fmt.Printf("Adding class %s failed: %v\n", name, err)
+				continue
 			}
+			fmt.Printf("Class %s was successfully added.\n", name)
 		}
 		return nil
 	},
