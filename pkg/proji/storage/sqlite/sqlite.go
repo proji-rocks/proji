@@ -186,8 +186,11 @@ func (s *sqlite) saveScripts(class *storage.Class) error {
 }
 
 func (s *sqlite) LoadClassByName(name string) (*storage.Class, error) {
-	class := storage.NewClass(name)
-	var err error
+	class, err := storage.NewClass(name)
+	if err != nil {
+		return nil, err
+	}
+
 	class.ID, err = s.LoadClassID(name)
 	if err != nil {
 		return nil, err
@@ -206,7 +209,10 @@ func (s *sqlite) LoadClassByName(name string) (*storage.Class, error) {
 }
 
 func (s *sqlite) LoadClassByID(id uint) (*storage.Class, error) {
-	class := storage.NewClass("")
+	class, err := storage.NewClass("")
+	if err != nil {
+		return nil, err
+	}
 	class.ID = id
 
 	if err := s.loadName(class); err != nil {
