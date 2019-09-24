@@ -19,18 +19,18 @@
     <br>
 </p>
 
-## 📝 Table of Contents
+## Table of Contents
 
 - [About](#about)
 - [Getting Started](#getting_started)
 - [Usage](#usage)
 - [Built Using](#built_using)
 
-## 🧐 About <a name = "about"></a>
+## About <a name = "about"></a>
 
 I always liked to have orderly project structures but it is so annoying to create all those folders and files each time I want to start a new project. It's so much redundant work that costs me a lot of time. This is why I created proji. Proji automates all of those tasks for me based on templates, configs and scripts I previously created once.
 
-## 🏁 Getting Started <a name = "getting_started"></a>
+## Getting Started <a name = "getting_started"></a>
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
@@ -46,7 +46,7 @@ Probably run install.sh
 
 End with an example of getting some data out of the system or using it for a little demo.
 
-## 🎈 Usage <a name="usage"></a>
+## Usage <a name="usage"></a>
 
 Let's suppose I want to create a c ++ project. Normally, I'd have to execute several commands to create various folders and files, to initialize git, etc. But since I always want to use the same structure for my C ++ programs, this process can be very well automated.
 
@@ -78,12 +78,13 @@ In the python example proji setup a running `virtuelenv` with all packages of my
 
 In both examples proji created barebone main-files, initialized `git` and checked out the `develop branch`.
 
-## ⛏️ Built Using <a name = "built_using"></a>
+## Built Using <a name = "built_using"></a>
 
 - [go](https://golang.org/) - Main language
 - [sqlite3](https://www.sqlite.org/index.html) - Database
 - [mattn/go-sqlite3](https://github.com/mattn/go-sqlite3) - Go Sqlite3 Driver
-- [spf13/cobra](https://github.com/spf13/cobra) - Go CLI Librarys
-- [spf13/viper](https://github.com/spf13/viper) - Go Config Library
+- [spf13/cobra](https://github.com/spf13/cobra) - CLI commands
+- [spf13/viper](https://github.com/spf13/viper) - Manage config file
 - [BurntSushi/toml](https://github.com/BurntSushi/toml) - Go toml parser
 - [toml-lang/toml](https://github.com/toml-lang/toml) - Config Language
+- [jedib0t/go-pretty](https://github.com/jedib0t/go-pretty) - CLI Styling
