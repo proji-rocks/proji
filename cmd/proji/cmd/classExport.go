@@ -37,21 +37,22 @@ func init() {
 }
 
 // ExportClass exports a class to a toml file.
-func ExportClass(name string) error {
+// Returns the filename on success.
+func ExportClass(name string) (string, error) {
 	// Setup storage service
 	sqlitePath, err := helper.GetSqlitePath()
 	if err != nil {
-		return err
+		return "", err
 	}
 	s, err := sqlite.New(sqlitePath)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer s.Close()
 
 	c, err := s.LoadClassByName(name)
 	if err != nil {
-		return err
+		return "", err
 	}
 	return c.Export()
 }
