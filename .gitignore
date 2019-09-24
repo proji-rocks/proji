@@ -2,6 +2,7 @@
 .vscode/
 templates/
 vendor/
+bin/
 
 # File Extensions
 *.sqlite
