@@ -23,8 +23,10 @@ var createCmd = &cobra.Command{
 		projects := args[1:]
 		for _, name := range projects {
 			if err := CreateProject(name, label); err != nil {
-				return err
+				fmt.Printf("Creating project %s failed: %v\n", name, err)
+				continue
 			}
+			fmt.Printf("Project %s was successfully created.\n", name)
 		}
 		return nil
 	},
@@ -53,9 +55,6 @@ func CreateProject(name, label string) error {
 		return err
 	}
 
-	// Header
-	fmt.Println(helper.ProjectHeader(name))
-
 	label = strings.ToLower(label)
 	proj, err := storage.NewProject(name, label, cwd, s)
 	if err != nil {
@@ -64,11 +63,11 @@ func CreateProject(name, label string) error {
 
 	// Create
 	if err := proj.Create(); err != nil {
-		return fmt.Errorf("could not create project %s: %v", proj.Name, err)
+		return err
 	}
 	// Track
 	if err := s.TrackProject(proj); err != nil {
-		return fmt.Errorf("could not track project %s: %v", proj.Name, err)
+		return err
 	}
 	return nil
 }

@@ -10,10 +10,11 @@ import (
 )
 
 // ProjectHeader returns an individual graphical header for a project
-func ProjectHeader(projectName string) string {
-	separatorLine := strings.Repeat("#", 50) + "\n"
-	projectLine := "# " + projectName + "\n"
-	return (separatorLine + "#\n" + projectLine + "#\n" + separatorLine)
+func ProjectHeader(title string) string {
+	numChars := len(title) + 4
+	separatorLine := "+" + strings.Repeat("-", numChars-2) + "+\n"
+	projectLine := "| " + title + " |\n"
+	return (separatorLine + projectLine + separatorLine)
 }
 
 // GetConfigDir returns the default config directory.
@@ -35,4 +36,12 @@ func GetSqlitePath() (string, error) {
 	}
 
 	return GetConfigDir() + dbPath, nil
+}
+
+// DoesFileExist checks if a given file exists.
+func DoesFileExist(path string) bool {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return false
+	}
+	return true
 }
