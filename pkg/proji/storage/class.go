@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 	"github.com/nikoksr/proji/pkg/helper"
@@ -32,7 +33,11 @@ type Class struct {
 }
 
 // NewClass returns a new class
-func NewClass(name string) *Class {
+func NewClass(name string) (*Class, error) {
+	if len(name) < 3 {
+		return nil, fmt.Errorf("class name has to be atleast 3 characters long")
+	}
+
 	return &Class{
 		Name:    name,
 		ID:      0,
@@ -40,7 +45,7 @@ func NewClass(name string) *Class {
 		Folders: make(map[string]string),
 		Files:   make(map[string]string),
 		Scripts: make(map[string]bool),
-	}
+	}, nil
 }
 
 // Remove removes an existing class and all of its depending settings in other tables from the database.
@@ -50,10 +55,23 @@ func (c *Class) Remove(store Service) error {
 
 // ImportData imports class data from a given config file.
 func (c *Class) ImportData(configName string) error {
-	if _, err := toml.DecodeFile(configName, &c); err != nil {
+	// Validate that it's a toml file
+	if !strings.HasSuffix(configName, ".toml") {
+		return fmt.Errorf("import file has to be of type 'toml'")
+	}
+
+	// Validate config is not empty
+	conf, err := os.Stat(configName)
+	if err != nil {
 		return err
 	}
-	return nil
+	if conf.Size() == 0 {
+		return fmt.Errorf("import file is empty")
+	}
+
+	// Decode the file
+	_, err = toml.DecodeFile(configName, &c)
+	return err
 }
 
 // Export exports a given class to a toml config file
