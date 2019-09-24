@@ -3,7 +3,9 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/nikoksr/proji/internal/app/proji/class"
+	"github.com/nikoksr/proji/pkg/helper"
+	"github.com/nikoksr/proji/pkg/proji/storage"
+	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +18,7 @@ var classImportCmd = &cobra.Command{
 		}
 
 		for _, config := range args {
-			if _, err := class.Import(config); err != nil {
+			if err := ImportClass(config); err != nil {
 				return err
 			}
 		}
@@ -26,4 +28,25 @@ var classImportCmd = &cobra.Command{
 
 func init() {
 	classCmd.AddCommand(classImportCmd)
+}
+
+// ImportClass imports a class from a config file.
+func ImportClass(config string) error {
+	// Import class data
+	c := storage.NewClass("")
+	if err := c.ImportData(config); err != nil {
+		return err
+	}
+
+	// Setup storage service
+	sqlitePath, err := helper.GetSqlitePath()
+	if err != nil {
+		return err
+	}
+	s, err := sqlite.New(sqlitePath)
+	if err != nil {
+		return err
+	}
+	defer s.Close()
+	return s.SaveClass(c)
 }
