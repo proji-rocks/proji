@@ -4,9 +4,8 @@ title = "proji main config"
 location = "examples/"
 class = "class-export.toml.example"
 
-[database]
-location = "db/"
-name = "proji.sqlite3"
+[sqlite3]
+path = "db/proji.sqlite3"
 
 [editor]
 name = "code"

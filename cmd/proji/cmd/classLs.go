@@ -1,7 +1,10 @@
 package cmd
 
 import (
-	"github.com/nikoksr/proji/internal/app/proji/class"
+	"fmt"
+
+	"github.com/nikoksr/proji/pkg/helper"
+	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
 	"github.com/spf13/cobra"
 )
 
@@ -10,14 +13,35 @@ var classLsCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "list existing classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		err := class.ListAll()
-		if err != nil {
-			return err
-		}
-		return nil
+		return ListClasses()
 	},
 }
 
 func init() {
 	classCmd.AddCommand(classLsCmd)
+}
+
+// ListClasses lists all classes available in the database
+func ListClasses() error {
+	// Setup storage service
+	sqlitePath, err := helper.GetSqlitePath()
+	if err != nil {
+		return err
+	}
+	s, err := sqlite.New(sqlitePath)
+	if err != nil {
+		return err
+	}
+	defer s.Close()
+
+	classes, err := s.LoadAllClasses()
+	if err != nil {
+		return err
+	}
+
+	for _, class := range classes {
+		fmt.Println(class.Name)
+	}
+
+	return nil
 }

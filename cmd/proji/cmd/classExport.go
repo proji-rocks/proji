@@ -3,36 +3,27 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/nikoksr/proji/internal/app/proji/class"
+	"github.com/nikoksr/proji/pkg/helper"
+	"github.com/nikoksr/proji/pkg/proji/storage"
+	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
 	"github.com/spf13/cobra"
 )
 
-var exportExample bool
+var exampleDest string
 
 var classExportCmd = &cobra.Command{
 	Use:   "export CLASS [CLASS...]",
 	Short: "export proji classes to config files",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		numArgs := len(args)
-		if exportExample {
-			var destFolder string
-			switch numArgs {
-			case 1:
-				destFolder = args[0]
-			case 0:
-				destFolder = "."
-			default:
-				return fmt.Errorf("invalid number of destination folders")
-			}
-			return class.ExportExample(destFolder)
+		if len(exampleDest) > 0 {
+			return storage.ExportExample(exampleDest)
 		}
 
-		if numArgs < 1 {
+		if len(args) < 1 {
 			return fmt.Errorf("missing class name")
 		}
-		for _, className := range args {
-			err := class.Export(className)
-			if err != nil {
+		for _, name := range args {
+			if err := ExportClass(name); err != nil {
 				return err
 			}
 		}
@@ -42,7 +33,25 @@ var classExportCmd = &cobra.Command{
 
 func init() {
 	classCmd.AddCommand(classExportCmd)
+	classExportCmd.Flags().StringVarP(&exampleDest, "example", "e", "", "export example config")
+}
 
-	// Flag to export an example config
-	classExportCmd.Flags().BoolVarP(&exportExample, "example", "e", false, "export example config")
+// ExportClass exports a class to a toml file.
+func ExportClass(name string) error {
+	// Setup storage service
+	sqlitePath, err := helper.GetSqlitePath()
+	if err != nil {
+		return err
+	}
+	s, err := sqlite.New(sqlitePath)
+	if err != nil {
+		return err
+	}
+	defer s.Close()
+
+	c, err := s.LoadClassByName(name)
+	if err != nil {
+		return err
+	}
+	return c.Export()
 }
