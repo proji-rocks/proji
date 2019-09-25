@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
@@ -18,12 +17,10 @@ var rmCmd = &cobra.Command{
 		}
 
 		for _, idStr := range args {
-			// Parse the input
-			id64, err := strconv.ParseUint(idStr, 10, 64)
+			id, err := helper.StrToUInt(idStr)
 			if err != nil {
 				return err
 			}
-			id := uint(id64)
 
 			if err := RemoveProject(id); err != nil {
 				fmt.Printf("Removing project with id %d failed: %v\n", id, err)
