@@ -43,7 +43,7 @@ func ListClasses() error {
 	// Table header
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"#", "Name", "Labels"})
+	t.AppendHeader(table.Row{"ID", "Name", "Labels"})
 
 	// Fill table
 	for _, class := range classes {
