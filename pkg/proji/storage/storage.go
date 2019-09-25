@@ -45,11 +45,14 @@ type Service interface {
 	ListProjects() ([]*Project, error)
 
 	// AddProjectStatus adds a new status to storage.
-	AddProjectStatus(status *Status) error
+	AddStatus(status *Status) error
 
 	// RemoveProjectStatus removes an existing status from storage.
-	RemoveProjectStatus(statusID uint) error
+	RemoveStatus(statusID uint) error
+
+	// LoadStatusByID loads a status from storage by its ID.
+	LoadStatusByID(id uint) (*Status, error)
 
 	// ListAvailableProjectStatuses returns a list of all statuses in storage.
-	ListAvailableProjectStatuses() ([]*Status, error)
+	ListAvailableStatuses() ([]*Status, error)
 }

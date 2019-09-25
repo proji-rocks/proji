@@ -583,7 +583,7 @@ func (s *sqlite) ListProjects() ([]*storage.Project, error) {
 	return projects, nil
 }
 
-func (s *sqlite) AddProjectStatus(status *storage.Status) error {
+func (s *sqlite) AddStatus(status *storage.Status) error {
 	_, err := s.db.Exec(
 		"INSERT INTO project(title, comment) VALUES(?, ?)",
 		status.Title,
@@ -598,12 +598,30 @@ func (s *sqlite) AddProjectStatus(status *storage.Status) error {
 	return err
 }
 
-func (s *sqlite) RemoveProjectStatus(statusID uint) error {
+func (s *sqlite) RemoveStatus(statusID uint) error {
 	_, err := s.db.Exec("DELETE FROM project_status WHERE project_status_id = ?", statusID)
 	return err
 }
 
-func (s *sqlite) ListAvailableProjectStatuses() ([]*storage.Status, error) {
+func (s *sqlite) LoadStatusByID(id uint) (*storage.Status, error) {
+	query := "SELECT * FROM project_status WHERE project_status_id = ?"
+
+	statusRows, err := s.db.Query(query, id)
+	if err != nil {
+		return nil, err
+	}
+	defer statusRows.Close()
+
+	if !statusRows.Next() {
+		return nil, fmt.Errorf("Could not find status with ID %d in database", id)
+	}
+
+	var status *storage.Status
+	err = statusRows.Scan(&status.ID, &status.Title, &status.Comment)
+	return status, err
+}
+
+func (s *sqlite) ListAvailableStatuses() ([]*storage.Status, error) {
 	query := "SELECT * FROM project_status ORDER BY project_status_id"
 
 	statusRows, err := s.db.Query(query)
