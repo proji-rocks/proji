@@ -5,27 +5,48 @@ type Service interface {
 	// Close the interface.
 	Close() error
 
-	// Save a class to a storage.
+	// SaveClass saves a class to storage.
 	SaveClass(class *Class) error
 
-	// Load a class from storage by its name.
+	// LoadClassByName loads a class from storage by its name.
 	LoadClassByName(name string) (*Class, error)
 
-	// Load a class from storage by its ID.
+	// LoadClassByID loads a class from storage by its ID.
 	LoadClassByID(id uint) (*Class, error)
 
-	// Load the ID for a given class
+	// LoadClassID loads the ID of a given class from storage.
 	LoadClassID(name string) (uint, error)
 
-	// Load all classes from storage
+	// LoadAllClasses loads all available classes from storage.
 	LoadAllClasses() ([]*Class, error)
 
-	// Remove a class from storage.
+	// RemoveClass removes a class from storage.
 	RemoveClass(name string) error
 
-	// Checks if a given label exists in the storage. Returns the corresponding ID if true and an error if not.
+	// DoesLabelExist checks if a given label exists in storage. Returns the corresponding ID if true and an error if not.
 	DoesLabelExist(label string) (uint, error)
 
-	// TrackProject adds a project to the database.
+	// TrackProject adds a project to storage.
 	TrackProject(proj *Project) error
+
+	// UntrackProject removes a project from storage.
+	UntrackProject(id uint) error
+
+	// UpdateProjectStatus updates the status of a given project in storage.
+	UpdateProjectStatus(projectID, statusID uint) error
+
+	// UpdateProjectLocation updates the location of a project in storage.
+	UpdateProjectLocation(projectID uint, installPath string) error
+
+	// ListProjects returns a list of all projects in storage.
+	ListProjects() ([]*Project, error)
+
+	// AddProjectStatus adds a new status to storage.
+	AddProjectStatus(status *Status) error
+
+	// RemoveProjectStatus removes an existing status from storage.
+	RemoveProjectStatus(statusID uint) error
+
+	// ListAvailableProjectStatuses returns a list of all statuses in storage.
+	ListAvailableProjectStatuses() ([]*Status, error)
 }

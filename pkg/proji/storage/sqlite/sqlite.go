@@ -41,7 +41,7 @@ func New(path string) (storage.Service, error) {
 		  	);
 		  	CREATE TABLE IF NOT EXISTS project_status(
 				project_status_id INTEGER PRIMARY KEY,
-				project_status TEXT NOT NULL,
+				title TEXT NOT NULL,
 				comment TEXT
 			);
 		  	CREATE TABLE IF NOT EXISTS class(
@@ -72,7 +72,7 @@ func New(path string) (storage.Service, error) {
 				run_as_sudo INTEGER NOT NULL
 			);
 			INSERT INTO
-				project_status(project_status, comment)
+				project_status(title, comment)
 			VALUES
 				("active", "Actively working on this project."),
   				("inactive","Stopped working on this project for now."),
@@ -506,4 +506,101 @@ func (s *sqlite) TrackProject(proj *storage.Project) error {
 		}
 	}
 	return err
+}
+
+func (s *sqlite) UntrackProject(projectID uint) error {
+	_, err := s.db.Exec("DELETE FROM project WHERE project_id = ?", projectID)
+	return err
+}
+
+func (s *sqlite) UpdateProjectStatus(projectID, statusID uint) error {
+	_, err := s.db.Exec("UPDATE project SET project_status_id = ? WHERE project_id = ?", statusID, projectID)
+	return err
+}
+
+func (s *sqlite) UpdateProjectLocation(projectID uint, installPath string) error {
+	_, err := s.db.Exec("UPDATE project SET install_path = ? WHERE project_id = ?", installPath, projectID)
+	return err
+}
+
+func (s *sqlite) ListProjects() ([]*storage.Project, error) {
+	query := `
+		SELECT
+			p.project_id,
+			p.name as title,
+			p.install_path,
+			c.name as class_name,
+			ps.project_status
+		FROM
+			project p
+		JOIN project_status ps ON
+			p.project_status_id = ps.project_status_id
+		JOIN class c ON
+			p.class_id = c.class_id
+		ORDER BY
+			p.project_id
+	`
+
+	projectRows, err := s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer projectRows.Close()
+
+	var projects []*storage.Project
+
+	for projectRows.Next() {
+		var project storage.Project
+		var status storage.Status
+		var class storage.Class
+
+		if err := projectRows.Scan(&project.ID, &project.Name, &project.InstallPath, &class.Name, status.Title); err != nil {
+			return nil, err
+		}
+		project.Status = &status
+		project.Class = &class
+		projects = append(projects, &project)
+	}
+	return projects, nil
+}
+
+func (s *sqlite) AddProjectStatus(status *storage.Status) error {
+	_, err := s.db.Exec(
+		"INSERT INTO project(title, comment) VALUES(?, ?)",
+		status.Title,
+		status.Comment,
+	)
+
+	if sqliteErr, ok := err.(sqlite3.Error); ok {
+		if sqliteErr.Code == sqlite3.ErrConstraint {
+			return fmt.Errorf("status already exists")
+		}
+	}
+	return err
+}
+
+func (s *sqlite) RemoveProjectStatus(statusID uint) error {
+	_, err := s.db.Exec("DELETE FROM project_status WHERE project_status_id = ?", statusID)
+	return err
+}
+
+func (s *sqlite) ListAvailableProjectStatuses() ([]*storage.Status, error) {
+	query := "SELECT * FROM project_status ORDER BY project_status_id"
+
+	statusRows, err := s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer statusRows.Close()
+
+	var statuses []*storage.Status
+
+	for statusRows.Next() {
+		var status storage.Status
+		if err := statusRows.Scan(&status.ID, &status.Title, &status.Comment); err != nil {
+			return nil, err
+		}
+		statuses = append(statuses, &status)
+	}
+	return statuses, nil
 }
