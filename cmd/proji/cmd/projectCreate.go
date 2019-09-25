@@ -13,7 +13,7 @@ import (
 )
 
 var createCmd = &cobra.Command{
-	Use:   "create LABEL PROJECTNAME [PROJECTNAME...]",
+	Use:   "create LABEL NAME [NAME...]",
 	Short: "Create one or more projects",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 2 {
