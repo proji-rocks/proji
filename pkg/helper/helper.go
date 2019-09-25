@@ -3,6 +3,7 @@ package helper
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/mitchellh/go-homedir"
@@ -44,4 +45,14 @@ func DoesFileExist(path string) bool {
 		return false
 	}
 	return true
+}
+
+// StrToUInt converts a string into a uint.
+func StrToUInt(num string) (uint, error) {
+	// Parse the input
+	id64, err := strconv.ParseUint(num, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return uint(id64), nil
 }
