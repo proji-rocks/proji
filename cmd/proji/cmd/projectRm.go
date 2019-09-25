@@ -36,7 +36,7 @@ var projectRmCmd = &cobra.Command{
 }
 
 func init() {
-	projectCmd.AddCommand(projectRmCmd)
+	rootCmd.AddCommand(projectRmCmd)
 }
 
 // RemoveProject removes a project from storage.

@@ -18,7 +18,7 @@ var projectLsCmd = &cobra.Command{
 }
 
 func init() {
-	projectCmd.AddCommand(projectLsCmd)
+	rootCmd.AddCommand(projectLsCmd)
 }
 
 // ListProjects lists all available projects.
