@@ -14,10 +14,10 @@ import (
 
 var createCmd = &cobra.Command{
 	Use:   "create LABEL PROJECTNAME [PROJECTNAME...]",
-	Short: "create new projects",
+	Short: "Create one or more projects",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 2 {
-			return fmt.Errorf("atleast one project name has to be specified")
+			return fmt.Errorf("At least one label and name have to be given")
 		}
 		label := args[0]
 		projects := args[1:]

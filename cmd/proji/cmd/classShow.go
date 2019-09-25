@@ -13,10 +13,10 @@ import (
 
 var classShowCmd = &cobra.Command{
 	Use:   "show CLASS [CLASS...]",
-	Short: "show detailed class informations",
+	Short: "Show details about one or more classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("missing class name")
+			return fmt.Errorf("Missing class name")
 		}
 
 		for _, name := range args {

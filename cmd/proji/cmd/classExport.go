@@ -13,14 +13,14 @@ var exampleDest string
 
 var classExportCmd = &cobra.Command{
 	Use:   "export CLASS [CLASS...]",
-	Short: "export proji classes to config files",
+	Short: "Export one or more classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(exampleDest) > 0 {
 			return storage.ExportExample(exampleDest)
 		}
 
 		if len(args) < 1 {
-			return fmt.Errorf("missing class name")
+			return fmt.Errorf("Missing class name")
 		}
 		for _, name := range args {
 			var file string
@@ -36,7 +36,7 @@ var classExportCmd = &cobra.Command{
 
 func init() {
 	classCmd.AddCommand(classExportCmd)
-	classExportCmd.Flags().StringVarP(&exampleDest, "example", "e", "", "export example config")
+	classExportCmd.Flags().StringVarP(&exampleDest, "example", "e", "", "Export an example")
 }
 
 // ExportClass exports a class to a toml file.

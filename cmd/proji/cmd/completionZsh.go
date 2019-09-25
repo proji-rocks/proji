@@ -6,7 +6,7 @@ import (
 
 var completionZshCmd = &cobra.Command{
 	Use:   "zsh",
-	Short: "zsh completion",
+	Short: "Zsh completion",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return rootCmd.GenZshCompletionFile("proji-zsh-completion")
 	},

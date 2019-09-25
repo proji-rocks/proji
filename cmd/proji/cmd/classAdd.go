@@ -15,10 +15,10 @@ import (
 
 var classAddCmd = &cobra.Command{
 	Use:   "add CLASS [CLASS...]",
-	Short: "add new classes",
+	Short: "Add one or more classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("missing class name")
+			return fmt.Errorf("Missing class name")
 		}
 
 		for _, name := range args {
@@ -80,7 +80,7 @@ func getLabels(reader *bufio.Reader, class *storage.Class) error {
 
 	class.Labels = strings.Fields(text)
 	if len(class.Labels) < 1 {
-		return fmt.Errorf("you have to specify atleast one label")
+		return fmt.Errorf("You have to specify atleast one label")
 	}
 
 	fmt.Println()

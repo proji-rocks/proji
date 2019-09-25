@@ -6,7 +6,7 @@ import (
 
 var completionBashCmd = &cobra.Command{
 	Use:   "bash",
-	Short: "bash completion",
+	Short: "Bash completion",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return rootCmd.GenBashCompletionFile("proji-bash-completion")
 	},

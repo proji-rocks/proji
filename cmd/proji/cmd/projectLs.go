@@ -11,7 +11,7 @@ import (
 
 var projectLsCmd = &cobra.Command{
 	Use:   "ls",
-	Short: "list existing projects",
+	Short: "List projects",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return ListProjects()
 	},

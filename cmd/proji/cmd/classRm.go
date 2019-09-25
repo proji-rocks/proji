@@ -10,10 +10,10 @@ import (
 
 var classRmCmd = &cobra.Command{
 	Use:   "rm CLASS [CLASS...]",
-	Short: "remove existing classes",
+	Short: "Remove one or more classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("missing class name")
+			return fmt.Errorf("Missing class name")
 		}
 
 		for _, name := range args {

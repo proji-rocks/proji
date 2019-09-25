@@ -11,10 +11,10 @@ import (
 
 var projectRmCmd = &cobra.Command{
 	Use:   "rm PROJECT-ID [PROJECT-ID...]",
-	Short: "remove existing projects",
+	Short: "Remove one or more projects",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("missing project id")
+			return fmt.Errorf("Missing project id")
 		}
 
 		for _, idStr := range args {

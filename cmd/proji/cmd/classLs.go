@@ -12,7 +12,7 @@ import (
 // lsCmd represents the ls command
 var classLsCmd = &cobra.Command{
 	Use:   "ls",
-	Short: "list existing classes",
+	Short: "List classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return ListClasses()
 	},

@@ -6,7 +6,7 @@ import (
 
 var classCmd = &cobra.Command{
 	Use:   "class",
-	Short: "add, remove and update your classes",
+	Short: "Manage classes",
 }
 
 func init() {
