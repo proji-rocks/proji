@@ -603,6 +603,24 @@ func (s *sqlite) RemoveStatus(statusID uint) error {
 	return err
 }
 
+func (s *sqlite) LoadStatusByTitle(title string) (*storage.Status, error) {
+	query := "SELECT * FROM project_status WHERE title = ?"
+
+	statusRows, err := s.db.Query(query, title)
+	if err != nil {
+		return nil, err
+	}
+	defer statusRows.Close()
+
+	if !statusRows.Next() {
+		return nil, fmt.Errorf("Could not find status %s in database", title)
+	}
+
+	var status *storage.Status
+	err = statusRows.Scan(&status.ID, &status.Title, &status.Comment)
+	return status, err
+}
+
 func (s *sqlite) LoadStatusByID(id uint) (*storage.Status, error) {
 	query := "SELECT * FROM project_status WHERE project_status_id = ?"
 

@@ -50,6 +50,9 @@ type Service interface {
 	// RemoveProjectStatus removes an existing status from storage.
 	RemoveStatus(statusID uint) error
 
+	// LoadStatusByID loads a status from storage by its title.
+	LoadStatusByTitle(title string) (*Status, error)
+
 	// LoadStatusByID loads a status from storage by its ID.
 	LoadStatusByID(id uint) (*Status, error)
 
