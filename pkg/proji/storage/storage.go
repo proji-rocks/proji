@@ -38,6 +38,9 @@ type Service interface {
 	// UpdateProjectLocation updates the location of a project in storage.
 	UpdateProjectLocation(projectID uint, installPath string) error
 
+	// LoadProjectID loads the ID of a given project from storage.
+	LoadProjectID(path string) (uint, error)
+
 	// ListProjects returns a list of all projects in storage.
 	ListProjects() ([]*Project, error)
 

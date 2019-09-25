@@ -82,7 +82,8 @@ func New(path string) (storage.Service, error) {
 			CREATE UNIQUE INDEX u_class_label_idx ON class_label(label);
 			CREATE UNIQUE INDEX u_class_folder_idx ON class_folder(class_id, 'target');
 			CREATE UNIQUE INDEX u_class_file_idx ON class_file(class_id, 'target');
-			CREATE UNIQUE INDEX u_class_script_idx ON class_script(class_id, 'name');`,
+			CREATE UNIQUE INDEX u_class_script_idx ON class_script(class_id, 'name');
+			CREATE UNIQUE INDEX u_project_path_idx ON project(install_path);`,
 		); err != nil {
 			db.Close()
 			return nil, err
@@ -521,6 +522,24 @@ func (s *sqlite) UpdateProjectStatus(projectID, statusID uint) error {
 func (s *sqlite) UpdateProjectLocation(projectID uint, installPath string) error {
 	_, err := s.db.Exec("UPDATE project SET install_path = ? WHERE project_id = ?", installPath, projectID)
 	return err
+}
+
+func (s *sqlite) LoadProjectID(path string) (uint, error) {
+	query := "SELECT project_id FROM project WHERE install_path = ?"
+
+	idRows, err := s.db.Query(query, path)
+	if err != nil {
+		return 0, err
+	}
+	defer idRows.Close()
+
+	if !idRows.Next() {
+		return 0, fmt.Errorf("could not find project %s in database", path)
+	}
+
+	var id uint
+	err = idRows.Scan(&id)
+	return id, err
 }
 
 func (s *sqlite) ListProjects() ([]*storage.Project, error) {
