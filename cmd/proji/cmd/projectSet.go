@@ -6,7 +6,7 @@ import (
 
 var projectSetCmd = &cobra.Command{
 	Use:   "set",
-	Short: "Set project data",
+	Short: "Set project information",
 }
 
 func init() {
