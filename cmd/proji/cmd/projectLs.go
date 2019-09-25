@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var projectLsCmd = &cobra.Command{
+var lsCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List projects",
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -18,7 +18,7 @@ var projectLsCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(projectLsCmd)
+	rootCmd.AddCommand(lsCmd)
 }
 
 // ListProjects lists all available projects.

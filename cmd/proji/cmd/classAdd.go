@@ -14,7 +14,7 @@ import (
 )
 
 var classAddCmd = &cobra.Command{
-	Use:   "add CLASS [CLASS...]",
+	Use:   "add NAME [NAME...]",
 	Short: "Add one or more classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {

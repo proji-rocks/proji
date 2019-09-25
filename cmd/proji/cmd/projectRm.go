@@ -9,8 +9,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var projectRmCmd = &cobra.Command{
-	Use:   "rm PROJECT-ID [PROJECT-ID...]",
+var rmCmd = &cobra.Command{
+	Use:   "rm ID [ID...]",
 	Short: "Remove one or more projects",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
@@ -36,7 +36,7 @@ var projectRmCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(projectRmCmd)
+	rootCmd.AddCommand(rmCmd)
 }
 
 // RemoveProject removes a project from storage.

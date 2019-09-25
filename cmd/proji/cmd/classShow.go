@@ -12,7 +12,7 @@ import (
 )
 
 var classShowCmd = &cobra.Command{
-	Use:   "show CLASS [CLASS...]",
+	Use:   "show NAME [NAME...]",
 	Short: "Show details about one or more classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {

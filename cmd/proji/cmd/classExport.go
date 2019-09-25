@@ -12,7 +12,7 @@ import (
 var exampleDest string
 
 var classExportCmd = &cobra.Command{
-	Use:   "export CLASS [CLASS...]",
+	Use:   "export NAME [NAME...]",
 	Short: "Export one or more classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(exampleDest) > 0 {
