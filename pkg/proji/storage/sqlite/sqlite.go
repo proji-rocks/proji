@@ -530,7 +530,7 @@ func (s *sqlite) ListProjects() ([]*storage.Project, error) {
 			p.name as title,
 			p.install_path,
 			c.name as class_name,
-			ps.project_status
+			ps.title
 		FROM
 			project p
 		JOIN project_status ps ON
@@ -554,7 +554,7 @@ func (s *sqlite) ListProjects() ([]*storage.Project, error) {
 		var status storage.Status
 		var class storage.Class
 
-		if err := projectRows.Scan(&project.ID, &project.Name, &project.InstallPath, &class.Name, status.Title); err != nil {
+		if err := projectRows.Scan(&project.ID, &project.Name, &project.InstallPath, &class.Name, &status.Title); err != nil {
 			return nil, err
 		}
 		project.Status = &status
