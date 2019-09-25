@@ -175,7 +175,7 @@ func (s *sqlite) saveName(name string) error {
 
 func (s *sqlite) saveLabels(class *storage.Class) error {
 	if s.tx == nil {
-		return fmt.Errorf("no open transaction")
+		return fmt.Errorf("No open transaction")
 	}
 
 	query := "INSERT INTO class_label(class_id, label) VALUES(?, ?)"
@@ -311,7 +311,7 @@ func (s *sqlite) LoadClassID(name string) (uint, error) {
 	defer idRows.Close()
 
 	if !idRows.Next() {
-		return 0, fmt.Errorf("could not find class %s in database", name)
+		return 0, fmt.Errorf("Could not find class %s in storage", name)
 	}
 
 	var id uint
@@ -352,7 +352,7 @@ func (s *sqlite) loadName(class *storage.Class) error {
 	defer nameRows.Close()
 
 	if !nameRows.Next() {
-		return fmt.Errorf("could not find class with id %d in database", class.ID)
+		return fmt.Errorf("Could not find class with id %d in database", class.ID)
 	}
 	return nameRows.Scan(&class.Name)
 }
@@ -503,7 +503,7 @@ func (s *sqlite) TrackProject(proj *storage.Project) error {
 
 	if sqliteErr, ok := err.(sqlite3.Error); ok {
 		if sqliteErr.Code == sqlite3.ErrConstraint {
-			return fmt.Errorf("project already exists")
+			return fmt.Errorf("Project already exists")
 		}
 	}
 	return err
@@ -534,7 +534,7 @@ func (s *sqlite) LoadProjectID(path string) (uint, error) {
 	defer idRows.Close()
 
 	if !idRows.Next() {
-		return 0, fmt.Errorf("could not find project %s in database", path)
+		return 0, fmt.Errorf("Could not find project %s in database", path)
 	}
 
 	var id uint
@@ -592,7 +592,7 @@ func (s *sqlite) AddProjectStatus(status *storage.Status) error {
 
 	if sqliteErr, ok := err.(sqlite3.Error); ok {
 		if sqliteErr.Code == sqlite3.ErrConstraint {
-			return fmt.Errorf("status already exists")
+			return fmt.Errorf("Status already exists")
 		}
 	}
 	return err

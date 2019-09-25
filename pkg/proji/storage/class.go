@@ -35,7 +35,7 @@ type Class struct {
 // NewClass returns a new class
 func NewClass(name string) (*Class, error) {
 	if len(name) < 3 {
-		return nil, fmt.Errorf("class name has to be atleast 3 characters long")
+		return nil, fmt.Errorf("Class name has to be atleast 3 characters long")
 	}
 
 	return &Class{
@@ -57,7 +57,7 @@ func (c *Class) Remove(store Service) error {
 func (c *Class) ImportData(configName string) error {
 	// Validate that it's a toml file
 	if !strings.HasSuffix(configName, ".toml") {
-		return fmt.Errorf("import file has to be of type 'toml'")
+		return fmt.Errorf("Import file has to be of type 'toml'")
 	}
 
 	// Validate config is not empty
@@ -66,7 +66,7 @@ func (c *Class) ImportData(configName string) error {
 		return err
 	}
 	if conf.Size() == 0 {
-		return fmt.Errorf("import file is empty")
+		return fmt.Errorf("Import file is empty")
 	}
 
 	// Decode the file
@@ -100,11 +100,11 @@ func ExportExample(destFolder string) error {
 
 	exampleDir, ok := viper.Get("examples.location").(string)
 	if !ok {
-		return fmt.Errorf("could not read example file location from config file")
+		return fmt.Errorf("Could not read example file location from config file")
 	}
 	exampleFile, ok := viper.Get("examples.class").(string)
 	if !ok {
-		return fmt.Errorf("could not read example file name from config file")
+		return fmt.Errorf("Could not read example file name from config file")
 	}
 
 	exampleFile = helper.GetConfigDir() + exampleDir + exampleFile

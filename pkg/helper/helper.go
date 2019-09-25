@@ -32,7 +32,7 @@ func GetConfigDir() string {
 func GetSqlitePath() (string, error) {
 	dbPath, ok := viper.Get("sqlite3.path").(string)
 	if !ok {
-		return "", fmt.Errorf("could not read database name from config file")
+		return "", fmt.Errorf("Could not read database name from config file")
 	}
 
 	return GetConfigDir() + dbPath, nil
