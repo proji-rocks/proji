@@ -616,9 +616,9 @@ func (s *sqlite) LoadStatusByTitle(title string) (*storage.Status, error) {
 		return nil, fmt.Errorf("Could not find status %s in database", title)
 	}
 
-	var status *storage.Status
+	var status storage.Status
 	err = statusRows.Scan(&status.ID, &status.Title, &status.Comment)
-	return status, err
+	return &status, err
 }
 
 func (s *sqlite) LoadStatusByID(id uint) (*storage.Status, error) {
@@ -634,9 +634,9 @@ func (s *sqlite) LoadStatusByID(id uint) (*storage.Status, error) {
 		return nil, fmt.Errorf("Could not find status with ID %d in database", id)
 	}
 
-	var status *storage.Status
+	var status storage.Status
 	err = statusRows.Scan(&status.ID, &status.Title, &status.Comment)
-	return status, err
+	return &status, err
 }
 
 func (s *sqlite) ListAvailableStatuses() ([]*storage.Status, error) {
