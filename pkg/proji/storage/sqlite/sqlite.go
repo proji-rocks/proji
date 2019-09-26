@@ -586,7 +586,7 @@ func (s *sqlite) ListProjects() ([]*storage.Project, error) {
 
 func (s *sqlite) AddStatus(status *storage.Status) error {
 	_, err := s.db.Exec(
-		"INSERT INTO project(title, comment) VALUES(?, ?)",
+		"INSERT INTO project_status(title, comment) VALUES(?, ?)",
 		status.Title,
 		status.Comment,
 	)
