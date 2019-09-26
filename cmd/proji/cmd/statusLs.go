@@ -9,21 +9,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// lsCmd represents the ls command
-var classLsCmd = &cobra.Command{
+var statusLsCmd = &cobra.Command{
 	Use:   "ls",
-	Short: "List classes",
+	Short: "List statuses",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return ListClasses()
+		return listStatuses()
 	},
 }
 
 func init() {
-	classCmd.AddCommand(classLsCmd)
+	statusCmd.AddCommand(statusLsCmd)
 }
 
-// ListClasses lists all classes available in the database
-func ListClasses() error {
+func listStatuses() error {
 	// Setup storage service
 	sqlitePath, err := helper.GetSqlitePath()
 	if err != nil {
@@ -35,7 +33,7 @@ func ListClasses() error {
 	}
 	defer s.Close()
 
-	classes, err := s.LoadAllClasses()
+	statuses, err := s.ListAvailableStatuses()
 	if err != nil {
 		return err
 	}
@@ -43,11 +41,11 @@ func ListClasses() error {
 	// Table header
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"ID", "Name", "Labels"})
+	t.AppendHeader(table.Row{"ID", "Title", "Comment"})
 
 	// Fill table
-	for _, class := range classes {
-		t.AppendRow([]interface{}{class.ID, class.Name, class.Labels})
+	for _, status := range statuses {
+		t.AppendRow([]interface{}{status.ID, status.Title, status.Comment})
 	}
 
 	// Print the table

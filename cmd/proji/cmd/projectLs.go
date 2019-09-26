@@ -9,21 +9,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// lsCmd represents the ls command
-var classLsCmd = &cobra.Command{
+var lsCmd = &cobra.Command{
 	Use:   "ls",
-	Short: "List classes",
+	Short: "List projects",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return ListClasses()
+		return ListProjects()
 	},
 }
 
 func init() {
-	classCmd.AddCommand(classLsCmd)
+	rootCmd.AddCommand(lsCmd)
 }
 
-// ListClasses lists all classes available in the database
-func ListClasses() error {
+// ListProjects lists all available projects.
+func ListProjects() error {
 	// Setup storage service
 	sqlitePath, err := helper.GetSqlitePath()
 	if err != nil {
@@ -35,7 +34,7 @@ func ListClasses() error {
 	}
 	defer s.Close()
 
-	classes, err := s.LoadAllClasses()
+	projects, err := s.ListProjects()
 	if err != nil {
 		return err
 	}
@@ -43,11 +42,17 @@ func ListClasses() error {
 	// Table header
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"ID", "Name", "Labels"})
+	t.AppendHeader(table.Row{"ID", "Name", "Install Path", "Class", "Status"})
 
 	// Fill table
-	for _, class := range classes {
-		t.AppendRow([]interface{}{class.ID, class.Name, class.Labels})
+	for _, project := range projects {
+		t.AppendRow([]interface{}{
+			project.ID,
+			project.Name,
+			project.InstallPath,
+			project.Class.Name,
+			project.Status.Title,
+		})
 	}
 
 	// Print the table

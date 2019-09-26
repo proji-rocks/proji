@@ -6,7 +6,7 @@ import (
 
 var completionCmd = &cobra.Command{
 	Use:    "completion SHELL",
-	Short:  "add shell completion",
+	Short:  "Add shell completion",
 	Hidden: true,
 }
 

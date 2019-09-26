@@ -14,7 +14,7 @@ var cfgFile string
 
 var rootCmd = &cobra.Command{
 	Use:   "proji",
-	Short: "a lean and mean project creator and manager. ",
+	Short: "A lean and mean project creator and manager.",
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -41,7 +41,7 @@ func initConfig() {
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Printf("Error: Could not read config file %s", viper.ConfigFileUsed())
+		fmt.Printf("Could not read config file %s", viper.ConfigFileUsed())
 		os.Exit(1)
 	}
 }
