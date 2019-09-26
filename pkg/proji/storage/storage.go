@@ -44,17 +44,23 @@ type Service interface {
 	// ListProjects returns a list of all projects in storage.
 	ListProjects() ([]*Project, error)
 
-	// AddProjectStatus adds a new status to storage.
+	// AddStatus adds a new status to storage.
 	AddStatus(status *Status) error
 
-	// RemoveProjectStatus removes an existing status from storage.
+	// UpdateStatus updates a status in storage.
+	UpdateStatus(status *Status) error
+
+	// RemoveStatus removes an existing status from storage.
 	RemoveStatus(statusID uint) error
 
-	// LoadStatusByID loads a status from storage by its title.
+	// LoadStatusByTitle loads a status from storage by its title.
 	LoadStatusByTitle(title string) (*Status, error)
 
 	// LoadStatusByID loads a status from storage by its ID.
 	LoadStatusByID(id uint) (*Status, error)
+
+	// LoadStatusID loads the ID of a given status from storage.
+	LoadStatusID(title string) (uint, error)
 
 	// ListAvailableProjectStatuses returns a list of all statuses in storage.
 	ListAvailableStatuses() ([]*Status, error)
