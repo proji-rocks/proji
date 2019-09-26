@@ -23,7 +23,7 @@ func New(path string) (storage.Service, error) {
 	var db *sql.DB
 	var err error
 
-	if !helper.DoesFileExist(path) {
+	if !helper.DoesPathExist(path) {
 		db, err = sql.Open("sqlite3", path)
 		if err != nil {
 			return nil, err
