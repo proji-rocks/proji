@@ -649,6 +649,24 @@ func (s *sqlite) LoadStatusByID(id uint) (*storage.Status, error) {
 	return &status, err
 }
 
+func (s *sqlite) LoadStatusID(title string) (uint, error) {
+	query := "SELECT project_status_id FROM project_status WHERE title = ?"
+
+	idRows, err := s.db.Query(query, title)
+	if err != nil {
+		return 0, err
+	}
+	defer idRows.Close()
+
+	if !idRows.Next() {
+		return 0, fmt.Errorf("Could not find status '%s' in database", title)
+	}
+
+	var id uint
+	err = idRows.Scan(&id)
+	return id, err
+}
+
 func (s *sqlite) ListAvailableStatuses() ([]*storage.Status, error) {
 	query := "SELECT * FROM project_status ORDER BY project_status_id"
 
