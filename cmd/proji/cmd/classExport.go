@@ -23,8 +23,8 @@ var classExportCmd = &cobra.Command{
 			return fmt.Errorf("Missing class name")
 		}
 		for _, name := range args {
-			var file string
-			if file, err := ExportClass(name); err != nil {
+			file, err := ExportClass(name)
+			if err != nil {
 				fmt.Printf("Export of class %s to file %s failed: %v\n", name, file, err)
 				continue
 			}
