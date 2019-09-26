@@ -599,6 +599,15 @@ func (s *sqlite) AddStatus(status *storage.Status) error {
 	return err
 }
 
+func (s *sqlite) UpdateStatus(status *storage.Status) error {
+	_, err := s.db.Exec("UPDATE project_status SET title = ?, comment = ? WHERE project_status_id = ?",
+		status.Title,
+		status.Comment,
+		status.ID,
+	)
+	return err
+}
+
 func (s *sqlite) RemoveStatus(statusID uint) error {
 	_, err := s.db.Exec("DELETE FROM project_status WHERE project_status_id = ?", statusID)
 	return err
