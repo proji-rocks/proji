@@ -31,8 +31,8 @@ var createCmd = &cobra.Command{
 		for _, name := range projects {
 			if err := CreateProject(name, label, cwd); err != nil {
 				fmt.Printf("Creating project %s failed: %v\n", name, err)
-				if err.Error() == "project already exists" {
-					if !wantToReplace() {
+				if err.Error() == "Project already exists" {
+					if !helper.WantTo("Do you want to replace it?") {
 						continue
 					}
 					if err := replaceProject(name, label, cwd); err != nil {
@@ -81,24 +81,6 @@ func CreateProject(name, label, cwd string) error {
 		return err
 	}
 	return nil
-}
-
-func wantToReplace() bool {
-	// Ask to replace project
-	var input string
-	for {
-		fmt.Print("Do you want to replace it? [y/n] ")
-		n, err := fmt.Scan(&input)
-		if n == 1 && err == nil {
-			input = strings.Trim(strings.ToLower(input), " ")
-			if input == "n" || input == "" {
-				return false
-			}
-			if input == "y" {
-				return true
-			}
-		}
-	}
 }
 
 func replaceProject(name, label, cwd string) error {
