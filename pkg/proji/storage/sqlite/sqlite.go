@@ -537,6 +537,25 @@ func (s *sqlite) UpdateProjectLocation(projectID uint, installPath string) error
 	return err
 }
 
+func (s *sqlite) LoadProjectByID(id uint) (*storage.Project, error) {
+	query := "SELECT name, class_id, install_path, project_status_id FROM project WHERE project_id = ?"
+
+	var name, installPath sql.NullString
+	var classID, statusID sql.NullInt64
+	if err := s.db.QueryRow(query, id).Scan(&name, &classID, &installPath, &statusID); err != nil {
+		return nil, err
+	}
+	class, err := s.LoadClassByID(uint(classID.Int64))
+	if err != nil {
+		return nil, err
+	}
+	status, err := s.LoadStatusByID(uint(statusID.Int64))
+	if err != nil {
+		return nil, err
+	}
+	return &storage.Project{Name: name.String, Class: class, InstallPath: installPath.String, Status: status}, nil
+}
+
 func (s *sqlite) LoadProjectID(path string) (uint, error) {
 	query := "SELECT project_id FROM project WHERE install_path = ?"
 
