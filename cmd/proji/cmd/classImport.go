@@ -11,10 +11,10 @@ import (
 
 var classImportCmd = &cobra.Command{
 	Use:   "import FILE [FILE...]",
-	Short: "import classes from config files",
+	Short: "Import one or more classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("missing configfile name")
+			return fmt.Errorf("Missing configfile name")
 		}
 
 		for _, config := range args {
@@ -35,7 +35,7 @@ func init() {
 // ImportClass imports a class from a config file.
 func ImportClass(config string) error {
 	// Import class data
-	c, err := storage.NewClass("")
+	c, err := storage.NewClass("temp")
 	if err != nil {
 		return err
 	}

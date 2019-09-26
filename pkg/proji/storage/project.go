@@ -12,6 +12,9 @@ import (
 
 // Project struct represents a proji project
 type Project struct {
+	// The project ID
+	ID uint
+
 	// The project name
 	Name string
 
@@ -20,6 +23,9 @@ type Project struct {
 
 	// The install path for the project
 	InstallPath string
+
+	// The current project status
+	Status *Status
 
 	// The class label
 	label string
@@ -31,16 +37,27 @@ type Project struct {
 	owd string
 }
 
+// Status represents a project status
+type Status struct {
+	// The status id
+	ID uint
+
+	// The status title
+	Title string
+
+	// Short comment describing the status.
+	Comment string
+}
+
 // NewProject returns a new project
 func NewProject(name, label, cwd string, store Service) (*Project, error) {
 	// Validate label
-	id, err := store.DoesLabelExist(label)
+	classID, err := store.DoesLabelExist(label)
 	if err != nil {
 		return nil, err
 	}
 
-	// Load class by id
-	class, err := store.LoadClassByID(id)
+	class, err := store.LoadClassByID(classID)
 	if err != nil {
 		return nil, err
 	}
@@ -51,9 +68,11 @@ func NewProject(name, label, cwd string, store Service) (*Project, error) {
 	}
 
 	return &Project{
+		ID:          0,
 		Name:        name,
 		Class:       class,
 		InstallPath: cwd + name,
+		Status:      nil,
 		label:       label,
 		owd:         cwd,
 	}, nil
