@@ -315,9 +315,9 @@ func (s *sqlite) LoadClassID(name string) (uint, error) {
 		return 0, fmt.Errorf("Could not find class %s in storage", name)
 	}
 
-	var id uint
-	err = idRows.Scan(&id)
-	return id, err
+	var classID sql.NullInt64
+	err = idRows.Scan(&classID)
+	return uint(classID.Int64), err
 }
 
 func (s *sqlite) LoadAllClasses() ([]*storage.Class, error) {
@@ -328,13 +328,12 @@ func (s *sqlite) LoadAllClasses() ([]*storage.Class, error) {
 		return nil, err
 	}
 	defer classRows.Close()
-
 	var classes []*storage.Class
 
 	for classRows.Next() {
-		var name string
+		var name sql.NullString
 		classRows.Scan(&name)
-		class, err := s.LoadClassByName(name)
+		class, err := s.LoadClassByName(name.String)
 		if err != nil {
 			return nil, err
 		}
@@ -355,7 +354,12 @@ func (s *sqlite) loadName(class *storage.Class) error {
 	if !nameRows.Next() {
 		return fmt.Errorf("Could not find class with id %d in database", class.ID)
 	}
-	return nameRows.Scan(&class.Name)
+	var name sql.NullString
+	if err := nameRows.Scan(&name); err != nil {
+		return err
+	}
+	class.Name = name.String
+	return nil
 }
 
 func (s *sqlite) loadLabels(class *storage.Class) error {
@@ -368,9 +372,11 @@ func (s *sqlite) loadLabels(class *storage.Class) error {
 	defer labelRows.Close()
 
 	for labelRows.Next() {
-		var label string
-		labelRows.Scan(&label)
-		class.Labels = append(class.Labels, label)
+		var label sql.NullString
+		if err := labelRows.Scan(&label); err != nil {
+			return err
+		}
+		class.Labels = append(class.Labels, label.String)
 	}
 	return nil
 }
@@ -385,9 +391,11 @@ func (s *sqlite) loadFolders(class *storage.Class) error {
 	defer folderRows.Close()
 
 	for folderRows.Next() {
-		var target, template string
-		folderRows.Scan(&target, &template)
-		class.Folders[target] = template
+		var target, template sql.NullString
+		if err := folderRows.Scan(&target, &template); err != nil {
+			return err
+		}
+		class.Folders[target.String] = template.String
 	}
 	return nil
 }
@@ -402,9 +410,11 @@ func (s *sqlite) loadFiles(class *storage.Class) error {
 	defer fileRows.Close()
 
 	for fileRows.Next() {
-		var target, template string
-		fileRows.Scan(&target, &template)
-		class.Files[target] = template
+		var target, template sql.NullString
+		if err := fileRows.Scan(&target, &template); err != nil {
+			return err
+		}
+		class.Files[target.String] = template.String
 	}
 	return nil
 }
@@ -419,10 +429,12 @@ func (s *sqlite) loadScripts(class *storage.Class) error {
 	defer scriptRows.Close()
 
 	for scriptRows.Next() {
-		var scriptName string
-		var runAsSudo bool
-		scriptRows.Scan(&scriptName, &runAsSudo)
-		class.Scripts[scriptName] = runAsSudo
+		var scriptName sql.NullString
+		var runAsSudo sql.NullBool
+		if err := scriptRows.Scan(&scriptName, &runAsSudo); err != nil {
+			return err
+		}
+		class.Scripts[scriptName.String] = runAsSudo.Bool
 	}
 	return nil
 }
@@ -486,9 +498,9 @@ func (s *sqlite) removeScripts(classID uint) error {
 
 func (s *sqlite) DoesLabelExist(label string) (uint, error) {
 	query := "SELECT class_id FROM class_label WHERE label = ?"
-	var id uint
+	var id sql.NullInt64
 	err := s.db.QueryRow(query, label).Scan(&id)
-	return id, err
+	return uint(id.Int64), err
 }
 
 func (s *sqlite) TrackProject(proj *storage.Project) error {
@@ -538,9 +550,9 @@ func (s *sqlite) LoadProjectID(path string) (uint, error) {
 		return 0, fmt.Errorf("Could not find project %s in database", path)
 	}
 
-	var id uint
+	var id sql.NullInt64
 	err = idRows.Scan(&id)
-	return id, err
+	return uint(id.Int64), err
 }
 
 func (s *sqlite) ListProjects() ([]*storage.Project, error) {
@@ -553,9 +565,9 @@ func (s *sqlite) ListProjects() ([]*storage.Project, error) {
 			ps.title
 		FROM
 			project p
-		JOIN project_status ps ON
+		LEFT JOIN project_status ps ON
 			p.project_status_id = ps.project_status_id
-		JOIN class c ON
+		LEFT JOIN class c ON
 			p.class_id = c.class_id
 		ORDER BY
 			p.project_id
@@ -570,16 +582,23 @@ func (s *sqlite) ListProjects() ([]*storage.Project, error) {
 	var projects []*storage.Project
 
 	for projectRows.Next() {
-		var project storage.Project
-		var status storage.Status
-		var class storage.Class
+		var projectID sql.NullInt64
+		var projectName, installPath, className, statusTitle sql.NullString
 
-		if err := projectRows.Scan(&project.ID, &project.Name, &project.InstallPath, &class.Name, &status.Title); err != nil {
+		if err := projectRows.Scan(&projectID, &projectName, &installPath, &className, &statusTitle); err != nil {
 			return nil, err
 		}
-		project.Status = &status
-		project.Class = &class
-		projects = append(projects, &project)
+
+		status := &storage.Status{Title: statusTitle.String}
+		class := &storage.Class{Name: className.String}
+		project := &storage.Project{
+			ID:          uint(projectID.Int64),
+			Name:        projectName.String,
+			InstallPath: installPath.String,
+			Class:       class,
+			Status:      status,
+		}
+		projects = append(projects, project)
 	}
 	return projects, nil
 }
@@ -626,9 +645,15 @@ func (s *sqlite) LoadStatusByTitle(title string) (*storage.Status, error) {
 		return nil, fmt.Errorf("Could not find status %s in database", title)
 	}
 
-	var status storage.Status
-	err = statusRows.Scan(&status.ID, &status.Title, &status.Comment)
-	return &status, err
+	var statusID sql.NullInt64
+	var statusTitle, statusComment sql.NullString
+	err = statusRows.Scan(&statusID, &statusTitle, &statusComment)
+	status := &storage.Status{
+		ID:      uint(statusID.Int64),
+		Title:   statusTitle.String,
+		Comment: statusComment.String,
+	}
+	return status, err
 }
 
 func (s *sqlite) LoadStatusByID(id uint) (*storage.Status, error) {
@@ -644,9 +669,15 @@ func (s *sqlite) LoadStatusByID(id uint) (*storage.Status, error) {
 		return nil, fmt.Errorf("Could not find status with ID %d in database", id)
 	}
 
-	var status storage.Status
-	err = statusRows.Scan(&status.ID, &status.Title, &status.Comment)
-	return &status, err
+	var statusID sql.NullInt64
+	var statusTitle, statusComment sql.NullString
+	err = statusRows.Scan(&statusID, &statusTitle, &statusComment)
+	status := &storage.Status{
+		ID:      uint(statusID.Int64),
+		Title:   statusTitle.String,
+		Comment: statusComment.String,
+	}
+	return status, err
 }
 
 func (s *sqlite) LoadStatusID(title string) (uint, error) {
@@ -662,9 +693,9 @@ func (s *sqlite) LoadStatusID(title string) (uint, error) {
 		return 0, fmt.Errorf("Could not find status '%s' in database", title)
 	}
 
-	var id uint
-	err = idRows.Scan(&id)
-	return id, err
+	var statusID sql.NullInt64
+	err = idRows.Scan(&statusID)
+	return uint(statusID.Int64), err
 }
 
 func (s *sqlite) ListAvailableStatuses() ([]*storage.Status, error) {
@@ -679,11 +710,17 @@ func (s *sqlite) ListAvailableStatuses() ([]*storage.Status, error) {
 	var statuses []*storage.Status
 
 	for statusRows.Next() {
-		var status storage.Status
-		if err := statusRows.Scan(&status.ID, &status.Title, &status.Comment); err != nil {
+		var statusID sql.NullInt64
+		var statusTitle, statusComment sql.NullString
+		if err = statusRows.Scan(&statusID, &statusTitle, &statusComment); err != nil {
 			return nil, err
 		}
-		statuses = append(statuses, &status)
+		status := &storage.Status{
+			ID:      uint(statusID.Int64),
+			Title:   statusTitle.String,
+			Comment: statusComment.String,
+		}
+		statuses = append(statuses, status)
 	}
 	return statuses, nil
 }
