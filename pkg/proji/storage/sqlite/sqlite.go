@@ -420,7 +420,7 @@ func (s *sqlite) loadFiles(class *storage.Class) error {
 }
 
 func (s *sqlite) loadScripts(class *storage.Class) error {
-	query := "SELECT name, run_as_sudo FROM class_script WHERE class_id = ? ORDER BY run_as_sudo, name"
+	query := "SELECT name, run_as_sudo FROM class_script WHERE class_id = ? ORDER BY class_script_id"
 
 	scriptRows, err := s.db.Query(query, class.ID)
 	if err != nil {
