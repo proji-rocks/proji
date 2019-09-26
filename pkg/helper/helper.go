@@ -39,8 +39,8 @@ func GetSqlitePath() (string, error) {
 	return GetConfigDir() + dbPath, nil
 }
 
-// DoesFileExist checks if a given file exists.
-func DoesFileExist(path string) bool {
+// DoesPathExist checks if a given path exists in the filesystem.
+func DoesPathExist(path string) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return false
 	}

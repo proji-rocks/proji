@@ -23,7 +23,7 @@ func New(path string) (storage.Service, error) {
 	var db *sql.DB
 	var err error
 
-	if !helper.DoesFileExist(path) {
+	if !helper.DoesPathExist(path) {
 		db, err = sql.Open("sqlite3", path)
 		if err != nil {
 			return nil, err
@@ -625,7 +625,7 @@ func (s *sqlite) ListProjects() ([]*storage.Project, error) {
 func (s *sqlite) AddStatus(status *storage.Status) error {
 	_, err := s.db.Exec(
 		"INSERT INTO project_status(title, comment) VALUES(?, ?)",
-		status.Title,
+		strings.ToLower(status.Title),
 		status.Comment,
 	)
 
@@ -639,7 +639,7 @@ func (s *sqlite) AddStatus(status *storage.Status) error {
 
 func (s *sqlite) UpdateStatus(status *storage.Status) error {
 	_, err := s.db.Exec("UPDATE project_status SET title = ?, comment = ? WHERE project_status_id = ?",
-		status.Title,
+		strings.ToLower(status.Title),
 		status.Comment,
 		status.ID,
 	)
