@@ -83,7 +83,8 @@ func New(path string) (storage.Service, error) {
 			CREATE UNIQUE INDEX u_class_folder_idx ON class_folder(class_id, 'target');
 			CREATE UNIQUE INDEX u_class_file_idx ON class_file(class_id, 'target');
 			CREATE UNIQUE INDEX u_class_script_idx ON class_script(class_id, 'name');
-			CREATE UNIQUE INDEX u_project_path_idx ON project(install_path);`,
+			CREATE UNIQUE INDEX u_project_path_idx ON project(install_path);
+			CREATE UNIQUE INDEX u_status_title_idx ON project_status(title);`,
 		); err != nil {
 			db.Close()
 			return nil, err
