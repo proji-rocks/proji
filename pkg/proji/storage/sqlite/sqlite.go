@@ -31,26 +31,9 @@ func New(path string) (storage.Service, error) {
 
 		// Create tables
 		if _, err = db.Exec(
-			`CREATE TABLE IF NOT EXISTS project(
-				project_id INTEGER PRIMARY KEY,
-				'name' TEXT NOT NULL,
-				class_id INTEGER REFERENCES class(class_id),
-				install_path TEXT,
-				install_date TEXT,
-				project_status_id INTEGER REFERENCES project_status(project_status_id)
-		  	);
-		  	CREATE TABLE IF NOT EXISTS project_status(
-				project_status_id INTEGER PRIMARY KEY,
-				title TEXT NOT NULL,
-				comment TEXT
-			);
-		  	CREATE TABLE IF NOT EXISTS class(
+			`CREATE TABLE IF NOT EXISTS class(
 				class_id INTEGER PRIMARY KEY,
-				'name' TEXT NOT NULL
-		  	);
-		  	CREATE TABLE IF NOT EXISTS class_label(
-				class_label_id INTEGER PRIMARY KEY,
-				class_id INTEGER NOT NULL REFERENCES class(class_id),
+				'name' TEXT NOT NULL,
 				label TEXT NOT NULL
 		  	);
 		  	CREATE TABLE IF NOT EXISTS class_folder(
@@ -71,15 +54,28 @@ func New(path string) (storage.Service, error) {
 				'name' TEXT NOT NULL,
 				run_as_sudo INTEGER NOT NULL
 			);
+			CREATE TABLE IF NOT EXISTS project(
+				project_id INTEGER PRIMARY KEY,
+				'name' TEXT NOT NULL,
+				class_id INTEGER REFERENCES class(class_id),
+				install_path TEXT,
+				install_date TEXT,
+				project_status_id INTEGER REFERENCES project_status(project_status_id)
+		  	);
+		  	CREATE TABLE IF NOT EXISTS project_status(
+				project_status_id INTEGER PRIMARY KEY,
+				title TEXT NOT NULL,
+				comment TEXT
+			);
 			INSERT INTO
 				project_status(title, comment)
 			VALUES
 				("active", "Actively working on this project."),
-  				("inactive","Stopped working on this project for now."),
-  				("done","There is nothing left to do"),
-  				("dead","This project is dead.");
-		  	CREATE UNIQUE INDEX u_class_idx ON class('name');
-			CREATE UNIQUE INDEX u_class_label_idx ON class_label(label);
+  				("inactive", "Stopped working on this project for now."),
+  				("done", "There is nothing left to do"),
+  				("dead", "This project is dead.");
+			CREATE UNIQUE INDEX u_class_name_idx ON class('name');
+			CREATE UNIQUE INDEX u_class_label_idx ON class(label);
 			CREATE UNIQUE INDEX u_class_folder_idx ON class_folder(class_id, 'target');
 			CREATE UNIQUE INDEX u_class_file_idx ON class_file(class_id, 'target');
 			CREATE UNIQUE INDEX u_class_script_idx ON class_script(class_id, 'name');
