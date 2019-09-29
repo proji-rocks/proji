@@ -33,7 +33,7 @@ func listStatuses() error {
 	}
 	defer s.Close()
 
-	statuses, err := s.ListAvailableStatuses()
+	statuses, err := s.LoadAllStatuses()
 	if err != nil {
 		return err
 	}

@@ -8,29 +8,29 @@ type Service interface {
 	// SaveClass saves a class to storage.
 	SaveClass(class *Class) error
 
-	// LoadClassByName loads a class from storage by its name.
-	LoadClassByName(name string) (*Class, error)
-
-	// LoadClassByID loads a class from storage by its ID.
-	LoadClassByID(id uint) (*Class, error)
-
-	// LoadClassID loads the ID of a given class from storage.
-	LoadClassID(name string) (uint, error)
+	// LoadClass loads a class from storage by its ID.
+	LoadClass(classID uint) (*Class, error)
 
 	// LoadAllClasses loads all available classes from storage.
 	LoadAllClasses() ([]*Class, error)
 
 	// RemoveClass removes a class from storage.
-	RemoveClass(name string) error
+	RemoveClass(classID uint) error
 
-	// DoesLabelExist checks if a given label exists in storage. Returns the corresponding ID if true and an error if not.
-	DoesLabelExist(label string) (uint, error)
+	// SaveProject saves a project to storage.
+	SaveProject(proj *Project) error
 
-	// TrackProject adds a project to storage.
-	TrackProject(proj *Project) error
+	// LoadProject loads a project from storage by its ID.
+	LoadProject(projectID uint) (*Project, error)
 
-	// UntrackProject removes a project from storage.
-	UntrackProject(id uint) error
+	// LoadAllProjects returns a list of all projects in storage.
+	LoadAllProjects() ([]*Project, error)
+
+	// LoadProjectID loads the ID of a project.
+	LoadProjectID(installPath string) (uint, error)
+
+	// LoadClassIDByLabel loads the ID of a class by its label.
+	LoadClassIDByLabel(label string) (uint, error)
 
 	// UpdateProjectStatus updates the status of a given project in storage.
 	UpdateProjectStatus(projectID, statusID uint) error
@@ -38,33 +38,24 @@ type Service interface {
 	// UpdateProjectLocation updates the location of a project in storage.
 	UpdateProjectLocation(projectID uint, installPath string) error
 
-	// LoadProjectByID loads a project from storage by its ID.
-	LoadProjectByID(id uint) (*Project, error)
+	// UntrackProject removes a project from storage.
+	RemoveProject(projectID uint) error
 
-	// LoadProjectID loads the ID of a given project from storage.
-	LoadProjectID(path string) (uint, error)
-
-	// ListProjects returns a list of all projects in storage.
-	ListProjects() ([]*Project, error)
-
-	// AddStatus adds a new status to storage.
-	AddStatus(status *Status) error
+	// SaveStatus adds a new status to storage.
+	SaveStatus(status *Status) error
 
 	// UpdateStatus updates a status in storage.
-	UpdateStatus(status *Status) error
+	UpdateStatus(statusID uint, title, comment string) error
 
-	// RemoveStatus removes an existing status from storage.
-	RemoveStatus(statusID uint) error
+	// LoadStatus loads a status from storage by its ID.
+	LoadStatus(statusID uint) (*Status, error)
 
-	// LoadStatusByTitle loads a status from storage by its title.
-	LoadStatusByTitle(title string) (*Status, error)
-
-	// LoadStatusByID loads a status from storage by its ID.
-	LoadStatusByID(id uint) (*Status, error)
+	// LoadAllStatuses returns a list of all statuses in storage.
+	LoadAllStatuses() ([]*Status, error)
 
 	// LoadStatusID loads the ID of a given status from storage.
 	LoadStatusID(title string) (uint, error)
 
-	// ListAvailableProjectStatuses returns a list of all statuses in storage.
-	ListAvailableStatuses() ([]*Status, error)
+	// RemoveStatus removes an existing status from storage.
+	RemoveStatus(statusID uint) error
 }

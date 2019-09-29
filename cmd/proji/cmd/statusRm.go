@@ -46,5 +46,9 @@ func removeStatus(status string) error {
 	if err != nil {
 		return err
 	}
+	// Check if status exists
+	if _, err := s.LoadStatus(statusID); err != nil {
+		return err
+	}
 	return s.RemoveStatus(statusID)
 }

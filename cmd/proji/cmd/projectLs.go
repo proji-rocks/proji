@@ -34,7 +34,7 @@ func ListProjects() error {
 	}
 	defer s.Close()
 
-	projects, err := s.ListProjects()
+	projects, err := s.LoadAllProjects()
 	if err != nil {
 		return err
 	}
