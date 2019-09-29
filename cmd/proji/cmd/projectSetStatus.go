@@ -48,9 +48,13 @@ func setStatus(projectID uint, statusTitle string) error {
 	defer s.Close()
 
 	// Load and validate status
-	status, err := s.LoadStatusByTitle(statusTitle)
+	statusID, err := s.LoadStatusID(statusTitle)
 	if err != nil {
 		return err
 	}
-	return s.UpdateProjectStatus(projectID, status.ID)
+	// Validate project
+	if _, err := s.LoadProject(projectID); err != nil {
+		return err
+	}
+	return s.UpdateProjectStatus(projectID, statusID)
 }

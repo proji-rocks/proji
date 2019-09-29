@@ -4,9 +4,9 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"strconv"
 
 	"github.com/nikoksr/proji/pkg/helper"
-
 	"github.com/otiai10/copy"
 )
 
@@ -18,68 +18,43 @@ type Project struct {
 	// The project name
 	Name string
 
-	// The template class
-	Class *Class
-
 	// The install path for the project
 	InstallPath string
 
+	// The template class
+	Class *Class
+
 	// The current project status
 	Status *Status
-
-	// The class label
-	label string
-
-	// The storage service
-	store Service
-
-	// The original working directory
-	owd string
-}
-
-// Status represents a project status
-type Status struct {
-	// The status id
-	ID uint
-
-	// The status title
-	Title string
-
-	// Short comment describing the status.
-	Comment string
 }
 
 // NewProject returns a new project
-func NewProject(name, label, cwd string, store Service) (*Project, error) {
-	// Validate label
-	classID, err := store.DoesLabelExist(label)
+func NewProject(projectID uint, name, installPath string, classID, statusID uint, svc Service) (*Project, error) {
+	class, err := svc.LoadClass(classID)
 	if err != nil {
 		return nil, err
 	}
 
-	class, err := store.LoadClassByID(classID)
+	var status *Status
+	status, err = svc.LoadStatus(statusID)
 	if err != nil {
-		return nil, err
-	}
-
-	// Append a slash if not exists. Out of convenience.
-	if cwd[:len(cwd)-1] != "/" {
-		cwd += "/"
+		statusIDStr := strconv.FormatUint(uint64(statusID), 10)
+		if err.Error() == "Status '"+statusIDStr+"' does not exist" {
+			status = NewStatus(0, "", "")
+		}
 	}
 
 	return &Project{
-		ID:          0,
+		ID:          projectID,
 		Name:        name,
+		InstallPath: installPath,
 		Class:       class,
-		InstallPath: cwd + name,
-		Status:      nil,
-		label:       label,
-		owd:         cwd,
+		Status:      status,
 	}, nil
 }
 
 // Create starts the creation of a project.
-func (proj *Project) Create() error {
+func (proj *Project) Create(cwd string) error {
 	if err := proj.createProjectFolder(); err != nil {
 		return err
 	}
@@ -88,7 +63,12 @@ func (proj *Project) Create() error {
 	if err := os.Chdir(proj.Name); err != nil {
 		return err
 	}
-	defer os.Chdir(proj.owd)
+
+	// Append a slash if not exists. Out of convenience.
+	if cwd[:len(cwd)-1] != "/" {
+		cwd += "/"
+	}
+	defer os.Chdir(cwd)
 
 	if err := proj.createSubFolders(); err != nil {
 		return err

@@ -47,7 +47,7 @@ func init() {
 	statusCmd.AddCommand(statusAddCmd)
 }
 
-func addStatus(statusTitle string) (string, error) {
+func addStatus(title string) (string, error) {
 	// Setup storage
 	sqlitePath, err := helper.GetSqlitePath()
 	if err != nil {
@@ -61,7 +61,7 @@ func addStatus(statusTitle string) (string, error) {
 
 	// Create status and set status
 	var status storage.Status
-	status.Title = statusTitle
+	status.Title = title
 
 	// Get a comment describing the status
 	reader := bufio.NewReader(os.Stdin)
@@ -71,10 +71,10 @@ func addStatus(statusTitle string) (string, error) {
 		return "", err
 	}
 	status.Comment = strings.Trim(comment, "\n")
-	return status.Comment, s.AddStatus(&status)
+	return status.Comment, s.SaveStatus(&status)
 }
 
-func replaceStatus(status, comment string) error {
+func replaceStatus(title, comment string) error {
 	// Setup storage
 	sqlitePath, err := helper.GetSqlitePath()
 	if err != nil {
@@ -86,9 +86,9 @@ func replaceStatus(status, comment string) error {
 	}
 	defer s.Close()
 
-	id, err := s.LoadStatusID(status)
+	id, err := s.LoadStatusID(title)
 	if err != nil {
 		return err
 	}
-	return s.UpdateStatus(&storage.Status{ID: id, Title: status, Comment: comment})
+	return s.UpdateStatus(id, title, comment)
 }

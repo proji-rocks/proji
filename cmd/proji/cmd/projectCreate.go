@@ -66,18 +66,23 @@ func CreateProject(name, label, cwd string) error {
 	}
 	defer s.Close()
 
-	label = strings.ToLower(label)
-	proj, err := storage.NewProject(name, label, cwd, s)
+	classID, err := s.LoadClassIDByLabel(label)
 	if err != nil {
 		return err
 	}
 
-	// Track it first to see if it already exists in the database
-	if err := s.TrackProject(proj); err != nil {
+	label = strings.ToLower(label)
+	proj, err := storage.NewProject(0, name, cwd+"/"+name, classID, 1, s)
+	if err != nil {
+		return err
+	}
+
+	// Save it first to see if it already exists in the database
+	if err := s.SaveProject(proj); err != nil {
 		return err
 	}
 	// Create the project
-	if err := proj.Create(); err != nil {
+	if err := proj.Create(cwd); err != nil {
 		return err
 	}
 	return nil
@@ -101,7 +106,7 @@ func replaceProject(name, label, cwd string) error {
 	}
 
 	// Replace it
-	if err = s.UntrackProject(id); err != nil {
+	if err = s.RemoveProject(id); err != nil {
 		return err
 	}
 	return CreateProject(name, label, cwd)

@@ -14,15 +14,15 @@ var classImportCmd = &cobra.Command{
 	Short: "Import one or more classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("Missing configfile name")
+			return fmt.Errorf("Missing config file")
 		}
 
 		for _, config := range args {
 			if err := ImportClass(config); err != nil {
-				fmt.Printf("Import of file %s failed: %v\n", config, err)
+				fmt.Printf("Import of '%s' failed: %v\n", config, err)
 				continue
 			}
-			fmt.Printf("File %s was successfully imported.\n", config)
+			fmt.Printf("'%s' was successfully imported.\n", config)
 		}
 		return nil
 	},
@@ -35,7 +35,7 @@ func init() {
 // ImportClass imports a class from a config file.
 func ImportClass(config string) error {
 	// Import class data
-	c, err := storage.NewClass("temp")
+	c, err := storage.NewClass("", "")
 	if err != nil {
 		return err
 	}

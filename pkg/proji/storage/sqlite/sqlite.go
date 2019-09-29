@@ -104,48 +104,44 @@ func (s *sqlite) Close() error {
 }
 
 func (s *sqlite) SaveClass(class *storage.Class) error {
-	if err := s.saveName(class.Name); err != nil {
-		return err
-	}
-
-	// After saving the name, the class gets a unique id.
-	id, err := s.LoadClassID(class.Name)
-	if err != nil {
-		if e := s.cancelSave(class.Name); e != nil {
-			return e
+	if err := s.saveClassInfo(class.Name, class.Label); err != nil {
+		if sqliteErr, ok := err.(sqlite3.Error); ok {
+			if sqliteErr.Code == sqlite3.ErrConstraint {
+				return fmt.Errorf("Class '%s' or label '%s' already exists", class.Name, class.Label)
+			}
 		}
 		return err
 	}
+
+	// After saving the class info the class gets a unique ID, load it
+	id, err := s.LoadClassIDByLabel(class.Label)
+	if err != nil {
+		return err
+	}
 	class.ID = id
+
 	tx, err := s.db.Begin()
 	if err != nil {
 		return err
 	}
 	s.tx = tx
 
-	if err := s.saveLabels(class); err != nil {
-		if e := s.cancelSave(class.Name); e != nil {
+	if err := s.saveFolders(class.ID, class.Folders); err != nil {
+		if e := s.cancelSave(class.ID); e != nil {
 			return e
 		}
 		return err
 	}
 
-	if err := s.saveFolders(class); err != nil {
-		if e := s.cancelSave(class.Name); e != nil {
+	if err := s.saveFiles(class.ID, class.Files); err != nil {
+		if e := s.cancelSave(class.ID); e != nil {
 			return e
 		}
 		return err
 	}
 
-	if err := s.saveFiles(class); err != nil {
-		if e := s.cancelSave(class.Name); e != nil {
-			return e
-		}
-		return err
-	}
-
-	if err := s.saveScripts(class); err != nil {
-		if e := s.cancelSave(class.Name); e != nil {
+	if err := s.saveScripts(class.ID, class.Scripts); err != nil {
+		if e := s.cancelSave(class.ID); e != nil {
 			return e
 		}
 		return err
@@ -154,43 +150,24 @@ func (s *sqlite) SaveClass(class *storage.Class) error {
 	return s.tx.Commit()
 }
 
-func (s *sqlite) cancelSave(className string) error {
+func (s *sqlite) cancelSave(classID uint) error {
 	if s.tx != nil {
 		if err := s.tx.Rollback(); err != nil {
 			return err
 		}
 	}
-	return s.RemoveClass(className)
+	return s.RemoveClass(classID)
 }
 
-func (s *sqlite) saveName(name string) error {
-	query := "INSERT INTO class(name) VALUES(?)"
+func (s *sqlite) saveClassInfo(name, label string) error {
+	query := "INSERT INTO class(name, label) VALUES(?, ?)"
 	name = strings.ToLower(name)
-	_, err := s.db.Exec(query, name)
+	label = strings.ToLower(label)
+	_, err := s.db.Exec(query, name, label)
 	return err
 }
 
-func (s *sqlite) saveLabels(class *storage.Class) error {
-	if s.tx == nil {
-		return fmt.Errorf("No open transaction")
-	}
-
-	query := "INSERT INTO class_label(class_id, label) VALUES(?, ?)"
-	stmt, err := s.tx.Prepare(query)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	for _, label := range class.Labels {
-		if _, err = stmt.Exec(class.ID, strings.ToLower(label)); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (s *sqlite) saveFolders(class *storage.Class) error {
+func (s *sqlite) saveFolders(classID uint, folders map[string]string) error {
 	query := "INSERT INTO class_folder(class_id, target, template) VALUES(?, ?, ?)"
 	stmt, err := s.tx.Prepare(query)
 	if err != nil {
@@ -198,11 +175,11 @@ func (s *sqlite) saveFolders(class *storage.Class) error {
 	}
 	defer stmt.Close()
 
-	for target, template := range class.Folders {
+	for target, template := range folders {
 		if len(template) > 0 {
-			_, err = stmt.Exec(class.ID, target, template)
+			_, err = stmt.Exec(classID, target, template)
 		} else {
-			_, err = stmt.Exec(class.ID, target, nil)
+			_, err = stmt.Exec(classID, target, nil)
 		}
 		if err != nil {
 			return err
@@ -211,7 +188,7 @@ func (s *sqlite) saveFolders(class *storage.Class) error {
 	return nil
 }
 
-func (s *sqlite) saveFiles(class *storage.Class) error {
+func (s *sqlite) saveFiles(classID uint, files map[string]string) error {
 	query := "INSERT INTO class_file(class_id, target, template) VALUES(?, ?, ?)"
 	stmt, err := s.tx.Prepare(query)
 	if err != nil {
@@ -219,11 +196,11 @@ func (s *sqlite) saveFiles(class *storage.Class) error {
 	}
 	defer stmt.Close()
 
-	for target, template := range class.Files {
+	for target, template := range files {
 		if len(template) > 0 {
-			_, err = stmt.Exec(class.ID, target, template)
+			_, err = stmt.Exec(classID, target, template)
 		} else {
-			_, err = stmt.Exec(class.ID, target, nil)
+			_, err = stmt.Exec(classID, target, nil)
 		}
 		if err != nil {
 			return err
@@ -232,7 +209,7 @@ func (s *sqlite) saveFiles(class *storage.Class) error {
 	return nil
 }
 
-func (s *sqlite) saveScripts(class *storage.Class) error {
+func (s *sqlite) saveScripts(classID uint, scripts map[string]bool) error {
 	query := "INSERT INTO class_script(class_id, name, run_as_sudo) VALUES(?, ?, ?)"
 	stmt, err := s.tx.Prepare(query)
 	if err != nil {
@@ -240,11 +217,11 @@ func (s *sqlite) saveScripts(class *storage.Class) error {
 	}
 	defer stmt.Close()
 
-	for script, asSudo := range class.Scripts {
+	for script, asSudo := range scripts {
 		if asSudo {
-			_, err = stmt.Exec(class.ID, script, 1)
+			_, err = stmt.Exec(classID, script, 1)
 		} else {
-			_, err = stmt.Exec(class.ID, script, 0)
+			_, err = stmt.Exec(classID, script, 0)
 		}
 		if err != nil {
 			return err
@@ -253,83 +230,54 @@ func (s *sqlite) saveScripts(class *storage.Class) error {
 	return nil
 }
 
-func (s *sqlite) LoadClassByName(name string) (*storage.Class, error) {
-	class, err := storage.NewClass(name)
+func (s *sqlite) LoadClass(classID uint) (*storage.Class, error) {
+	name, label, err := s.loadClassInfo(classID)
 	if err != nil {
 		return nil, err
 	}
 
-	class.ID, err = s.LoadClassID(name)
+	class, err := storage.NewClass(name, label)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := s.loadLabels(class); err != nil {
-		return nil, err
-	}
-	if err := s.loadFolders(class); err != nil {
-		return nil, err
-	}
-	if err := s.loadFiles(class); err != nil {
-		return nil, err
-	}
-	return class, s.loadScripts(class)
-}
-
-func (s *sqlite) LoadClassByID(id uint) (*storage.Class, error) {
-	class, err := storage.NewClass("temp")
+	folders, err := s.loadFolders(classID)
 	if err != nil {
 		return nil, err
 	}
-	class.ID = id
-
-	if err := s.loadName(class); err != nil {
-		return nil, err
-	}
-	if err := s.loadLabels(class); err != nil {
-		return nil, err
-	}
-	if err := s.loadFolders(class); err != nil {
-		return nil, err
-	}
-	if err := s.loadFiles(class); err != nil {
-		return nil, err
-	}
-	return class, s.loadScripts(class)
-}
-
-func (s *sqlite) LoadClassID(name string) (uint, error) {
-	query := "SELECT class_id FROM class WHERE name = ?"
-
-	idRows, err := s.db.Query(query, name)
+	files, err := s.loadFiles(classID)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	defer idRows.Close()
-
-	if !idRows.Next() {
-		return 0, fmt.Errorf("Could not find class %s in storage", name)
+	scripts, err := s.loadScripts(classID)
+	if err != nil {
+		return nil, err
 	}
 
-	var classID sql.NullInt64
-	err = idRows.Scan(&classID)
-	return uint(classID.Int64), err
+	// Assign when no errors occured
+	class.ID = classID
+	class.Folders = folders
+	class.Files = files
+	class.Scripts = scripts
+	return class, nil
 }
 
 func (s *sqlite) LoadAllClasses() ([]*storage.Class, error) {
-	query := "SELECT name FROM class ORDER BY class_id"
+	query := "SELECT class_id FROM class ORDER BY name"
 
-	classRows, err := s.db.Query(query)
+	labelRows, err := s.db.Query(query)
 	if err != nil {
 		return nil, err
 	}
-	defer classRows.Close()
-	var classes []*storage.Class
+	defer labelRows.Close()
 
-	for classRows.Next() {
-		var name sql.NullString
-		classRows.Scan(&name)
-		class, err := s.LoadClassByName(name.String)
+	var classes []*storage.Class
+	for labelRows.Next() {
+		var classID sql.NullInt64
+		if err := labelRows.Scan(&classID); err != nil {
+			return nil, err
+		}
+		class, err := s.LoadClass(uint(classID.Int64))
 		if err != nil {
 			return nil, err
 		}
@@ -338,142 +286,116 @@ func (s *sqlite) LoadAllClasses() ([]*storage.Class, error) {
 	return classes, nil
 }
 
-func (s *sqlite) loadName(class *storage.Class) error {
-	query := "SELECT name FROM class WHERE class_id = ?"
-
-	nameRows, err := s.db.Query(query, class.ID)
-	if err != nil {
-		return err
-	}
-	defer nameRows.Close()
-
-	if !nameRows.Next() {
-		return fmt.Errorf("Could not find class with id %d in database", class.ID)
-	}
-	var name sql.NullString
-	if err := nameRows.Scan(&name); err != nil {
-		return err
-	}
-	class.Name = name.String
-	return nil
-}
-
-func (s *sqlite) loadLabels(class *storage.Class) error {
-	query := "SELECT label FROM class_label WHERE class_id = ? ORDER BY label"
-
-	labelRows, err := s.db.Query(query, class.ID)
-	if err != nil {
-		return err
-	}
-	defer labelRows.Close()
-
-	for labelRows.Next() {
-		var label sql.NullString
-		if err := labelRows.Scan(&label); err != nil {
-			return err
+func (s *sqlite) LoadClassIDByLabel(label string) (uint, error) {
+	query := "SELECT class_id FROM class WHERE label = ?"
+	var classID sql.NullInt64
+	if err := s.db.QueryRow(query, label).Scan(&classID); err != nil {
+		if err == sql.ErrNoRows {
+			return 0, fmt.Errorf("Class '%s' does not exist", label)
 		}
-		class.Labels = append(class.Labels, label.String)
+		return 0, err
 	}
-	return nil
+	return uint(classID.Int64), nil
 }
 
-func (s *sqlite) loadFolders(class *storage.Class) error {
+func (s *sqlite) loadClassInfo(classID uint) (string, string, error) {
+	query := "SELECT name, label FROM class WHERE class_id = ?"
+	var name, label sql.NullString
+	if err := s.db.QueryRow(query, classID).Scan(&name, &label); err != nil {
+		if err == sql.ErrNoRows {
+			return "", "", fmt.Errorf("Class '%d' does not exist", classID)
+		}
+		return "", "", err
+	}
+	return name.String, label.String, nil
+}
+
+func (s *sqlite) loadFolders(classID uint) (map[string]string, error) {
 	query := "SELECT target, template FROM class_folder WHERE class_id = ? ORDER BY target"
 
-	folderRows, err := s.db.Query(query, class.ID)
+	folderRows, err := s.db.Query(query, classID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer folderRows.Close()
 
+	folders := make(map[string]string)
 	for folderRows.Next() {
 		var target, template sql.NullString
 		if err := folderRows.Scan(&target, &template); err != nil {
-			return err
+			return nil, err
 		}
-		class.Folders[target.String] = template.String
+		folders[target.String] = template.String
 	}
-	return nil
+	return folders, nil
 }
 
-func (s *sqlite) loadFiles(class *storage.Class) error {
+func (s *sqlite) loadFiles(classID uint) (map[string]string, error) {
 	query := "SELECT target, template FROM class_file WHERE class_id = ? ORDER BY target"
 
-	fileRows, err := s.db.Query(query, class.ID)
+	fileRows, err := s.db.Query(query, classID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer fileRows.Close()
 
+	files := make(map[string]string)
 	for fileRows.Next() {
 		var target, template sql.NullString
 		if err := fileRows.Scan(&target, &template); err != nil {
-			return err
+			return nil, err
 		}
-		class.Files[target.String] = template.String
+		files[target.String] = template.String
 	}
-	return nil
+	return files, nil
 }
 
-func (s *sqlite) loadScripts(class *storage.Class) error {
+func (s *sqlite) loadScripts(classID uint) (map[string]bool, error) {
 	query := "SELECT name, run_as_sudo FROM class_script WHERE class_id = ? ORDER BY class_script_id"
 
-	scriptRows, err := s.db.Query(query, class.ID)
+	scriptRows, err := s.db.Query(query, classID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer scriptRows.Close()
 
+	scripts := make(map[string]bool)
 	for scriptRows.Next() {
 		var scriptName sql.NullString
 		var runAsSudo sql.NullBool
 		if err := scriptRows.Scan(&scriptName, &runAsSudo); err != nil {
-			return err
+			return nil, err
 		}
-		class.Scripts[scriptName.String] = runAsSudo.Bool
+		scripts[scriptName.String] = runAsSudo.Bool
 	}
-	return nil
+	return scripts, nil
 }
 
-func (s *sqlite) RemoveClass(name string) error {
+func (s *sqlite) RemoveClass(classID uint) error {
 	var err error
-
-	classID, err := s.LoadClassID(name)
-	if err != nil {
-		return err
-	}
-
 	s.tx, err = s.db.Begin()
 	if err != nil {
 		return err
 	}
 
 	// Remove class and dependencies
-	if err = s.removeName(classID); err != nil {
-		return err
-	}
-	if err = s.removeLabels(classID); err != nil {
-		return err
-	}
-	if err = s.removeFolders(classID); err != nil {
+	if err = s.removeScripts(classID); err != nil {
 		return err
 	}
 	if err = s.removeFiles(classID); err != nil {
 		return err
 	}
-	if err = s.removeScripts(classID); err != nil {
+	if err = s.removeFolders(classID); err != nil {
+		return err
+	}
+	if err = s.removeClassInfo(classID); err != nil {
 		return err
 	}
 	return s.tx.Commit()
 }
 
-func (s *sqlite) removeName(classID uint) error {
+func (s *sqlite) removeClassInfo(classID uint) error {
 	_, err := s.tx.Exec("DELETE FROM class WHERE class_id = ?", classID)
-	return err
-}
-
-func (s *sqlite) removeLabels(classID uint) error {
-	_, err := s.tx.Exec("DELETE FROM class_label WHERE class_id = ?", classID)
 	return err
 }
 
@@ -492,14 +414,7 @@ func (s *sqlite) removeScripts(classID uint) error {
 	return err
 }
 
-func (s *sqlite) DoesLabelExist(label string) (uint, error) {
-	query := "SELECT class_id FROM class_label WHERE label = ?"
-	var id sql.NullInt64
-	err := s.db.QueryRow(query, label).Scan(&id)
-	return uint(id.Int64), err
-}
-
-func (s *sqlite) TrackProject(proj *storage.Project) error {
+func (s *sqlite) SaveProject(proj *storage.Project) error {
 	t := time.Now().Local()
 	_, err := s.db.Exec(
 		"INSERT INTO project(name, class_id, install_path, install_date, project_status_id) VALUES(?, ?, ?, ?, ?)",
@@ -518,11 +433,6 @@ func (s *sqlite) TrackProject(proj *storage.Project) error {
 	return err
 }
 
-func (s *sqlite) UntrackProject(projectID uint) error {
-	_, err := s.db.Exec("DELETE FROM project WHERE project_id = ?", projectID)
-	return err
-}
-
 func (s *sqlite) UpdateProjectStatus(projectID, statusID uint) error {
 	_, err := s.db.Exec("UPDATE project SET project_status_id = ? WHERE project_id = ?", statusID, projectID)
 	return err
@@ -533,60 +443,26 @@ func (s *sqlite) UpdateProjectLocation(projectID uint, installPath string) error
 	return err
 }
 
-func (s *sqlite) LoadProjectByID(id uint) (*storage.Project, error) {
+func (s *sqlite) LoadProject(projectID uint) (*storage.Project, error) {
 	query := "SELECT name, class_id, install_path, project_status_id FROM project WHERE project_id = ?"
 
 	var name, installPath sql.NullString
 	var classID, statusID sql.NullInt64
-	if err := s.db.QueryRow(query, id).Scan(&name, &classID, &installPath, &statusID); err != nil {
+	if err := s.db.QueryRow(query, projectID).Scan(&name, &classID, &installPath, &statusID); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("Project '%d' does not exist", projectID)
+		}
 		return nil, err
 	}
-	class, err := s.LoadClassByID(uint(classID.Int64))
+	project, err := storage.NewProject(projectID, name.String, installPath.String, uint(classID.Int64), uint(statusID.Int64), s)
 	if err != nil {
 		return nil, err
 	}
-	status, err := s.LoadStatusByID(uint(statusID.Int64))
-	if err != nil {
-		return nil, err
-	}
-	return &storage.Project{Name: name.String, Class: class, InstallPath: installPath.String, Status: status}, nil
+	return project, nil
 }
 
-func (s *sqlite) LoadProjectID(path string) (uint, error) {
-	query := "SELECT project_id FROM project WHERE install_path = ?"
-
-	idRows, err := s.db.Query(query, path)
-	if err != nil {
-		return 0, err
-	}
-	defer idRows.Close()
-
-	if !idRows.Next() {
-		return 0, fmt.Errorf("Could not find project %s in database", path)
-	}
-
-	var id sql.NullInt64
-	err = idRows.Scan(&id)
-	return uint(id.Int64), err
-}
-
-func (s *sqlite) ListProjects() ([]*storage.Project, error) {
-	query := `
-		SELECT
-			p.project_id,
-			p.name as title,
-			p.install_path,
-			c.name as class_name,
-			ps.title
-		FROM
-			project p
-		LEFT JOIN project_status ps ON
-			p.project_status_id = ps.project_status_id
-		LEFT JOIN class c ON
-			p.class_id = c.class_id
-		ORDER BY
-			p.project_id
-	`
+func (s *sqlite) LoadAllProjects() ([]*storage.Project, error) {
+	query := `SELECT project_id FROM project ORDER BY project_id`
 
 	projectRows, err := s.db.Query(query)
 	if err != nil {
@@ -598,27 +474,38 @@ func (s *sqlite) ListProjects() ([]*storage.Project, error) {
 
 	for projectRows.Next() {
 		var projectID sql.NullInt64
-		var projectName, installPath, className, statusTitle sql.NullString
 
-		if err := projectRows.Scan(&projectID, &projectName, &installPath, &className, &statusTitle); err != nil {
+		if err := projectRows.Scan(&projectID); err != nil {
 			return nil, err
 		}
 
-		status := &storage.Status{Title: statusTitle.String}
-		class := &storage.Class{Name: className.String}
-		project := &storage.Project{
-			ID:          uint(projectID.Int64),
-			Name:        projectName.String,
-			InstallPath: installPath.String,
-			Class:       class,
-			Status:      status,
+		project, err := s.LoadProject(uint(projectID.Int64))
+		if err != nil {
+			return nil, err
 		}
 		projects = append(projects, project)
 	}
 	return projects, nil
 }
 
-func (s *sqlite) AddStatus(status *storage.Status) error {
+func (s *sqlite) LoadProjectID(installPath string) (uint, error) {
+	query := "SELECT project_id FROM project WHERE install_path = ?"
+	var classID sql.NullInt64
+	if err := s.db.QueryRow(query, installPath).Scan(&classID); err != nil {
+		if err == sql.ErrNoRows {
+			return 0, fmt.Errorf("Project '%s' does not exist", installPath)
+		}
+		return 0, err
+	}
+	return uint(classID.Int64), nil
+}
+
+func (s *sqlite) RemoveProject(projectID uint) error {
+	_, err := s.db.Exec("DELETE FROM project WHERE project_id = ?", projectID)
+	return err
+}
+
+func (s *sqlite) SaveStatus(status *storage.Status) error {
 	_, err := s.db.Exec(
 		"INSERT INTO project_status(title, comment) VALUES(?, ?)",
 		strings.ToLower(status.Title),
@@ -627,94 +514,47 @@ func (s *sqlite) AddStatus(status *storage.Status) error {
 
 	if sqliteErr, ok := err.(sqlite3.Error); ok {
 		if sqliteErr.Code == sqlite3.ErrConstraint {
-			return fmt.Errorf("Status already exists")
+			return fmt.Errorf("Status '%s' already exists", status.Title)
 		}
 	}
 	return err
 }
 
-func (s *sqlite) UpdateStatus(status *storage.Status) error {
+func (s *sqlite) UpdateStatus(statusID uint, title, comment string) error {
 	_, err := s.db.Exec("UPDATE project_status SET title = ?, comment = ? WHERE project_status_id = ?",
-		strings.ToLower(status.Title),
-		status.Comment,
-		status.ID,
+		strings.ToLower(title),
+		comment,
+		statusID,
 	)
 	return err
 }
 
-func (s *sqlite) RemoveStatus(statusID uint) error {
-	_, err := s.db.Exec("DELETE FROM project_status WHERE project_status_id = ?", statusID)
-	return err
-}
-
-func (s *sqlite) LoadStatusByTitle(title string) (*storage.Status, error) {
-	query := "SELECT * FROM project_status WHERE title = ?"
-
-	statusRows, err := s.db.Query(query, title)
-	if err != nil {
+func (s *sqlite) LoadStatus(statusID uint) (*storage.Status, error) {
+	query := "SELECT title, comment FROM project_status WHERE project_status_id = ?"
+	var title, comment sql.NullString
+	if err := s.db.QueryRow(query, statusID).Scan(&title, &comment); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("Status '%d' does not exist", statusID)
+		}
 		return nil, err
 	}
-	defer statusRows.Close()
-
-	if !statusRows.Next() {
-		return nil, fmt.Errorf("Could not find status %s in database", title)
-	}
-
-	var statusID sql.NullInt64
-	var statusTitle, statusComment sql.NullString
-	err = statusRows.Scan(&statusID, &statusTitle, &statusComment)
-	status := &storage.Status{
-		ID:      uint(statusID.Int64),
-		Title:   statusTitle.String,
-		Comment: statusComment.String,
-	}
-	return status, err
-}
-
-func (s *sqlite) LoadStatusByID(id uint) (*storage.Status, error) {
-	query := "SELECT * FROM project_status WHERE project_status_id = ?"
-
-	statusRows, err := s.db.Query(query, id)
-	if err != nil {
-		return nil, err
-	}
-	defer statusRows.Close()
-
-	if !statusRows.Next() {
-		return nil, fmt.Errorf("Could not find status with ID %d in database", id)
-	}
-
-	var statusID sql.NullInt64
-	var statusTitle, statusComment sql.NullString
-	err = statusRows.Scan(&statusID, &statusTitle, &statusComment)
-	status := &storage.Status{
-		ID:      uint(statusID.Int64),
-		Title:   statusTitle.String,
-		Comment: statusComment.String,
-	}
-	return status, err
+	return storage.NewStatus(statusID, title.String, comment.String), nil
 }
 
 func (s *sqlite) LoadStatusID(title string) (uint, error) {
 	query := "SELECT project_status_id FROM project_status WHERE title = ?"
-
-	idRows, err := s.db.Query(query, title)
-	if err != nil {
+	var statusID sql.NullInt64
+	if err := s.db.QueryRow(query, title).Scan(&statusID); err != nil {
+		if err == sql.ErrNoRows {
+			return 0, fmt.Errorf("Status '%s' does not exist", title)
+		}
 		return 0, err
 	}
-	defer idRows.Close()
-
-	if !idRows.Next() {
-		return 0, fmt.Errorf("Could not find status '%s' in database", title)
-	}
-
-	var statusID sql.NullInt64
-	err = idRows.Scan(&statusID)
-	return uint(statusID.Int64), err
+	return uint(statusID.Int64), nil
 }
 
-func (s *sqlite) ListAvailableStatuses() ([]*storage.Status, error) {
-	query := "SELECT * FROM project_status ORDER BY project_status_id"
+func (s *sqlite) LoadAllStatuses() ([]*storage.Status, error) {
+	query := "SELECT project_status_id FROM project_status ORDER BY project_status_id"
 
 	statusRows, err := s.db.Query(query)
 	if err != nil {
@@ -726,16 +566,19 @@ func (s *sqlite) ListAvailableStatuses() ([]*storage.Status, error) {
 
 	for statusRows.Next() {
 		var statusID sql.NullInt64
-		var statusTitle, statusComment sql.NullString
-		if err = statusRows.Scan(&statusID, &statusTitle, &statusComment); err != nil {
+		if err = statusRows.Scan(&statusID); err != nil {
 			return nil, err
 		}
-		status := &storage.Status{
-			ID:      uint(statusID.Int64),
-			Title:   statusTitle.String,
-			Comment: statusComment.String,
+		status, err := s.LoadStatus(uint(statusID.Int64))
+		if err != nil {
+			return nil, err
 		}
 		statuses = append(statuses, status)
 	}
 	return statuses, nil
+}
+
+func (s *sqlite) RemoveStatus(statusID uint) error {
+	_, err := s.db.Exec("DELETE FROM project_status WHERE project_status_id = ?", statusID)
+	return err
 }

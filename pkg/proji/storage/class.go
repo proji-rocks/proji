@@ -2,25 +2,22 @@ package storage
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/spf13/viper"
 )
 
 // Class struct represents a proji class
 type Class struct {
-	// The class name
-	Name string
-
 	// The class ID
 	ID uint
 
+	// The class name
+	Name string
+
 	// All class related labels
-	Labels []string
+	Label string
 
 	// All class related folders
 	Folders map[string]string
@@ -33,24 +30,15 @@ type Class struct {
 }
 
 // NewClass returns a new class
-func NewClass(name string) (*Class, error) {
-	if len(name) < 3 {
-		return nil, fmt.Errorf("Class name has to be atleast 3 characters long")
-	}
-
+func NewClass(name, label string) (*Class, error) {
 	return &Class{
-		Name:    name,
 		ID:      0,
-		Labels:  make([]string, 0),
+		Name:    name,
+		Label:   label,
 		Folders: make(map[string]string),
 		Files:   make(map[string]string),
 		Scripts: make(map[string]bool),
 	}, nil
-}
-
-// Remove removes an existing class and all of its depending settings in other tables from the database.
-func (c *Class) Remove(store Service) error {
-	return store.RemoveClass(c.Name)
 }
 
 // ImportData imports class data from a given config file.
@@ -79,7 +67,7 @@ func (c *Class) Export() (string, error) {
 	// Create config string
 	var configTxt = map[string]interface{}{
 		"name":    c.Name,
-		"labels":  c.Labels,
+		"label":   c.Label,
 		"folders": c.Folders,
 		"files":   c.Files,
 		"scripts": c.Scripts,
@@ -93,41 +81,4 @@ func (c *Class) Export() (string, error) {
 	}
 	defer conf.Close()
 	return confName, toml.NewEncoder(conf).Encode(configTxt)
-}
-
-// ExportExample exports an example class config
-func ExportExample(destFolder string) error {
-
-	exampleDir, ok := viper.Get("examples.location").(string)
-	if !ok {
-		return fmt.Errorf("Could not read example file location from config file")
-	}
-	exampleFile, ok := viper.Get("examples.class").(string)
-	if !ok {
-		return fmt.Errorf("Could not read example file name from config file")
-	}
-
-	exampleFile = helper.GetConfigDir() + exampleDir + exampleFile
-	sourceFileStat, err := os.Stat(exampleFile)
-	if err != nil {
-		return err
-	}
-
-	if !sourceFileStat.Mode().IsRegular() {
-		return fmt.Errorf("%s is not a regular file", exampleFile)
-	}
-
-	source, err := os.Open(exampleFile)
-	if err != nil {
-		return err
-	}
-	defer source.Close()
-
-	destination, err := os.Create(destFolder + "/proji-class.toml")
-	if err != nil {
-		return err
-	}
-	defer destination.Close()
-	_, err = io.Copy(destination, source)
-	return err
 }
