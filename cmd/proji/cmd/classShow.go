@@ -19,7 +19,7 @@ var classShowCmd = &cobra.Command{
 		}
 
 		for _, name := range args {
-			if err := ShowClass(name); err != nil {
+			if err := showClass(name); err != nil {
 				return err
 			}
 		}
@@ -31,8 +31,7 @@ func init() {
 	classCmd.AddCommand(classShowCmd)
 }
 
-// ShowClass shows detailed information abour a given class
-func ShowClass(label string) error {
+func showClass(label string) error {
 	// Setup storage service
 	sqlitePath, err := helper.GetSqlitePath()
 	if err != nil {

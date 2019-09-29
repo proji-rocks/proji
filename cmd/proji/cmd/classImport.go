@@ -18,7 +18,7 @@ var classImportCmd = &cobra.Command{
 		}
 
 		for _, config := range args {
-			if err := ImportClass(config); err != nil {
+			if err := importClass(config); err != nil {
 				fmt.Printf("Import of '%s' failed: %v\n", config, err)
 				continue
 			}
@@ -32,8 +32,7 @@ func init() {
 	classCmd.AddCommand(classImportCmd)
 }
 
-// ImportClass imports a class from a config file.
-func ImportClass(config string) error {
+func importClass(config string) error {
 	// Import class data
 	c, err := storage.NewClass("", "")
 	if err != nil {

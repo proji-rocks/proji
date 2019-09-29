@@ -30,7 +30,7 @@ var addCmd = &cobra.Command{
 		label := strings.ToLower(args[0])
 		status := strings.ToLower(args[2])
 
-		if err := AddProject(label, path, status); err != nil {
+		if err := addProject(label, path, status); err != nil {
 			return err
 		}
 		fmt.Printf("Project '%s' was successfully added.\n", path)
@@ -42,8 +42,7 @@ func init() {
 	rootCmd.AddCommand(addCmd)
 }
 
-// AddProject will create a new project or return an error if the project already exists.
-func AddProject(label, path, statusTitle string) error {
+func addProject(label, path, statusTitle string) error {
 	// Setup storage
 	sqlitePath, err := helper.GetSqlitePath()
 	if err != nil {

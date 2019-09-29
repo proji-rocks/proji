@@ -23,7 +23,7 @@ var classAddCmd = &cobra.Command{
 		}
 
 		for _, name := range args {
-			if err := AddClass(name); err != nil {
+			if err := addClass(name); err != nil {
 				fmt.Printf("Adding class '%s' failed: %v\n", name, err)
 				continue
 			}
@@ -37,8 +37,7 @@ func init() {
 	classCmd.AddCommand(classAddCmd)
 }
 
-// AddClass adds a new class interactively through the cli.
-func AddClass(name string) error {
+func addClass(name string) error {
 	reader := bufio.NewReader(os.Stdin)
 
 	label, err := getLabel(reader)

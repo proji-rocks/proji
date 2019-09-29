@@ -13,7 +13,7 @@ var lsCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List projects",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return ListProjects()
+		return listProjects()
 	},
 }
 
@@ -21,8 +21,7 @@ func init() {
 	rootCmd.AddCommand(lsCmd)
 }
 
-// ListProjects lists all available projects.
-func ListProjects() error {
+func listProjects() error {
 	// Setup storage service
 	sqlitePath, err := helper.GetSqlitePath()
 	if err != nil {
