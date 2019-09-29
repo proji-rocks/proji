@@ -22,7 +22,7 @@ var rmCmd = &cobra.Command{
 				return err
 			}
 
-			if err := RemoveProject(id); err != nil {
+			if err := removeProject(id); err != nil {
 				fmt.Printf("Removing project '%d' failed: %v\n", id, err)
 				continue
 			}
@@ -36,8 +36,7 @@ func init() {
 	rootCmd.AddCommand(rmCmd)
 }
 
-// RemoveProject removes a project from storage.
-func RemoveProject(projectID uint) error {
+func removeProject(projectID uint) error {
 	// Setup storage service
 	sqlitePath, err := helper.GetSqlitePath()
 	if err != nil {

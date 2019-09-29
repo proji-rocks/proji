@@ -17,7 +17,7 @@ var classRmCmd = &cobra.Command{
 		}
 
 		for _, name := range args {
-			if err := RemoveClass(name); err != nil {
+			if err := removeClass(name); err != nil {
 				fmt.Printf("Removing '%s' failed: %v\n", name, err)
 				continue
 			}
@@ -31,8 +31,7 @@ func init() {
 	classCmd.AddCommand(classRmCmd)
 }
 
-// RemoveClass removes a class from storage.
-func RemoveClass(label string) error {
+func removeClass(label string) error {
 	// Setup storage service
 	sqlitePath, err := helper.GetSqlitePath()
 	if err != nil {

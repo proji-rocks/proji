@@ -19,7 +19,6 @@ func init() {
 	rootCmd.AddCommand(cleanCmd)
 }
 
-// cleanProjects cleans all projects.
 func cleanProjects() error {
 	// Setup storage service
 	sqlitePath, err := helper.GetSqlitePath()

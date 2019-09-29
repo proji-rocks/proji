@@ -18,14 +18,14 @@ var classExportCmd = &cobra.Command{
 	Short: "Export one or more classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(exampleDest) > 0 {
-			return ExportExample(exampleDest)
+			return exportExample(exampleDest)
 		}
 
 		if len(args) < 1 {
 			return fmt.Errorf("Missing class label")
 		}
 		for _, label := range args {
-			file, err := ExportClass(label)
+			file, err := exportClass(label)
 			if err != nil {
 				fmt.Printf("Export of '%s' to file %s failed: %v\n", label, file, err)
 				continue
@@ -41,9 +41,7 @@ func init() {
 	classExportCmd.Flags().StringVarP(&exampleDest, "example", "e", "", "Export an example")
 }
 
-// ExportClass exports a class to a toml file.
-// Returns the filename on success.
-func ExportClass(label string) (string, error) {
+func exportClass(label string) (string, error) {
 	// Setup storage service
 	sqlitePath, err := helper.GetSqlitePath()
 	if err != nil {
@@ -66,8 +64,7 @@ func ExportClass(label string) (string, error) {
 	return class.Export()
 }
 
-// ExportExample exports an example class config
-func ExportExample(destFolder string) error {
+func exportExample(destFolder string) error {
 
 	exampleDir, ok := viper.Get("examples.location").(string)
 	if !ok {

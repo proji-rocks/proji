@@ -29,7 +29,7 @@ var createCmd = &cobra.Command{
 		}
 
 		for _, name := range projects {
-			if err := CreateProject(name, label, cwd); err != nil {
+			if err := createProject(name, label, cwd); err != nil {
 				fmt.Printf("Creating project %s failed: %v\n", name, err)
 				if err.Error() == "Project already exists" {
 					if !helper.WantTo("Do you want to replace it?") {
@@ -53,8 +53,7 @@ func init() {
 	rootCmd.AddCommand(createCmd)
 }
 
-// CreateProject will create a new project or return an error if the project already exists.
-func CreateProject(name, label, cwd string) error {
+func createProject(name, label, cwd string) error {
 	// Setup storage
 	sqlitePath, err := helper.GetSqlitePath()
 	if err != nil {
@@ -109,5 +108,5 @@ func replaceProject(name, label, cwd string) error {
 	if err = s.RemoveProject(id); err != nil {
 		return err
 	}
-	return CreateProject(name, label, cwd)
+	return createProject(name, label, cwd)
 }
