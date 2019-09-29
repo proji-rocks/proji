@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -13,29 +12,25 @@ import (
 )
 
 var addCmd = &cobra.Command{
-	Use:   "add LABEL PATH",
+	Use:   "add LABEL PATH STATUS",
 	Short: "Add an existing project",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) < 2 {
-			return fmt.Errorf("Missing label or path")
+		if len(args) < 3 {
+			return fmt.Errorf("Missing label, path or status")
 		}
 
 		path, err := filepath.Abs(args[1])
+		if err != nil {
+			return err
+		}
 		if !helper.DoesPathExist(path) {
 			return fmt.Errorf("path '%s' does not exist", path)
 		}
 
-		name := filepath.Base(path)
-		if err != nil {
-			return err
-		}
-		cwd, err := os.Getwd()
-		if err != nil {
-			return err
-		}
 		label := strings.ToLower(args[0])
+		status := strings.ToLower(args[2])
 
-		if err := AddProject(name, label, cwd); err != nil {
+		if err := addProject(label, path, status); err != nil {
 			return err
 		}
 		fmt.Printf("Project '%s' was successfully added.\n", path)
@@ -47,8 +42,7 @@ func init() {
 	rootCmd.AddCommand(addCmd)
 }
 
-// AddProject will create a new project or return an error if the project already exists.
-func AddProject(name, label, cwd string) error {
+func addProject(label, path, statusTitle string) error {
 	// Setup storage
 	sqlitePath, err := helper.GetSqlitePath()
 	if err != nil {
@@ -60,11 +54,26 @@ func AddProject(name, label, cwd string) error {
 	}
 	defer s.Close()
 
-	proj, err := storage.NewProject(name, label, cwd, s)
+	name := filepath.Base(path)
 	if err != nil {
 		return err
 	}
-	if err := s.TrackProject(proj); err != nil {
+
+	classID, err := s.LoadClassIDByLabel(label)
+	if err != nil {
+		return err
+	}
+
+	statusID, err := s.LoadStatusID(statusTitle)
+	if err != nil {
+		return err
+	}
+
+	proj, err := storage.NewProject(0, name, path, classID, statusID, s)
+	if err != nil {
+		return err
+	}
+	if err := s.SaveProject(proj); err != nil {
 		return err
 	}
 	return nil

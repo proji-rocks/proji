@@ -9,19 +9,19 @@ import (
 )
 
 var classRmCmd = &cobra.Command{
-	Use:   "rm NAME [NAME...]",
+	Use:   "rm LABEL [LABEL...]",
 	Short: "Remove one or more classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("Missing class name")
+			return fmt.Errorf("Missing class label")
 		}
 
 		for _, name := range args {
-			if err := RemoveClass(name); err != nil {
-				fmt.Printf("Removing class %s failed: %v\n", name, err)
+			if err := removeClass(name); err != nil {
+				fmt.Printf("Removing '%s' failed: %v\n", name, err)
 				continue
 			}
-			fmt.Printf("Class %s was successfully removed.\n", name)
+			fmt.Printf("'%s' was successfully removed.\n", name)
 		}
 		return nil
 	},
@@ -31,8 +31,7 @@ func init() {
 	classCmd.AddCommand(classRmCmd)
 }
 
-// RemoveClass removes a class from storage.
-func RemoveClass(name string) error {
+func removeClass(label string) error {
 	// Setup storage service
 	sqlitePath, err := helper.GetSqlitePath()
 	if err != nil {
@@ -43,6 +42,9 @@ func RemoveClass(name string) error {
 		return err
 	}
 	defer s.Close()
-
-	return s.RemoveClass(name)
+	classID, err := s.LoadClassIDByLabel(label)
+	if err != nil {
+		return err
+	}
+	return s.RemoveClass(classID)
 }

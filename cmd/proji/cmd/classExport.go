@@ -2,33 +2,35 @@ package cmd
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var exampleDest string
 
 var classExportCmd = &cobra.Command{
-	Use:   "export NAME [NAME...]",
+	Use:   "export LABEL [LABEL...]",
 	Short: "Export one or more classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(exampleDest) > 0 {
-			return storage.ExportExample(exampleDest)
+			return exportExample(exampleDest)
 		}
 
 		if len(args) < 1 {
-			return fmt.Errorf("Missing class name")
+			return fmt.Errorf("Missing class label")
 		}
-		for _, name := range args {
-			file, err := ExportClass(name)
+		for _, label := range args {
+			file, err := exportClass(label)
 			if err != nil {
-				fmt.Printf("Export of class %s to file %s failed: %v\n", name, file, err)
+				fmt.Printf("Export of '%s' to file %s failed: %v\n", label, file, err)
 				continue
 			}
-			fmt.Printf("Class %s was successfully exported to file %s.\n", name, file)
+			fmt.Printf("'%s' was successfully exported to file %s.\n", label, file)
 		}
 		return nil
 	},
@@ -39,9 +41,7 @@ func init() {
 	classExportCmd.Flags().StringVarP(&exampleDest, "example", "e", "", "Export an example")
 }
 
-// ExportClass exports a class to a toml file.
-// Returns the filename on success.
-func ExportClass(name string) (string, error) {
+func exportClass(label string) (string, error) {
 	// Setup storage service
 	sqlitePath, err := helper.GetSqlitePath()
 	if err != nil {
@@ -53,9 +53,49 @@ func ExportClass(name string) (string, error) {
 	}
 	defer s.Close()
 
-	c, err := s.LoadClassByName(name)
+	classID, err := s.LoadClassIDByLabel(label)
 	if err != nil {
 		return "", err
 	}
-	return c.Export()
+	class, err := s.LoadClass(classID)
+	if err != nil {
+		return "", err
+	}
+	return class.Export()
+}
+
+func exportExample(destFolder string) error {
+
+	exampleDir, ok := viper.Get("examples.location").(string)
+	if !ok {
+		return fmt.Errorf("Could not read example file location from config file")
+	}
+	exampleFile, ok := viper.Get("examples.class").(string)
+	if !ok {
+		return fmt.Errorf("Could not read example file name from config file")
+	}
+
+	exampleFile = helper.GetConfigDir() + exampleDir + exampleFile
+	sourceFileStat, err := os.Stat(exampleFile)
+	if err != nil {
+		return err
+	}
+
+	if !sourceFileStat.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file", exampleFile)
+	}
+
+	source, err := os.Open(exampleFile)
+	if err != nil {
+		return err
+	}
+	defer source.Close()
+
+	destination, err := os.Create(destFolder + "/proji-class.toml")
+	if err != nil {
+		return err
+	}
+	defer destination.Close()
+	_, err = io.Copy(destination, source)
+	return err
 }

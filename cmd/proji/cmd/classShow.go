@@ -6,21 +6,20 @@ import (
 
 	"github.com/jedib0t/go-pretty/table"
 	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
 	"github.com/spf13/cobra"
 )
 
 var classShowCmd = &cobra.Command{
-	Use:   "show NAME [NAME...]",
+	Use:   "show LABEL [LABEL...]",
 	Short: "Show details about one or more classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("Missing class name")
+			return fmt.Errorf("Missing class label")
 		}
 
 		for _, name := range args {
-			if err := ShowClass(name); err != nil {
+			if err := showClass(name); err != nil {
 				return err
 			}
 		}
@@ -32,8 +31,7 @@ func init() {
 	classCmd.AddCommand(classShowCmd)
 }
 
-// ShowClass shows detailed information abour a given class
-func ShowClass(name string) error {
+func showClass(label string) error {
 	// Setup storage service
 	sqlitePath, err := helper.GetSqlitePath()
 	if err != nil {
@@ -45,81 +43,70 @@ func ShowClass(name string) error {
 	}
 	defer s.Close()
 
-	c, err := s.LoadClassByName(name)
+	classID, err := s.LoadClassIDByLabel(label)
 	if err != nil {
 		return err
 	}
+	class, err := s.LoadClass(classID)
+	if err != nil {
+		return nil
+	}
 
 	// fmt.Println(helper.ProjectHeader(c.Name))
-	showLabels(c)
-	showFolders(c)
-	showFiles(c)
-	showScripts(c)
+	showInfo(class.Name, class.Label)
+	showFolders(class.Folders)
+	showFiles(class.Files)
+	showScripts(class.Scripts)
 	return nil
 }
 
-// showLabels shows all labels of a given class
-func showLabels(class *storage.Class) {
-	// Table header
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"Label"})
-
-	for _, label := range class.Labels {
-		t.AppendRow([]interface{}{label})
-	}
-	// Print the table
-	t.Render()
+func showInfo(name, label string) {
+	fmt.Println("Name: " + name)
+	fmt.Println("Label: " + label)
 	fmt.Println()
 }
 
-// showFolders shows all folders of a given class
-func showFolders(class *storage.Class) {
+func showFolders(folders map[string]string) {
 	// Table header
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"Folder", "Template"})
 
 	// Fill table
-	for folder, template := range class.Folders {
+	for folder, template := range folders {
 		t.AppendRow([]interface{}{folder, template})
 	}
 
 	// Print the table
 	t.Render()
-	fmt.Println()
 }
 
-// showFiles shows all files of a given class
-func showFiles(class *storage.Class) {
+func showFiles(files map[string]string) {
 	// Table header
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"File", "Template"})
 
 	// Fill table
-	for folder, template := range class.Files {
+	for folder, template := range files {
 		t.AppendRow([]interface{}{folder, template})
 	}
 
 	// Print the table
 	t.Render()
-	fmt.Println()
 }
 
-// showScripts shows all scripts of a given class
-func showScripts(class *storage.Class) {
+func showScripts(scripts map[string]bool) {
 	// Table header
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"Script", "As sudo"})
 
 	// Fill table
-	for script, runAsSudo := range class.Scripts {
+	for script, runAsSudo := range scripts {
 		t.AppendRow([]interface{}{script, runAsSudo})
 	}
 
 	// Print the table
 	t.Render()
-	fmt.Println()
 }

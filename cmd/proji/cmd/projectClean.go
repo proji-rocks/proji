@@ -1,32 +1,25 @@
 package cmd
 
 import (
-	"os"
-
-	"github.com/jedib0t/go-pretty/table"
 	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
 	"github.com/spf13/cobra"
 )
 
-var dryRun bool
-
 var cleanCmd = &cobra.Command{
 	Use:   "clean",
 	Short: "Clean up projects",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return cleanProjects(dryRun)
+		return cleanProjects()
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(cleanCmd)
-	cleanCmd.Flags().BoolVarP(&dryRun, "dry-run", "", false, "Don't auto clean. Only show dirty projects.")
 }
 
-// cleanProjects cleans all projects.
-func cleanProjects(dryRun bool) error {
+func cleanProjects() error {
 	// Setup storage service
 	sqlitePath, err := helper.GetSqlitePath()
 	if err != nil {
@@ -38,15 +31,10 @@ func cleanProjects(dryRun bool) error {
 	}
 	defer s.Close()
 
-	projects, err := s.ListProjects()
+	projects, err := s.LoadAllProjects()
 	if err != nil {
 		return err
 	}
-
-	// Table header
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"Project", "Path", "Status", "Overall"})
 
 	for _, project := range projects {
 		// Check path
@@ -65,10 +53,10 @@ func cleanProjects(dryRun bool) error {
 		overallGood := pathGood && statusGood
 
 		// If no dry run and overall healh is bad, than clean project
-		if !dryRun && !overallGood {
+		if !overallGood {
 			if !pathGood {
 				// Remove the project
-				if err := s.UntrackProject(project.ID); err != nil {
+				if err := s.RemoveProject(project.ID); err != nil {
 					return err
 				}
 				continue
@@ -80,8 +68,8 @@ func cleanProjects(dryRun bool) error {
 					Comment: "The state of this project is unknown.",
 				}
 				// Try adding the status to the storage
-				if err := s.AddStatus(&status); err != nil {
-					if err.Error() != "Status already exists" {
+				if err := s.SaveStatus(&status); err != nil {
+					if err.Error() != "Status '"+status.Title+"' already exists" {
 						return err
 					}
 				}
@@ -105,32 +93,6 @@ func cleanProjects(dryRun bool) error {
 			}
 			continue
 		}
-
-		// Dry-Run, print only
-		path := boolToInfo(pathGood)
-		status := boolToInfo(statusGood)
-		overall := boolToInfo(overallGood)
-
-		t.AppendRow([]interface{}{
-			project.ID,
-			path,
-			status,
-			overall,
-		})
-	}
-
-	// Print the table
-	if dryRun {
-		t.Render()
 	}
 	return nil
-}
-
-func boolToInfo(good bool) string {
-	if good {
-		// return ""
-		return "Good"
-	}
-	// return ""
-	return "Bad"
 }

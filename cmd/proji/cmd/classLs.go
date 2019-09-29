@@ -14,7 +14,7 @@ var classLsCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return ListClasses()
+		return listClasses()
 	},
 }
 
@@ -22,8 +22,7 @@ func init() {
 	classCmd.AddCommand(classLsCmd)
 }
 
-// ListClasses lists all classes available in the database
-func ListClasses() error {
+func listClasses() error {
 	// Setup storage service
 	sqlitePath, err := helper.GetSqlitePath()
 	if err != nil {
@@ -43,11 +42,11 @@ func ListClasses() error {
 	// Table header
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"ID", "Name", "Labels"})
+	t.AppendHeader(table.Row{"Name", "Label"})
 
 	// Fill table
 	for _, class := range classes {
-		t.AppendRow([]interface{}{class.ID, class.Name, class.Labels})
+		t.AppendRow([]interface{}{class.Name, class.Label})
 	}
 
 	// Print the table

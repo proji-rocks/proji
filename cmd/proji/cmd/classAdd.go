@@ -6,9 +6,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/nikoksr/proji/pkg/proji/storage"
+
 	"github.com/nikoksr/proji/pkg/helper"
 
-	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
 	"github.com/spf13/cobra"
 )
@@ -22,11 +23,11 @@ var classAddCmd = &cobra.Command{
 		}
 
 		for _, name := range args {
-			if err := AddClass(name); err != nil {
-				fmt.Printf("Adding class %s failed: %v\n", name, err)
+			if err := addClass(name); err != nil {
+				fmt.Printf("Adding class '%s' failed: %v\n", name, err)
 				continue
 			}
-			fmt.Printf("Class %s was successfully added.\n", name)
+			fmt.Printf("Class '%s' was successfully added.\n", name)
 		}
 		return nil
 	},
@@ -36,26 +37,23 @@ func init() {
 	classCmd.AddCommand(classAddCmd)
 }
 
-// AddClass adds a new class interactively through the cli.
-func AddClass(name string) error {
-	// Create class and fill it with data from the cli
-	c, err := storage.NewClass(name)
+func addClass(name string) error {
+	reader := bufio.NewReader(os.Stdin)
+
+	label, err := getLabel(reader)
 	if err != nil {
 		return err
 	}
-
-	reader := bufio.NewReader(os.Stdin)
-
-	if err := getLabels(reader, c); err != nil {
+	folders, err := getFolders(reader)
+	if err != nil {
 		return err
 	}
-	if err := getFolders(reader, c); err != nil {
+	files, err := getFiles(reader)
+	if err != nil {
 		return err
 	}
-	if err := getFiles(reader, c); err != nil {
-		return err
-	}
-	if err := getScripts(reader, c); err != nil {
+	scripts, err := getScripts(reader)
+	if err != nil {
 		return err
 	}
 
@@ -68,27 +66,35 @@ func AddClass(name string) error {
 		return err
 	}
 	defer s.Close()
-	return s.SaveClass(c)
-}
 
-func getLabels(reader *bufio.Reader, class *storage.Class) error {
-	fmt.Print("Labels: ")
-	text, err := reader.ReadString('\n')
+	class, err := storage.NewClass(name, label)
 	if err != nil {
 		return err
 	}
-
-	class.Labels = strings.Fields(text)
-	if len(class.Labels) < 1 {
-		return fmt.Errorf("You have to specify atleast one label")
-	}
-
-	fmt.Println()
-	return nil
+	class.Folders = folders
+	class.Files = files
+	class.Scripts = scripts
+	return s.SaveClass(class)
 }
 
-func getFolders(reader *bufio.Reader, class *storage.Class) error {
+func getLabel(reader *bufio.Reader) (string, error) {
+	fmt.Print("Label: ")
+	text, err := reader.ReadString('\n')
+	if err != nil {
+		return "", err
+	}
+
+	labels := strings.Fields(text)
+	if len(labels) > 1 {
+		return "", fmt.Errorf("Only one unique label is allowed")
+	}
+	fmt.Println()
+	return labels[0], nil
+}
+
+func getFolders(reader *bufio.Reader) (map[string]string, error) {
 	fmt.Println("Folders: ")
+	folders := make(map[string]string)
 
 	for {
 		// Read in folders
@@ -96,7 +102,7 @@ func getFolders(reader *bufio.Reader, class *storage.Class) error {
 		fmt.Print("> ")
 		input, err := reader.ReadString('\n')
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		folderPair := strings.Fields(input)
@@ -116,7 +122,7 @@ func getFolders(reader *bufio.Reader, class *storage.Class) error {
 		// Check if target exists
 		// A target should only exist once
 		// A source can be used multiple times
-		if src, ok := class.Folders[target]; ok {
+		if src, ok := folders[target]; ok {
 			fmt.Printf("Warning: Target folder %s is already associated to source folder %s.\n", target, src)
 			continue
 		}
@@ -128,14 +134,15 @@ func getFolders(reader *bufio.Reader, class *storage.Class) error {
 		}
 
 		// Add folder(s) to map
-		class.Folders[target] = src
+		folders[target] = src
 	}
 	fmt.Println()
-	return nil
+	return folders, nil
 }
 
-func getFiles(reader *bufio.Reader, class *storage.Class) error {
+func getFiles(reader *bufio.Reader) (map[string]string, error) {
 	fmt.Println("Files: ")
+	files := make(map[string]string)
 
 	for {
 		// Read in files
@@ -143,7 +150,7 @@ func getFiles(reader *bufio.Reader, class *storage.Class) error {
 		fmt.Print("> ")
 		input, err := reader.ReadString('\n')
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		filePair := strings.Fields(input)
@@ -163,7 +170,7 @@ func getFiles(reader *bufio.Reader, class *storage.Class) error {
 		// A source can be used multiple times
 		target := filePair[0]
 
-		if src, ok := class.Files[target]; ok {
+		if src, ok := files[target]; ok {
 			fmt.Printf("Warning: Target file %s is already associated to source file %s.\n", target, src)
 			continue
 		}
@@ -175,14 +182,15 @@ func getFiles(reader *bufio.Reader, class *storage.Class) error {
 		}
 
 		// Add file(s) to map
-		class.Files[target] = src
+		files[target] = src
 	}
 	fmt.Println()
-	return nil
+	return files, nil
 }
 
-func getScripts(reader *bufio.Reader, class *storage.Class) error {
+func getScripts(reader *bufio.Reader) (map[string]bool, error) {
 	fmt.Println("Scripts: ")
+	scripts := make(map[string]bool)
 
 	for {
 		// Read in scripts
@@ -190,7 +198,7 @@ func getScripts(reader *bufio.Reader, class *storage.Class) error {
 		fmt.Print("> ")
 		input, err := reader.ReadString('\n')
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		scriptData := strings.Fields(input)
@@ -220,14 +228,14 @@ func getScripts(reader *bufio.Reader, class *storage.Class) error {
 		// Check if target exists
 		// A target should only exist once
 		// A source can be used multiple times
-		if _, ok := class.Scripts[script]; ok {
+		if _, ok := scripts[script]; ok {
 			fmt.Printf("Warning: Script %s is already in execution list.\n", script)
 			continue
 		}
 
 		// Add folder(s) to map
-		class.Scripts[script] = sudo
+		scripts[script] = sudo
 	}
 	fmt.Println()
-	return nil
+	return scripts, nil
 }
