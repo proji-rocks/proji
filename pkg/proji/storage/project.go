@@ -6,26 +6,16 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/otiai10/copy"
 )
 
 // Project struct represents a proji project
 type Project struct {
-	// The project ID
-	ID uint
-
-	// The project name
-	Name string
-
-	// The install path for the project
-	InstallPath string
-
-	// The template class
-	Class *Class
-
-	// The current project status
-	Status *Status
+	ID          uint    // The project ID
+	Name        string  // The project name
+	InstallPath string  // The install path for the project
+	Class       *Class  // The template class
+	Status      *Status // The current project status
 }
 
 // NewProject returns a new project

@@ -10,23 +10,12 @@ import (
 
 // Class struct represents a proji class
 type Class struct {
-	// The class ID
-	ID uint
-
-	// The class name
-	Name string
-
-	// All class related labels
-	Label string
-
-	// All class related folders
-	Folders map[string]string
-
-	// All class related files
-	Files map[string]string
-
-	// All class related scripts
-	Scripts map[string]bool
+	ID      uint              // Class ID in storage
+	Name    string            // Class name
+	Label   string            // Class label
+	Folders map[string]string // Class related folders
+	Files   map[string]string // Class related files
+	Scripts map[string]bool   // Class related scripts
 }
 
 // NewClass returns a new class
