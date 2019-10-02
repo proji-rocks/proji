@@ -73,7 +73,8 @@ func New(path string) (storage.Service, error) {
 				("active", "Actively working on this project."),
   				("inactive", "Stopped working on this project for now."),
   				("done", "There is nothing left to do"),
-  				("dead", "This project is dead.");
+				("dead", "This project is dead."),
+				("unknown", "Status of this project is unknown.");
 			CREATE UNIQUE INDEX u_class_name_idx ON class('name');
 			CREATE UNIQUE INDEX u_class_label_idx ON class(label);
 			CREATE UNIQUE INDEX u_class_folder_idx ON class_folder(class_id, 'target');
