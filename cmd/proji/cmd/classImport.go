@@ -3,9 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/storage"
-	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +16,7 @@ var classImportCmd = &cobra.Command{
 		}
 
 		for _, config := range args {
-			if err := importClass(config); err != nil {
+			if err := importClass(config, projiEnv.Svc); err != nil {
 				fmt.Printf("Import of '%s' failed: %v\n", config, err)
 				continue
 			}
@@ -32,7 +30,7 @@ func init() {
 	classCmd.AddCommand(classImportCmd)
 }
 
-func importClass(config string) error {
+func importClass(config string, svc storage.Service) error {
 	// Import class data
 	c, err := storage.NewClass("", "")
 	if err != nil {
@@ -41,16 +39,5 @@ func importClass(config string) error {
 	if err := c.ImportData(config); err != nil {
 		return err
 	}
-
-	// Setup storage service
-	sqlitePath, err := helper.GetSqlitePath()
-	if err != nil {
-		return err
-	}
-	s, err := sqlite.New(sqlitePath)
-	if err != nil {
-		return err
-	}
-	defer s.Close()
-	return s.SaveClass(c)
+	return svc.SaveClass(c)
 }

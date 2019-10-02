@@ -8,7 +8,6 @@ import (
 
 	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/storage"
-	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
 	"github.com/spf13/cobra"
 )
 
@@ -22,14 +21,14 @@ var statusAddCmd = &cobra.Command{
 
 		for _, status := range args {
 			status = strings.ToLower(status)
-			comment, err := addStatus(status)
+			comment, err := addStatus(status, projiEnv.Svc)
 			if err != nil {
 				fmt.Printf("Adding status %s failed: %v\n", status, err)
 				if err.Error() == "Status already exists" {
 					if !helper.WantTo("Do you want to update its comment?") {
 						continue
 					}
-					if err := replaceStatus(status, comment); err != nil {
+					if err := replaceStatus(status, comment, projiEnv.Svc); err != nil {
 						fmt.Printf("Updating comment %s failed: %v\n", status, err)
 						continue
 					}
@@ -47,18 +46,7 @@ func init() {
 	statusCmd.AddCommand(statusAddCmd)
 }
 
-func addStatus(title string) (string, error) {
-	// Setup storage
-	sqlitePath, err := helper.GetSqlitePath()
-	if err != nil {
-		return "", err
-	}
-	s, err := sqlite.New(sqlitePath)
-	if err != nil {
-		return "", err
-	}
-	defer s.Close()
-
+func addStatus(title string, svc storage.Service) (string, error) {
 	// Create status and set status
 	var status storage.Status
 	status.Title = title
@@ -71,24 +59,13 @@ func addStatus(title string) (string, error) {
 		return "", err
 	}
 	status.Comment = strings.Trim(comment, "\n")
-	return status.Comment, s.SaveStatus(&status)
+	return status.Comment, svc.SaveStatus(&status)
 }
 
-func replaceStatus(title, comment string) error {
-	// Setup storage
-	sqlitePath, err := helper.GetSqlitePath()
+func replaceStatus(title, comment string, svc storage.Service) error {
+	id, err := svc.LoadStatusID(title)
 	if err != nil {
 		return err
 	}
-	s, err := sqlite.New(sqlitePath)
-	if err != nil {
-		return err
-	}
-	defer s.Close()
-
-	id, err := s.LoadStatusID(title)
-	if err != nil {
-		return err
-	}
-	return s.UpdateStatus(id, title, comment)
+	return svc.UpdateStatus(id, title, comment)
 }

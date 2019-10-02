@@ -7,7 +7,6 @@ import (
 
 	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/storage"
-	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
 	"github.com/spf13/cobra"
 )
 
@@ -30,7 +29,7 @@ var addCmd = &cobra.Command{
 		label := strings.ToLower(args[0])
 		status := strings.ToLower(args[2])
 
-		if err := addProject(label, path, status); err != nil {
+		if err := addProject(label, path, status, projiEnv.Svc); err != nil {
 			return err
 		}
 		fmt.Printf("Project '%s' was successfully added.\n", path)
@@ -42,38 +41,23 @@ func init() {
 	rootCmd.AddCommand(addCmd)
 }
 
-func addProject(label, path, statusTitle string) error {
-	// Setup storage
-	sqlitePath, err := helper.GetSqlitePath()
-	if err != nil {
-		return err
-	}
-	s, err := sqlite.New(sqlitePath)
-	if err != nil {
-		return err
-	}
-	defer s.Close()
-
+func addProject(label, path, statusTitle string, svc storage.Service) error {
 	name := filepath.Base(path)
+	classID, err := svc.LoadClassIDByLabel(label)
 	if err != nil {
 		return err
 	}
 
-	classID, err := s.LoadClassIDByLabel(label)
+	statusID, err := svc.LoadStatusID(statusTitle)
 	if err != nil {
 		return err
 	}
 
-	statusID, err := s.LoadStatusID(statusTitle)
+	proj, err := storage.NewProject(0, name, path, classID, statusID, svc)
 	if err != nil {
 		return err
 	}
-
-	proj, err := storage.NewProject(0, name, path, classID, statusID, s)
-	if err != nil {
-		return err
-	}
-	if err := s.SaveProject(proj); err != nil {
+	if err := svc.SaveProject(proj); err != nil {
 		return err
 	}
 	return nil

@@ -3,8 +3,9 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/nikoksr/proji/pkg/proji/storage"
+
 	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
 	"github.com/spf13/cobra"
 )
 
@@ -22,7 +23,7 @@ var rmCmd = &cobra.Command{
 				return err
 			}
 
-			if err := removeProject(id); err != nil {
+			if err := removeProject(id, projiEnv.Svc); err != nil {
 				fmt.Printf("Removing project '%d' failed: %v\n", id, err)
 				continue
 			}
@@ -36,21 +37,10 @@ func init() {
 	rootCmd.AddCommand(rmCmd)
 }
 
-func removeProject(projectID uint) error {
-	// Setup storage service
-	sqlitePath, err := helper.GetSqlitePath()
-	if err != nil {
-		return err
-	}
-	s, err := sqlite.New(sqlitePath)
-	if err != nil {
-		return err
-	}
-	defer s.Close()
-
+func removeProject(projectID uint, svc storage.Service) error {
 	// Check if class exists
-	if _, err := s.LoadProject(projectID); err != nil {
+	if _, err := svc.LoadProject(projectID); err != nil {
 		return err
 	}
-	return s.RemoveProject(projectID)
+	return svc.RemoveProject(projectID)
 }

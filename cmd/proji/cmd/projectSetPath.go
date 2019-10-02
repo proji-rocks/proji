@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 
 	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +26,7 @@ var projectSetPathCmd = &cobra.Command{
 			return err
 		}
 
-		if err := setPath(projectID, path); err != nil {
+		if err := projiEnv.Svc.UpdateProjectLocation(projectID, path); err != nil {
 			fmt.Printf("Setting path '%s' for project %d failed: %v\n", path, projectID, err)
 			return err
 		}
@@ -38,17 +37,4 @@ var projectSetPathCmd = &cobra.Command{
 
 func init() {
 	projectSetCmd.AddCommand(projectSetPathCmd)
-}
-
-func setPath(projectID uint, path string) error {
-	sqlitePath, err := helper.GetSqlitePath()
-	if err != nil {
-		return err
-	}
-	s, err := sqlite.New(sqlitePath)
-	if err != nil {
-		return err
-	}
-	defer s.Close()
-	return s.UpdateProjectLocation(projectID, path)
 }

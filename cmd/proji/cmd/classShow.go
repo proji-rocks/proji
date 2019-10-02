@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/nikoksr/proji/pkg/proji/storage"
+
 	"github.com/jedib0t/go-pretty/table"
-	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
 	"github.com/spf13/cobra"
 )
 
@@ -19,7 +19,7 @@ var classShowCmd = &cobra.Command{
 		}
 
 		for _, name := range args {
-			if err := showClass(name); err != nil {
+			if err := showClass(name, projiEnv.Svc); err != nil {
 				return err
 			}
 		}
@@ -31,23 +31,12 @@ func init() {
 	classCmd.AddCommand(classShowCmd)
 }
 
-func showClass(label string) error {
-	// Setup storage service
-	sqlitePath, err := helper.GetSqlitePath()
+func showClass(label string, svc storage.Service) error {
+	classID, err := svc.LoadClassIDByLabel(label)
 	if err != nil {
 		return err
 	}
-	s, err := sqlite.New(sqlitePath)
-	if err != nil {
-		return err
-	}
-	defer s.Close()
-
-	classID, err := s.LoadClassIDByLabel(label)
-	if err != nil {
-		return err
-	}
-	class, err := s.LoadClass(classID)
+	class, err := svc.LoadClass(classID)
 	if err != nil {
 		return nil
 	}

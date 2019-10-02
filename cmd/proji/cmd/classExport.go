@@ -5,8 +5,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
+	"github.com/nikoksr/proji/pkg/proji/storage"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -18,14 +18,14 @@ var classExportCmd = &cobra.Command{
 	Short: "Export one or more classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(exampleDest) > 0 {
-			return exportExample(exampleDest)
+			return exportExample(exampleDest, projiEnv.ConfPath)
 		}
 
 		if len(args) < 1 {
 			return fmt.Errorf("Missing class label")
 		}
 		for _, label := range args {
-			file, err := exportClass(label)
+			file, err := exportClass(label, projiEnv.Svc)
 			if err != nil {
 				fmt.Printf("Export of '%s' to file %s failed: %v\n", label, file, err)
 				continue
@@ -41,31 +41,19 @@ func init() {
 	classExportCmd.Flags().StringVarP(&exampleDest, "example", "e", "", "Export an example")
 }
 
-func exportClass(label string) (string, error) {
-	// Setup storage service
-	sqlitePath, err := helper.GetSqlitePath()
+func exportClass(label string, svc storage.Service) (string, error) {
+	classID, err := svc.LoadClassIDByLabel(label)
 	if err != nil {
 		return "", err
 	}
-	s, err := sqlite.New(sqlitePath)
-	if err != nil {
-		return "", err
-	}
-	defer s.Close()
-
-	classID, err := s.LoadClassIDByLabel(label)
-	if err != nil {
-		return "", err
-	}
-	class, err := s.LoadClass(classID)
+	class, err := svc.LoadClass(classID)
 	if err != nil {
 		return "", err
 	}
 	return class.Export()
 }
 
-func exportExample(destFolder string) error {
-
+func exportExample(destFolder, confPath string) error {
 	exampleDir, ok := viper.Get("examples.location").(string)
 	if !ok {
 		return fmt.Errorf("Could not read example file location from config file")
@@ -75,7 +63,7 @@ func exportExample(destFolder string) error {
 		return fmt.Errorf("Could not read example file name from config file")
 	}
 
-	exampleFile = helper.GetConfigDir() + exampleDir + exampleFile
+	exampleFile = confPath + exampleDir + exampleFile
 	sourceFileStat, err := os.Stat(exampleFile)
 	if err != nil {
 		return err

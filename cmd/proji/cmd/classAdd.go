@@ -8,9 +8,6 @@ import (
 
 	"github.com/nikoksr/proji/pkg/proji/storage"
 
-	"github.com/nikoksr/proji/pkg/helper"
-
-	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
 	"github.com/spf13/cobra"
 )
 
@@ -23,7 +20,7 @@ var classAddCmd = &cobra.Command{
 		}
 
 		for _, name := range args {
-			if err := addClass(name); err != nil {
+			if err := addClass(name, projiEnv.Svc); err != nil {
 				fmt.Printf("Adding class '%s' failed: %v\n", name, err)
 				continue
 			}
@@ -37,7 +34,7 @@ func init() {
 	classCmd.AddCommand(classAddCmd)
 }
 
-func addClass(name string) error {
+func addClass(name string, svc storage.Service) error {
 	reader := bufio.NewReader(os.Stdin)
 
 	label, err := getLabel(reader)
@@ -57,16 +54,6 @@ func addClass(name string) error {
 		return err
 	}
 
-	sqlitePath, err := helper.GetSqlitePath()
-	if err != nil {
-		return err
-	}
-	s, err := sqlite.New(sqlitePath)
-	if err != nil {
-		return err
-	}
-	defer s.Close()
-
 	class, err := storage.NewClass(name, label)
 	if err != nil {
 		return err
@@ -74,7 +61,7 @@ func addClass(name string) error {
 	class.Folders = folders
 	class.Files = files
 	class.Scripts = scripts
-	return s.SaveClass(class)
+	return svc.SaveClass(class)
 }
 
 func getLabel(reader *bufio.Reader) (string, error) {
