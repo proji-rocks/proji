@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/nikoksr/proji/pkg/proji/storage"
+	"github.com/nikoksr/proji/pkg/proji/storage/item"
 	"github.com/spf13/cobra"
 )
 
@@ -32,7 +33,7 @@ func init() {
 
 func importClass(config string, svc storage.Service) error {
 	// Import class data
-	c, err := storage.NewClass("", "")
+	c, err := item.NewClass("", "")
 	if err != nil {
 		return err
 	}

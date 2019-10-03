@@ -1,4 +1,4 @@
-package storage
+package item
 
 // Status represents a project status
 type Status struct {

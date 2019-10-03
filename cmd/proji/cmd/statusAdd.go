@@ -8,6 +8,7 @@ import (
 
 	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/storage"
+	"github.com/nikoksr/proji/pkg/proji/storage/item"
 	"github.com/spf13/cobra"
 )
 
@@ -48,7 +49,7 @@ func init() {
 
 func addStatus(title string, svc storage.Service) (string, error) {
 	// Create status and set status
-	var status storage.Status
+	var status item.Status
 	status.Title = title
 
 	// Get a comment describing the status

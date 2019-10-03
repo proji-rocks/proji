@@ -1,10 +1,9 @@
-package storage
+package item
 
 import (
 	"os"
 	"os/exec"
 	"regexp"
-	"strconv"
 
 	"github.com/otiai10/copy"
 )
@@ -19,21 +18,7 @@ type Project struct {
 }
 
 // NewProject returns a new project
-func NewProject(projectID uint, name, installPath string, classID, statusID uint, svc Service) (*Project, error) {
-	class, err := svc.LoadClass(classID)
-	if err != nil {
-		return nil, err
-	}
-
-	var status *Status
-	status, err = svc.LoadStatus(statusID)
-	if err != nil {
-		statusIDStr := strconv.FormatUint(uint64(statusID), 10)
-		if err.Error() == "Status '"+statusIDStr+"' does not exist" {
-			status = NewStatus(0, "", "")
-		}
-	}
-
+func NewProject(projectID uint, name, installPath string, class *Class, status *Status) (*Project, error) {
 	return &Project{
 		ID:          projectID,
 		Name:        name,

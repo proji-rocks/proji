@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/nikoksr/proji/pkg/proji/storage"
+	"github.com/nikoksr/proji/pkg/proji/storage/item"
 
 	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/spf13/cobra"
@@ -59,8 +60,20 @@ func createProject(name, label, cwd, configPath string, svc storage.Service) err
 		return err
 	}
 
+	class, err := svc.LoadClass(classID)
+	if err != nil {
+		return err
+	}
+
+	// Load status active by default
+	var status *item.Status
+	status, err = svc.LoadStatus(1)
+	if err != nil {
+		return err
+	}
+
 	label = strings.ToLower(label)
-	proj, err := storage.NewProject(0, name, cwd+"/"+name, classID, 1, svc)
+	proj, err := item.NewProject(0, name, cwd+"/"+name, class, status)
 	if err != nil {
 		return err
 	}

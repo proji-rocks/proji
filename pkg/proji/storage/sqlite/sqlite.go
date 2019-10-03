@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattn/go-sqlite3"
 	"github.com/nikoksr/proji/pkg/proji/storage"
+	"github.com/nikoksr/proji/pkg/proji/storage/item"
 )
 
 // Sqlite represents a sqlite connection.
@@ -104,7 +105,7 @@ func (s *sqlite) Close() error {
 	return s.db.Close()
 }
 
-func (s *sqlite) SaveClass(class *storage.Class) error {
+func (s *sqlite) SaveClass(class *item.Class) error {
 	if err := s.saveClassInfo(class.Name, class.Label); err != nil {
 		if sqliteErr, ok := err.(sqlite3.Error); ok {
 			if sqliteErr.Code == sqlite3.ErrConstraint {
@@ -231,13 +232,13 @@ func (s *sqlite) saveScripts(classID uint, scripts map[string]bool) error {
 	return nil
 }
 
-func (s *sqlite) LoadClass(classID uint) (*storage.Class, error) {
+func (s *sqlite) LoadClass(classID uint) (*item.Class, error) {
 	name, label, err := s.loadClassInfo(classID)
 	if err != nil {
 		return nil, err
 	}
 
-	class, err := storage.NewClass(name, label)
+	class, err := item.NewClass(name, label)
 	if err != nil {
 		return nil, err
 	}
@@ -263,7 +264,7 @@ func (s *sqlite) LoadClass(classID uint) (*storage.Class, error) {
 	return class, nil
 }
 
-func (s *sqlite) LoadAllClasses() ([]*storage.Class, error) {
+func (s *sqlite) LoadAllClasses() ([]*item.Class, error) {
 	query := "SELECT class_id FROM class ORDER BY name"
 
 	labelRows, err := s.db.Query(query)
@@ -272,7 +273,7 @@ func (s *sqlite) LoadAllClasses() ([]*storage.Class, error) {
 	}
 	defer labelRows.Close()
 
-	var classes []*storage.Class
+	var classes []*item.Class
 	for labelRows.Next() {
 		var classID sql.NullInt64
 		if err := labelRows.Scan(&classID); err != nil {
@@ -415,7 +416,7 @@ func (s *sqlite) removeScripts(classID uint) error {
 	return err
 }
 
-func (s *sqlite) SaveProject(proj *storage.Project) error {
+func (s *sqlite) SaveProject(proj *item.Project) error {
 	t := time.Now().Local()
 	_, err := s.db.Exec(
 		"INSERT INTO project(name, class_id, install_path, install_date, project_status_id) VALUES(?, ?, ?, ?, ?)",
@@ -444,7 +445,7 @@ func (s *sqlite) UpdateProjectLocation(projectID uint, installPath string) error
 	return err
 }
 
-func (s *sqlite) LoadProject(projectID uint) (*storage.Project, error) {
+func (s *sqlite) LoadProject(projectID uint) (*item.Project, error) {
 	query := "SELECT name, class_id, install_path, project_status_id FROM project WHERE project_id = ?"
 
 	var name, installPath sql.NullString
@@ -455,14 +456,30 @@ func (s *sqlite) LoadProject(projectID uint) (*storage.Project, error) {
 		}
 		return nil, err
 	}
-	project, err := storage.NewProject(projectID, name.String, installPath.String, uint(classID.Int64), uint(statusID.Int64), s)
+
+	class, err := s.LoadClass(uint(classID.Int64))
+	if err != nil {
+		return nil, err
+	}
+
+	var status *item.Status
+	status, err = s.LoadStatus(uint(statusID.Int64))
+	if err != nil {
+		// Load status unknown
+		status, err = s.LoadStatus(5)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	project, err := item.NewProject(projectID, name.String, installPath.String, class, status)
 	if err != nil {
 		return nil, err
 	}
 	return project, nil
 }
 
-func (s *sqlite) LoadAllProjects() ([]*storage.Project, error) {
+func (s *sqlite) LoadAllProjects() ([]*item.Project, error) {
 	query := `SELECT project_id FROM project ORDER BY project_id`
 
 	projectRows, err := s.db.Query(query)
@@ -471,7 +488,7 @@ func (s *sqlite) LoadAllProjects() ([]*storage.Project, error) {
 	}
 	defer projectRows.Close()
 
-	var projects []*storage.Project
+	var projects []*item.Project
 
 	for projectRows.Next() {
 		var projectID sql.NullInt64
@@ -506,7 +523,7 @@ func (s *sqlite) RemoveProject(projectID uint) error {
 	return err
 }
 
-func (s *sqlite) SaveStatus(status *storage.Status) error {
+func (s *sqlite) SaveStatus(status *item.Status) error {
 	_, err := s.db.Exec(
 		"INSERT INTO project_status(title, comment) VALUES(?, ?)",
 		strings.ToLower(status.Title),
@@ -530,7 +547,7 @@ func (s *sqlite) UpdateStatus(statusID uint, title, comment string) error {
 	return err
 }
 
-func (s *sqlite) LoadStatus(statusID uint) (*storage.Status, error) {
+func (s *sqlite) LoadStatus(statusID uint) (*item.Status, error) {
 	query := "SELECT title, comment FROM project_status WHERE project_status_id = ?"
 	var title, comment sql.NullString
 	if err := s.db.QueryRow(query, statusID).Scan(&title, &comment); err != nil {
@@ -539,7 +556,7 @@ func (s *sqlite) LoadStatus(statusID uint) (*storage.Status, error) {
 		}
 		return nil, err
 	}
-	return storage.NewStatus(statusID, title.String, comment.String), nil
+	return item.NewStatus(statusID, title.String, comment.String), nil
 }
 
 func (s *sqlite) LoadStatusID(title string) (uint, error) {
@@ -554,7 +571,7 @@ func (s *sqlite) LoadStatusID(title string) (uint, error) {
 	return uint(statusID.Int64), nil
 }
 
-func (s *sqlite) LoadAllStatuses() ([]*storage.Status, error) {
+func (s *sqlite) LoadAllStatuses() ([]*item.Status, error) {
 	query := "SELECT project_status_id FROM project_status ORDER BY project_status_id"
 
 	statusRows, err := s.db.Query(query)
@@ -563,7 +580,7 @@ func (s *sqlite) LoadAllStatuses() ([]*storage.Status, error) {
 	}
 	defer statusRows.Close()
 
-	var statuses []*storage.Status
+	var statuses []*item.Status
 
 	for statusRows.Next() {
 		var statusID sql.NullInt64

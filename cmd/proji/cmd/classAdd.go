@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/nikoksr/proji/pkg/proji/storage"
+	"github.com/nikoksr/proji/pkg/proji/storage/item"
 
 	"github.com/spf13/cobra"
 )
@@ -54,7 +55,7 @@ func addClass(name string, svc storage.Service) error {
 		return err
 	}
 
-	class, err := storage.NewClass(name, label)
+	class, err := item.NewClass(name, label)
 	if err != nil {
 		return err
 	}
