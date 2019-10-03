@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/nikoksr/proji/pkg/proji/storage"
-
 	"github.com/spf13/cobra"
 )
 

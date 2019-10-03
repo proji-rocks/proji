@@ -6,9 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nikoksr/proji/pkg/helper"
-
 	"github.com/mattn/go-sqlite3"
+	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
 )

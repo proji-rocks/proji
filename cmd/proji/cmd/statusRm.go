@@ -3,9 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/nikoksr/proji/pkg/proji/storage"
-
 	"github.com/nikoksr/proji/pkg/helper"
+	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/spf13/cobra"
 )
 

@@ -8,7 +8,6 @@ import (
 
 	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
-
 	"github.com/spf13/cobra"
 )
 
