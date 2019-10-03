@@ -13,9 +13,9 @@ type Class struct {
 	ID      uint              // Class ID in storage
 	Name    string            // Class name
 	Label   string            // Class label
-	Folders map[string]string // Class related folders
-	Files   map[string]string // Class related files
-	Scripts map[string]bool   // Class related scripts
+	Folders map[string]string // Class folders
+	Files   map[string]string // Class files
+	Scripts map[string]bool   // Class scripts
 }
 
 // NewClass returns a new class
