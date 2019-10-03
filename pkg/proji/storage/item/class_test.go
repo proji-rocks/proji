@@ -2,13 +2,25 @@ package item_test
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"testing"
 
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestNewClass(t *testing.T) {
+	classExp := &item.Class{
+		Name:    "test",
+		Label:   "tst",
+		Folders: map[string]string{},
+		Files:   map[string]string{},
+		Scripts: map[string]bool{},
+	}
+
+	classAct := item.NewClass("test", "tst")
+	assert.Equal(t, classExp, classAct)
+}
 
 func TestClassImportData(t *testing.T) {
 	tests := []struct {
@@ -46,13 +58,8 @@ func TestClassImportData(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		c, err := item.NewClass("", "")
-		if err != nil {
-			fmt.Printf("Creating class failed: %v\n", err)
-			t.FailNow()
-		}
-
-		err = c.ImportData(test.configName)
+		c := item.NewClass("", "")
+		err := c.ImportData(test.configName)
 		assert.IsType(t, test.err, err)
 		assert.Equal(t, test.class, c)
 	}
