@@ -1,18 +1,42 @@
-machine:
-  environment:
-    IMPORT_PATH: "github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME"
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.13
 
-dependencies:
-  pre:
-    - go get github.com/tools/godep
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    steps:
+      - checkout
 
-  override:
-    - mkdir -p "$GOPATH/src/$IMPORT_PATH"
-    - rsync -azC --delete ./ "$GOPATH/src/$IMPORT_PATH/"
+      - run:
+          name: Setup config directory
+          command: |
+            mkdir -p ~/.config/proji/db
+            mkdir -p ~/.config/proji/examples
+            mkdir -p ~/.config/proji/scripts
+            mkdir -p ~/.config/proji/templates
+            cp configs/example-config.toml ~/.config/proji/config.toml
+            cp configs/example-class-export.toml ~/.config/proji/examples/proji-class.toml
 
-test:
-  pre:
-    - go vet ./...
+      - run:
+          name: Install sqlite
+          command: sudo apt install -y sqlite3 || true
 
-  override:
-    - godep go test ./...
+      - run:
+          name: Install go dependencies
+          command: go get -v -t -d ./...
+
+      - run:
+          name: Run go vet
+          command: go vet ./...
+
+      - run:
+          name: Run go test
+          command: go test -v ./...
+
+      - store_test_results:
+          path: test-results-proji
+
+      - store_artifacts:
+          path: test-results-proji
+          destination: trp
