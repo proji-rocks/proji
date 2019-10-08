@@ -3,8 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
+	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +16,7 @@ var classRmCmd = &cobra.Command{
 		}
 
 		for _, name := range args {
-			if err := removeClass(name); err != nil {
+			if err := removeClass(name, projiEnv.Svc); err != nil {
 				fmt.Printf("Removing '%s' failed: %v\n", name, err)
 				continue
 			}
@@ -31,20 +30,10 @@ func init() {
 	classCmd.AddCommand(classRmCmd)
 }
 
-func removeClass(label string) error {
-	// Setup storage service
-	sqlitePath, err := helper.GetSqlitePath()
+func removeClass(label string, svc storage.Service) error {
+	classID, err := svc.LoadClassIDByLabel(label)
 	if err != nil {
 		return err
 	}
-	s, err := sqlite.New(sqlitePath)
-	if err != nil {
-		return err
-	}
-	defer s.Close()
-	classID, err := s.LoadClassIDByLabel(label)
-	if err != nil {
-		return err
-	}
-	return s.RemoveClass(classID)
+	return svc.RemoveClass(classID)
 }

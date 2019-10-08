@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
+	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -23,7 +23,7 @@ var projectSetStatusCmd = &cobra.Command{
 			return err
 		}
 
-		if err := setStatus(projectID, status); err != nil {
+		if err := setStatus(projectID, status, projiEnv.Svc); err != nil {
 			fmt.Printf("Setting status '%s' for project %d failed: %v\n", status, projectID, err)
 			return err
 		}
@@ -36,25 +36,15 @@ func init() {
 	projectSetCmd.AddCommand(projectSetStatusCmd)
 }
 
-func setStatus(projectID uint, statusTitle string) error {
-	sqlitePath, err := helper.GetSqlitePath()
-	if err != nil {
-		return err
-	}
-	s, err := sqlite.New(sqlitePath)
-	if err != nil {
-		return err
-	}
-	defer s.Close()
-
+func setStatus(projectID uint, statusTitle string, svc storage.Service) error {
 	// Load and validate status
-	statusID, err := s.LoadStatusID(statusTitle)
+	statusID, err := svc.LoadStatusID(statusTitle)
 	if err != nil {
 		return err
 	}
 	// Validate project
-	if _, err := s.LoadProject(projectID); err != nil {
+	if _, err := svc.LoadProject(projectID); err != nil {
 		return err
 	}
-	return s.UpdateProjectStatus(projectID, statusID)
+	return svc.UpdateProjectStatus(projectID, statusID)
 }

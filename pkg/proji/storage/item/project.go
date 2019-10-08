@@ -1,60 +1,35 @@
-package storage
+package item
 
 import (
 	"os"
 	"os/exec"
 	"regexp"
-	"strconv"
 
-	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/otiai10/copy"
 )
 
 // Project struct represents a proji project
 type Project struct {
-	// The project ID
-	ID uint
-
-	// The project name
-	Name string
-
-	// The install path for the project
-	InstallPath string
-
-	// The template class
-	Class *Class
-
-	// The current project status
-	Status *Status
+	ID          uint    // The project ID
+	Name        string  // The project name
+	InstallPath string  // The install path for the project
+	Class       *Class  // The template class
+	Status      *Status // The current project status
 }
 
 // NewProject returns a new project
-func NewProject(projectID uint, name, installPath string, classID, statusID uint, svc Service) (*Project, error) {
-	class, err := svc.LoadClass(classID)
-	if err != nil {
-		return nil, err
-	}
-
-	var status *Status
-	status, err = svc.LoadStatus(statusID)
-	if err != nil {
-		statusIDStr := strconv.FormatUint(uint64(statusID), 10)
-		if err.Error() == "Status '"+statusIDStr+"' does not exist" {
-			status = NewStatus(0, "", "")
-		}
-	}
-
+func NewProject(projectID uint, name, installPath string, class *Class, status *Status) *Project {
 	return &Project{
 		ID:          projectID,
 		Name:        name,
 		InstallPath: installPath,
 		Class:       class,
 		Status:      status,
-	}, nil
+	}
 }
 
 // Create starts the creation of a project.
-func (proj *Project) Create(cwd string) error {
+func (proj *Project) Create(cwd, configPath string) error {
 	if err := proj.createProjectFolder(); err != nil {
 		return err
 	}
@@ -76,10 +51,10 @@ func (proj *Project) Create(cwd string) error {
 	if err := proj.createFiles(); err != nil {
 		return err
 	}
-	if err := proj.copyTemplates(); err != nil {
+	if err := proj.copyTemplates(configPath); err != nil {
 		return err
 	}
-	return proj.runScripts()
+	return proj.runScripts(configPath)
 }
 
 // createProjectFolder tries to create the main project folder.
@@ -124,7 +99,7 @@ func (proj *Project) createFiles() error {
 	return nil
 }
 
-func (proj *Project) copyTemplates() error {
+func (proj *Project) copyTemplates(configPath string) error {
 	re := regexp.MustCompile(`__PROJECT_NAME__`)
 
 	for _, templates := range []map[string]string{proj.Class.Folders, proj.Class.Files} {
@@ -135,7 +110,7 @@ func (proj *Project) copyTemplates() error {
 
 			// Replace keyword with project name
 			fifo = re.ReplaceAllString(fifo, proj.Name)
-			template = helper.GetConfigDir() + "templates/" + template
+			template = configPath + "templates/" + template
 			if err := copy.Copy(template, fifo); err != nil {
 				return err
 			}
@@ -144,9 +119,9 @@ func (proj *Project) copyTemplates() error {
 	return nil
 }
 
-func (proj *Project) runScripts() error {
+func (proj *Project) runScripts(configPath string) error {
 	for script, runAsSudo := range proj.Class.Scripts {
-		script = helper.GetConfigDir() + "scripts/" + script
+		script = configPath + "scripts/" + script
 
 		if runAsSudo {
 			script = "sudo " + script

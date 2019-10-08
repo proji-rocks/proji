@@ -4,8 +4,7 @@ import (
 	"os"
 
 	"github.com/jedib0t/go-pretty/table"
-	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
+	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +12,7 @@ var lsCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List projects",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return listProjects()
+		return listProjects(projiEnv.Svc)
 	},
 }
 
@@ -21,19 +20,8 @@ func init() {
 	rootCmd.AddCommand(lsCmd)
 }
 
-func listProjects() error {
-	// Setup storage service
-	sqlitePath, err := helper.GetSqlitePath()
-	if err != nil {
-		return err
-	}
-	s, err := sqlite.New(sqlitePath)
-	if err != nil {
-		return err
-	}
-	defer s.Close()
-
-	projects, err := s.LoadAllProjects()
+func listProjects(svc storage.Service) error {
+	projects, err := svc.LoadAllProjects()
 	if err != nil {
 		return err
 	}

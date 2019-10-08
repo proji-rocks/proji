@@ -1,15 +1,10 @@
-package storage
+package item
 
 // Status represents a project status
 type Status struct {
-	// The status id
-	ID uint
-
-	// The status title
-	Title string
-
-	// Short comment describing the status.
-	Comment string
+	ID      uint   // The status id in storage
+	Title   string // The status title
+	Comment string // Short comment describing the status
 }
 
 // NewStatus returns a new status

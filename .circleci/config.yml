@@ -1,39 +1,18 @@
-version: 2
+machine:
+  environment:
+    IMPORT_PATH: "github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME"
 
-jobs:
-  build:
-    working_directory: ~/create_project
-    docker:
-      - image: circleci/python:3.7.4
+dependencies:
+  pre:
+    - go get github.com/tools/godep
 
-    steps:
-      - checkout
+  override:
+    - mkdir -p "$GOPATH/src/$IMPORT_PATH"
+    - rsync -azC --delete ./ "$GOPATH/src/$IMPORT_PATH/"
 
-      - run:
-          name: Create config directory
-          command: |
-            mkdir -p ~/.config/create_project/db
-            cp -r templates ~/.config/create_project/
+test:
+  pre:
+    - go vet ./...
 
-      - run:
-          name: Install and setup database
-          command: |
-            sudo apt install -y sqlite3 || true
-            sqlite3 ~/.config/create_project/db/cp.sqlite3 < scripts/create_basic_db.sql
-
-      - run:
-          name: Install python dependencies
-          command: |
-            pip install --user -r requirements.txt
-
-      - run:
-          name: Run tests
-          command: |
-            pytest
-
-      - store_test_results:
-          path: test-results-python-3.7.4
-
-      - store_artifacts:
-          path: test-results-python-3.7.4
-          destination: trp374
+  override:
+    - godep go test ./...

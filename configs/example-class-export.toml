@@ -4,33 +4,31 @@
 # Must be unique and expressive.
 # name = "myTestClass" <- Good
 # name = "t1"          <- Bad, too short and not expressive
+name = "example"
 
-
-# One or more short class labels. Labels must be unique and
-# should ideally be descriptive. These labels will be
-# used later on to create your projects.
-# e.g.: proji create YOUR-LABEL my-new-project
-# The first label will be used as the default file extension.
-# labels = ["mtc"]                <- Good
-# labels = ["mtc", "tc"]          <- Okay, 'tc' is not directly derived from class name
-# labels = ["myTestClassLabel"]   <- Bad - too long
-# labels = ["ilt"]                <- Bad - unrelated to class name
-# labels = ["mtc", "mtc"]         <- Invalid - Labels not unique
-
+# A short class label. The label must be unique and
+# should ideally be an abbreviation of the class name or something similar.
+# Later on the label will be used to quickly create your projects.
+# e.g.: proji create YOUR-LABEL my-new-project1 my-new-project2
+# label = "mtc"                <- Good
+# label = "myTestClassLabel"   <- Bad - too long
+# label = "ilt"                <- Bad - unrelated to class name
+label = "exp"
 
 [folders]
 # Folders to create in or copy to the project folder.
 # Target is a relative path inside the project folder.
-# Template is a relative path inside the configs template folder.
+# Template is a relative path to a folder in the configs template folder.
 # (~/.config/proji/templates/)
 # If you don't want to create a folder by copying a template, just leave
 # out the template field and only specify the target. This will create an
-# empty file.
+# empty folder.
 
 # Synatx: "TARGET" = "TEMPLATE"
-# "myNewFolder/" = ""                <- no template, just create the file
-# "myTargetFolder/" = "templateName" <- copy template to target location
-
+# "myNewFolder/" = ""           <- no template, just create the file
+# "foo/bar/" = "templateName"   <- copy template to target location
+"exampleFolder/" = ""
+"foo/bar/" = ""
 
 [files]
 # Files to create in or copy to the project folder.
@@ -38,11 +36,12 @@
 
 # "text/myFile.txt" = ""
 # "myTargetFile.txt" = "templateFile.txt"
-
+"README.md" = "README.md"
+"exampleFolder/test.txt" = ""
 
 [scripts]
 # Scripts you want to execute after the project structure was created.
-# First value should be a script that lies inside the scripts folder.
+# First value should be a script that lies inside the scripts folder (~/.config/proji/scripts/).
 # The second value is of type boolean and should be true or false
 # respectively if the script needs to be executed as root or not.
 

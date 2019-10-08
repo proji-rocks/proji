@@ -5,9 +5,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/mitchellh/go-homedir"
-	"github.com/spf13/viper"
 )
 
 // ProjectHeader returns an individual graphical header for a project
@@ -16,27 +13,6 @@ func ProjectHeader(title string) string {
 	separatorLine := "+" + strings.Repeat("-", numChars-2) + "+\n"
 	projectLine := "| " + title + " |\n"
 	return (separatorLine + projectLine + separatorLine)
-}
-
-// GetConfigDir returns the default config directory.
-func GetConfigDir() string {
-	home, err := homedir.Dir()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	return home + "/.config/proji/"
-}
-
-// GetSqlitePath returns the default location for the sqlite3 db.
-func GetSqlitePath() (string, error) {
-	dbPath, ok := viper.Get("sqlite3.path").(string)
-	if !ok {
-		return "", fmt.Errorf("Could not read database name from config file")
-	}
-
-	return GetConfigDir() + dbPath, nil
 }
 
 // DoesPathExist checks if a given path exists in the filesystem.
