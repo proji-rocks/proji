@@ -18,14 +18,14 @@ type Project struct {
 }
 
 // NewProject returns a new project
-func NewProject(projectID uint, name, installPath string, class *Class, status *Status) (*Project, error) {
+func NewProject(projectID uint, name, installPath string, class *Class, status *Status) *Project {
 	return &Project{
 		ID:          projectID,
 		Name:        name,
 		InstallPath: installPath,
 		Class:       class,
 		Status:      status,
-	}, nil
+	}
 }
 
 // Create starts the creation of a project.

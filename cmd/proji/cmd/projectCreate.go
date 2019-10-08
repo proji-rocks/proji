@@ -72,10 +72,7 @@ func createProject(name, label, cwd, configPath string, svc storage.Service) err
 	}
 
 	label = strings.ToLower(label)
-	proj, err := item.NewProject(0, name, cwd+"/"+name, class, status)
-	if err != nil {
-		return err
-	}
+	proj := item.NewProject(0, name, cwd+"/"+name, class, status)
 
 	// Save it first to see if it already exists in the database
 	if err := svc.SaveProject(proj); err != nil {

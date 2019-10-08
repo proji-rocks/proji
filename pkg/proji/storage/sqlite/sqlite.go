@@ -237,10 +237,7 @@ func (s *sqlite) LoadClass(classID uint) (*item.Class, error) {
 		return nil, err
 	}
 
-	class, err := item.NewClass(name, label)
-	if err != nil {
-		return nil, err
-	}
+	class := item.NewClass(name, label)
 
 	folders, err := s.loadFolders(classID)
 	if err != nil {
@@ -471,11 +468,7 @@ func (s *sqlite) LoadProject(projectID uint) (*item.Project, error) {
 		}
 	}
 
-	project, err := item.NewProject(projectID, name.String, installPath.String, class, status)
-	if err != nil {
-		return nil, err
-	}
-	return project, nil
+	return item.NewProject(projectID, name.String, installPath.String, class, status), nil
 }
 
 func (s *sqlite) LoadAllProjects() ([]*item.Project, error) {

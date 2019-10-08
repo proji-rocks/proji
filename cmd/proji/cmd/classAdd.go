@@ -54,10 +54,7 @@ func addClass(name string, svc storage.Service) error {
 		return err
 	}
 
-	class, err := item.NewClass(name, label)
-	if err != nil {
-		return err
-	}
+	class := item.NewClass(name, label)
 	class.Folders = folders
 	class.Files = files
 	class.Scripts = scripts

@@ -33,12 +33,9 @@ func init() {
 
 func importClass(config string, svc storage.Service) error {
 	// Import class data
-	c, err := item.NewClass("", "")
-	if err != nil {
+	class := item.NewClass("", "")
+	if err := class.ImportData(config); err != nil {
 		return err
 	}
-	if err := c.ImportData(config); err != nil {
-		return err
-	}
-	return svc.SaveClass(c)
+	return svc.SaveClass(class)
 }

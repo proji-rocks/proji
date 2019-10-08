@@ -69,10 +69,7 @@ func addProject(label, path, statusTitle string, svc storage.Service) error {
 		}
 	}
 
-	proj, err := item.NewProject(0, name, path, class, status)
-	if err != nil {
-		return err
-	}
+	proj := item.NewProject(0, name, path, class, status)
 	if err := svc.SaveProject(proj); err != nil {
 		return err
 	}

@@ -19,7 +19,7 @@ type Class struct {
 }
 
 // NewClass returns a new class
-func NewClass(name, label string) (*Class, error) {
+func NewClass(name, label string) *Class {
 	return &Class{
 		ID:      0,
 		Name:    name,
@@ -27,7 +27,7 @@ func NewClass(name, label string) (*Class, error) {
 		Folders: make(map[string]string),
 		Files:   make(map[string]string),
 		Scripts: make(map[string]bool),
-	}, nil
+	}
 }
 
 // ImportData imports class data from a given config file.
