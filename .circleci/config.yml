@@ -1,39 +1,43 @@
 version: 2
-
 jobs:
   build:
-    working_directory: ~/create_project
     docker:
-      - image: circleci/python:3.7.4
+      - image: circleci/golang:1.13
 
+    working_directory: /go/src/github.com/nikoksr/proji
     steps:
       - checkout
 
       - run:
-          name: Create config directory
+          name: Setup config directory
           command: |
-            mkdir -p ~/.config/create_project/db
-            cp -r templates ~/.config/create_project/
+            mkdir -p ~/.config/proji/db
+            mkdir -p ~/.config/proji/examples
+            mkdir -p ~/.config/proji/scripts
+            mkdir -p ~/.config/proji/templates
+            cp configs/example-config.toml ~/.config/proji/config.toml
+            cp configs/example-class-export.toml ~/.config/proji/examples/proji-class.toml
+            echo "# This is a template readme" > ~/.config/proji/templates/README.md
 
       - run:
-          name: Install and setup database
-          command: |
-            sudo apt install -y sqlite3 || true
-            sqlite3 ~/.config/create_project/db/cp.sqlite3 < scripts/create_basic_db.sql
+          name: Install sqlite
+          command: sudo apt install -y sqlite3 || true
 
       - run:
-          name: Install python dependencies
-          command: |
-            pip install --user -r requirements.txt
+          name: Install go dependencies
+          command: go get -v -t -d ./...
 
       - run:
-          name: Run tests
-          command: |
-            pytest
+          name: Run go vet
+          command: go vet ./...
+
+      - run:
+          name: Run go test
+          command: go test -v ./...
 
       - store_test_results:
-          path: test-results-python-3.7.4
+          path: test-results-proji
 
       - store_artifacts:
-          path: test-results-python-3.7.4
-          destination: trp374
+          path: test-results-proji
+          destination: trp

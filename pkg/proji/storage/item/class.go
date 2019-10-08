@@ -1,4 +1,4 @@
-package storage
+package item
 
 import (
 	"fmt"
@@ -10,27 +10,16 @@ import (
 
 // Class struct represents a proji class
 type Class struct {
-	// The class ID
-	ID uint
-
-	// The class name
-	Name string
-
-	// All class related labels
-	Label string
-
-	// All class related folders
-	Folders map[string]string
-
-	// All class related files
-	Files map[string]string
-
-	// All class related scripts
-	Scripts map[string]bool
+	ID      uint              // Class ID in storage
+	Name    string            // Class name
+	Label   string            // Class label
+	Folders map[string]string // Class folders
+	Files   map[string]string // Class files
+	Scripts map[string]bool   // Class scripts
 }
 
 // NewClass returns a new class
-func NewClass(name, label string) (*Class, error) {
+func NewClass(name, label string) *Class {
 	return &Class{
 		ID:      0,
 		Name:    name,
@@ -38,7 +27,7 @@ func NewClass(name, label string) (*Class, error) {
 		Folders: make(map[string]string),
 		Files:   make(map[string]string),
 		Scripts: make(map[string]bool),
-	}, nil
+	}
 }
 
 // ImportData imports class data from a given config file.

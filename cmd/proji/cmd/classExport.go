@@ -5,8 +5,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
+	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -18,14 +17,14 @@ var classExportCmd = &cobra.Command{
 	Short: "Export one or more classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(exampleDest) > 0 {
-			return exportExample(exampleDest)
+			return exportExample(exampleDest, projiEnv.ConfPath)
 		}
 
 		if len(args) < 1 {
 			return fmt.Errorf("Missing class label")
 		}
 		for _, label := range args {
-			file, err := exportClass(label)
+			file, err := exportClass(label, projiEnv.Svc)
 			if err != nil {
 				fmt.Printf("Export of '%s' to file %s failed: %v\n", label, file, err)
 				continue
@@ -41,57 +40,41 @@ func init() {
 	classExportCmd.Flags().StringVarP(&exampleDest, "example", "e", "", "Export an example")
 }
 
-func exportClass(label string) (string, error) {
-	// Setup storage service
-	sqlitePath, err := helper.GetSqlitePath()
+func exportClass(label string, svc storage.Service) (string, error) {
+	classID, err := svc.LoadClassIDByLabel(label)
 	if err != nil {
 		return "", err
 	}
-	s, err := sqlite.New(sqlitePath)
-	if err != nil {
-		return "", err
-	}
-	defer s.Close()
-
-	classID, err := s.LoadClassIDByLabel(label)
-	if err != nil {
-		return "", err
-	}
-	class, err := s.LoadClass(classID)
+	class, err := svc.LoadClass(classID)
 	if err != nil {
 		return "", err
 	}
 	return class.Export()
 }
 
-func exportExample(destFolder string) error {
-
-	exampleDir, ok := viper.Get("examples.location").(string)
+func exportExample(destFolder, confPath string) error {
+	examplePath, ok := viper.Get("examples.path").(string)
 	if !ok {
-		return fmt.Errorf("Could not read example file location from config file")
-	}
-	exampleFile, ok := viper.Get("examples.class").(string)
-	if !ok {
-		return fmt.Errorf("Could not read example file name from config file")
+		return fmt.Errorf("Could not read path of example config file")
 	}
 
-	exampleFile = helper.GetConfigDir() + exampleDir + exampleFile
-	sourceFileStat, err := os.Stat(exampleFile)
+	examplePath = confPath + examplePath
+	sourceFileStat, err := os.Stat(examplePath)
 	if err != nil {
 		return err
 	}
 
 	if !sourceFileStat.Mode().IsRegular() {
-		return fmt.Errorf("%s is not a regular file", exampleFile)
+		return fmt.Errorf("%s is not a regular file", examplePath)
 	}
 
-	source, err := os.Open(exampleFile)
+	source, err := os.Open(examplePath)
 	if err != nil {
 		return err
 	}
 	defer source.Close()
 
-	destination, err := os.Create(destFolder + "/proji-class.toml")
+	destination, err := os.Create(destFolder + "/proji-class-example.toml")
 	if err != nil {
 		return err
 	}

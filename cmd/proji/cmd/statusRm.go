@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
+	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +17,7 @@ var statusRmCmd = &cobra.Command{
 		}
 
 		for _, status := range args {
-			if err := removeStatus(status); err != nil {
+			if err := removeStatus(status, projiEnv.Svc); err != nil {
 				fmt.Printf("Removing status %s failed: %v\n", status, err)
 			}
 			fmt.Printf("Status '%s' was successfully removed.\n", status)
@@ -30,25 +30,19 @@ func init() {
 	statusCmd.AddCommand(statusRmCmd)
 }
 
-func removeStatus(status string) error {
-	// Setup storage
-	sqlitePath, err := helper.GetSqlitePath()
-	if err != nil {
-		return err
-	}
-	s, err := sqlite.New(sqlitePath)
-	if err != nil {
-		return err
-	}
-	defer s.Close()
-
+func removeStatus(status string, svc storage.Service) error {
 	statusID, err := helper.StrToUInt(status)
 	if err != nil {
 		return err
 	}
+
+	if statusID < 6 {
+		return fmt.Errorf("statuses 1-5 can not be removed")
+	}
+
 	// Check if status exists
-	if _, err := s.LoadStatus(statusID); err != nil {
+	if _, err := svc.LoadStatus(statusID); err != nil {
 		return err
 	}
-	return s.RemoveStatus(statusID)
+	return svc.RemoveStatus(statusID)
 }

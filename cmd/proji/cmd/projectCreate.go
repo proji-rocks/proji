@@ -5,10 +5,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/nikoksr/proji/pkg/proji/storage"
-
 	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
+	"github.com/nikoksr/proji/pkg/proji/storage"
+	"github.com/nikoksr/proji/pkg/proji/storage/item"
 	"github.com/spf13/cobra"
 )
 
@@ -29,13 +28,14 @@ var createCmd = &cobra.Command{
 		}
 
 		for _, name := range projects {
-			if err := createProject(name, label, cwd); err != nil {
+			if err := createProject(name, label, cwd, projiEnv.ConfPath, projiEnv.Svc); err != nil {
 				fmt.Printf("Creating project %s failed: %v\n", name, err)
+
 				if err.Error() == "Project already exists" {
 					if !helper.WantTo("Do you want to replace it?") {
 						continue
 					}
-					if err := replaceProject(name, label, cwd); err != nil {
+					if err := replaceProject(name, label, cwd, projiEnv.ConfPath, projiEnv.Svc); err != nil {
 						fmt.Printf("Replacing project %s failed: %v\n", name, err)
 						continue
 					}
@@ -53,60 +53,47 @@ func init() {
 	rootCmd.AddCommand(createCmd)
 }
 
-func createProject(name, label, cwd string) error {
-	// Setup storage
-	sqlitePath, err := helper.GetSqlitePath()
+func createProject(name, label, cwd, configPath string, svc storage.Service) error {
+	classID, err := svc.LoadClassIDByLabel(label)
 	if err != nil {
 		return err
 	}
-	s, err := sqlite.New(sqlitePath)
-	if err != nil {
-		return err
-	}
-	defer s.Close()
 
-	classID, err := s.LoadClassIDByLabel(label)
+	class, err := svc.LoadClass(classID)
+	if err != nil {
+		return err
+	}
+
+	// Load status active by default
+	var status *item.Status
+	status, err = svc.LoadStatus(1)
 	if err != nil {
 		return err
 	}
 
 	label = strings.ToLower(label)
-	proj, err := storage.NewProject(0, name, cwd+"/"+name, classID, 1, s)
-	if err != nil {
-		return err
-	}
+	proj := item.NewProject(0, name, cwd+"/"+name, class, status)
 
 	// Save it first to see if it already exists in the database
-	if err := s.SaveProject(proj); err != nil {
+	if err := svc.SaveProject(proj); err != nil {
 		return err
 	}
 	// Create the project
-	if err := proj.Create(cwd); err != nil {
+	if err := proj.Create(cwd, configPath); err != nil {
 		return err
 	}
 	return nil
 }
 
-func replaceProject(name, label, cwd string) error {
-	// Setup storage
-	sqlitePath, err := helper.GetSqlitePath()
-	if err != nil {
-		return err
-	}
-	s, err := sqlite.New(sqlitePath)
-	if err != nil {
-		return err
-	}
-	defer s.Close()
-
-	id, err := s.LoadProjectID(cwd + "/" + name)
+func replaceProject(name, label, cwd, configPath string, svc storage.Service) error {
+	id, err := svc.LoadProjectID(cwd + "/" + name)
 	if err != nil {
 		return err
 	}
 
 	// Replace it
-	if err = s.RemoveProject(id); err != nil {
+	if err = svc.RemoveProject(id); err != nil {
 		return err
 	}
-	return createProject(name, label, cwd)
+	return createProject(name, label, cwd, configPath, svc)
 }
