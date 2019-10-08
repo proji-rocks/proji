@@ -53,32 +53,28 @@ func exportClass(label string, svc storage.Service) (string, error) {
 }
 
 func exportExample(destFolder, confPath string) error {
-	exampleDir, ok := viper.Get("examples.location").(string)
+	examplePath, ok := viper.Get("examples.path").(string)
 	if !ok {
-		return fmt.Errorf("Could not read example file location from config file")
-	}
-	exampleFile, ok := viper.Get("examples.class").(string)
-	if !ok {
-		return fmt.Errorf("Could not read example file name from config file")
+		return fmt.Errorf("Could not read path of example config file")
 	}
 
-	exampleFile = confPath + exampleDir + exampleFile
-	sourceFileStat, err := os.Stat(exampleFile)
+	examplePath = confPath + examplePath
+	sourceFileStat, err := os.Stat(examplePath)
 	if err != nil {
 		return err
 	}
 
 	if !sourceFileStat.Mode().IsRegular() {
-		return fmt.Errorf("%s is not a regular file", exampleFile)
+		return fmt.Errorf("%s is not a regular file", examplePath)
 	}
 
-	source, err := os.Open(exampleFile)
+	source, err := os.Open(examplePath)
 	if err != nil {
 		return err
 	}
 	defer source.Close()
 
-	destination, err := os.Create(destFolder + "/proji-class.toml")
+	destination, err := os.Create(destFolder + "/proji-class-example.toml")
 	if err != nil {
 		return err
 	}
