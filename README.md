@@ -9,6 +9,7 @@
 
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/nikoksr/proji?sort=semver)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/eeca082de1164065a553b3cfcfa92cb7)](https://www.codacy.com/manual/nikoksr/proji?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=nikoksr/proji&amp;utm_campaign=Badge_Grade)
 [![CircleCI](https://circleci.com/gh/nikoksr/proji/tree/master.svg?style=svg&circle-token=437a39b49c4fbc9656f7aed86aea369d584ecb87)](https://circleci.com/gh/nikoksr/proji/tree/master)
 
 </div>
