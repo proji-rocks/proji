@@ -21,12 +21,14 @@
     <br>
 </p>
 
-## Table of Contents
+## Table Of Contents
 
 - [About](#about)
 - [Getting Started](#getting_started)
+- [Dependencies](#dependencies)
+- [Installation](#installation)
+- [Tests](#tests)
 - [Usage](#usage)
-- [Built Using](#built_using)
 
 ## About <a name = "about"></a>
 
@@ -34,19 +36,40 @@ I always liked to have orderly project structures but it is so annoying to creat
 
 ## Getting Started <a name = "getting_started"></a>
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+Proji is currently supported only for linux. You can either download a precompiled binary from the latest [release](https://github.com/nikoksr/proji/releases) or install it from source.
 
-### Installing
+### Dependencies <a name = "dependencies"></a>
 
-A step by step series of examples that tell you how to get a development env running.
+- [go](https://golang.org/) - Main language
+- [sqlite3](https://www.sqlite.org/index.html) - Database
+- [mattn/go-sqlite3](https://github.com/mattn/go-sqlite3) - Go Sqlite3 Driver
+- [spf13/cobra](https://github.com/spf13/cobra) - CLI commands
+- [spf13/viper](https://github.com/spf13/viper) - Manage config file
+- [BurntSushi/toml](https://github.com/BurntSushi/toml) - Go toml parser
+- [toml-lang/toml](https://github.com/toml-lang/toml) - Config Language
+- [jedib0t/go-pretty](https://github.com/jedib0t/go-pretty) - CLI Styling
+- [stretchr/testify](github.com/stretchr/testify) - Test Framework
 
-Say what the step will be
+### Installation <a name = "installation"></a>
 
-```
-Probably run install.sh
-```
+#### Binary Distributions
 
-End with an example of getting some data out of the system or using it for a little demo.
+1. Download the latest [release](https://github.com/nikoksr/proji/releases) for your system
+2. Extract the tar with: `$ tar -xf proji-XXXX-XXX.tar.gz`
+3. Run the installer: `$ ./install.sh`
+
+#### Install From Source
+
+1. `$ go get -u github.com/nikoksr/proji`
+2. `$ go install ./cmd/proji/` or `go build -o proji ./cmd/proji`
+3. `$ ./install.sh`
+
+_Hint:_ Test your installation by executing `$ proji`. On success the help text for proji will be printed.
+
+### Running The Tests <a name = "tests"></a>
+
+- `$ go vet ./...`
+- `$ go test -v ./...`
 
 ## Usage <a name="usage"></a>
 
@@ -55,7 +78,9 @@ Let's suppose I want to create a c++ project. Normally, I'd have to execute seve
 With proji all I have to do is run a single command:
 
 ```
-proji create cpp MyProjectName
+
+$ proji create cpp MyProjectName
+
 ```
 
 Which results in a project structure like this:
@@ -65,7 +90,9 @@ Which results in a project structure like this:
 Now if I'd want to create a python project:
 
 ```
+
 $ proji create py MyPythonProject
+
 ```
 
 Which results in a project structure like this:
@@ -79,14 +106,3 @@ In the cpp example proji created a cpp specific `.vscode` folder which sets up t
 In the python example proji setup a running `virtuelenv` with all packages of my choice already installed. The `.vscode` folder now contains python specific config files.
 
 In both examples proji created barebone main-files, initialized `git` and checked out the `develop branch`.
-
-## Built Using <a name = "built_using"></a>
-
-- [go](https://golang.org/) - Main language
-- [sqlite3](https://www.sqlite.org/index.html) - Database
-- [mattn/go-sqlite3](https://github.com/mattn/go-sqlite3) - Go Sqlite3 Driver
-- [spf13/cobra](https://github.com/spf13/cobra) - CLI commands
-- [spf13/viper](https://github.com/spf13/viper) - Manage config file
-- [BurntSushi/toml](https://github.com/BurntSushi/toml) - Go toml parser
-- [toml-lang/toml](https://github.com/toml-lang/toml) - Config Language
-- [jedib0t/go-pretty](https://github.com/jedib0t/go-pretty) - CLI Styling
