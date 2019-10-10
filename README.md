@@ -9,13 +9,13 @@
 
 [![Status](https://img.shields.io/badge/status-active-success.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
-[![CircleCI](https://circleci.com/gh/nikoksr/create_project/tree/master.svg?style=svg&circle-token=437a39b49c4fbc9656f7aed86aea369d584ecb87)](https://circleci.com/gh/nikoksr/create_project/tree/master)
+[![CircleCI](https://circleci.com/gh/nikoksr/proji/tree/master.svg?style=svg&circle-token=437a39b49c4fbc9656f7aed86aea369d584ecb87)](https://circleci.com/gh/nikoksr/proji/tree/master)
 
 </div>
 
 ---
 
-<p align="center">Proji is a lean and mean project creator and manager.
+<p align="center">Proji is a simple and fast project creator and manager.
     <br>
 </p>
 
@@ -28,7 +28,7 @@
 
 ## About <a name = "about"></a>
 
-I always liked to have orderly project structures but it is so annoying to create all those folders and files each time I want to start a new project. It's so much redundant work that costs me a lot of time. This is why I created proji. Proji automates all of those tasks for me based on templates, configs and scripts I previously created once.
+I always liked to have orderly project structures but it is so annoying to create all those folders and files each time I want to start a new project. It's so much redundant work that costs me a lot of time. This is why I created proji. Proji automates all of those tasks for you based on templates, configs and scripts you created once.
 
 ## Getting Started <a name = "getting_started"></a>
 
@@ -48,7 +48,7 @@ End with an example of getting some data out of the system or using it for a lit
 
 ## Usage <a name="usage"></a>
 
-Let's suppose I want to create a c ++ project. Normally, I'd have to execute several commands to create various folders and files, to initialize git, etc. But since I always want to use the same structure for my C ++ programs, this process can be very well automated.
+Let's suppose I want to create a c++ project. Normally, I'd have to execute several commands to create various folders and files, to initialize git, setup cmake etc. But since I always want to use the same structure and tools for my C++ apps, this process can be very well automated.
 
 With proji all I have to do is run a single command:
 
@@ -70,9 +70,9 @@ Which results in a project structure like this:
 
 ![proji create result](assets/proji-create-result-python.png)
 
-As you can see the two results differ from another. The project relevant folder structure is different and some files are different.
+As you can see the two results differ from another. The project relevant folder structure is different and some files are different too.
 
-In the cpp example proji created a cpp specific `.vscode` folder which enables me to immediately debug my code in my editor of choice - `vscode`. Proji created a basic project specific `CMakeLists.txt` which enables me to build a debug or release version of my project with `cmake`.
+In the cpp example proji created a cpp specific `.vscode` folder which sets up the debugger in my editor of choice - `vscode`. Proji created a basic project specific `CMakeLists.txt` which enables me to build a debug or release version of my project with `cmake`.
 
 In the python example proji setup a running `virtuelenv` with all packages of my choice already installed. The `.vscode` folder now contains python specific config files.
 
