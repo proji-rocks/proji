@@ -15,8 +15,8 @@ jobs:
             mkdir -p ~/.config/proji/examples
             mkdir -p ~/.config/proji/scripts
             mkdir -p ~/.config/proji/templates
-            cp configs/example-config.toml ~/.config/proji/config.toml
-            cp configs/example-class-export.toml ~/.config/proji/examples/proji-class.toml
+            cp assets/examples/example-config.toml ~/.config/proji/config.toml
+            cp assets/examples/example-class-export.toml ~/.config/proji/examples/proji-class.toml
             echo "# This is a template readme" > ~/.config/proji/templates/README.md
 
       - run:
