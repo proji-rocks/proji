@@ -23,10 +23,10 @@ var rmCmd = &cobra.Command{
 			}
 
 			if err := removeProject(id, projiEnv.Svc); err != nil {
-				fmt.Printf("Removing project '%d' failed: %v\n", id, err)
+				fmt.Printf("> Removing project '%d' failed: %v\n", id, err)
 				continue
 			}
-			fmt.Printf("Project '%d' was successfully removed.\n", id)
+			fmt.Printf("> Project '%d' was successfully removed\n", id)
 		}
 		return nil
 	},

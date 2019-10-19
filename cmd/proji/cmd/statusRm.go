@@ -18,9 +18,9 @@ var statusRmCmd = &cobra.Command{
 
 		for _, status := range args {
 			if err := removeStatus(status, projiEnv.Svc); err != nil {
-				fmt.Printf("Removing status %s failed: %v\n", status, err)
+				fmt.Printf("> Removing status %s failed: %v\n", status, err)
 			}
-			fmt.Printf("Status '%s' was successfully removed.\n", status)
+			fmt.Printf("> Status '%s' was successfully removed\n", status)
 		}
 		return nil
 	},

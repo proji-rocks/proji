@@ -28,22 +28,24 @@ var createCmd = &cobra.Command{
 		}
 
 		for _, name := range projects {
+			fmt.Printf("\n> Creating project %s\n", name)
+
 			if err := createProject(name, label, cwd, projiEnv.ConfPath, projiEnv.Svc); err != nil {
-				fmt.Printf("Creating project %s failed: %v\n", name, err)
+				fmt.Printf(" -> Failed: %v\n", err)
 
 				if err.Error() == "Project already exists" {
-					if !helper.WantTo("Do you want to replace it?") {
+					if !helper.WantTo("> Do you want to replace it?") {
 						continue
 					}
 					if err := replaceProject(name, label, cwd, projiEnv.ConfPath, projiEnv.Svc); err != nil {
-						fmt.Printf("Replacing project %s failed: %v\n", name, err)
+						fmt.Printf("> Replacing project %s failed: %v\n", name, err)
 						continue
 					}
-					fmt.Printf("Project %s was successfully replaced.\n", name)
+					fmt.Printf("> Project %s was successfully replaced\n", name)
 				}
 				continue
 			}
-			fmt.Printf("Project %s was successfully created.\n", name)
+			fmt.Printf("> Project %s was successfully created\n", name)
 		}
 		return nil
 	},

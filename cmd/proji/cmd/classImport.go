@@ -18,10 +18,10 @@ var classImportCmd = &cobra.Command{
 
 		for _, config := range args {
 			if err := importClass(config, projiEnv.Svc); err != nil {
-				fmt.Printf("Import of '%s' failed: %v\n", config, err)
+				fmt.Printf("> Import of '%s' failed: %v\n", config, err)
 				continue
 			}
-			fmt.Printf("'%s' was successfully imported.\n", config)
+			fmt.Printf("> '%s' was successfully imported\n", config)
 		}
 		return nil
 	},

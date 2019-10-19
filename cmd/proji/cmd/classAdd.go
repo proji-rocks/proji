@@ -21,10 +21,10 @@ var classAddCmd = &cobra.Command{
 
 		for _, name := range args {
 			if err := addClass(name, projiEnv.Svc); err != nil {
-				fmt.Printf("Adding class '%s' failed: %v\n", name, err)
+				fmt.Printf("> Adding class '%s' failed: %v\n", name, err)
 				continue
 			}
-			fmt.Printf("Class '%s' was successfully added.\n", name)
+			fmt.Printf("> Class '%s' was successfully added\n", name)
 		}
 		return nil
 	},
@@ -62,7 +62,7 @@ func addClass(name string, svc storage.Service) error {
 }
 
 func getLabel(reader *bufio.Reader) (string, error) {
-	fmt.Print("Label: ")
+	fmt.Print("> Label: ")
 	text, err := reader.ReadString('\n')
 	if err != nil {
 		return "", err
@@ -70,14 +70,14 @@ func getLabel(reader *bufio.Reader) (string, error) {
 
 	labels := strings.Fields(text)
 	if len(labels) > 1 {
-		return "", fmt.Errorf("Only one unique label is allowed")
+		return "", fmt.Errorf("Only one label is needed")
 	}
 	fmt.Println()
 	return labels[0], nil
 }
 
 func getFolders(reader *bufio.Reader) (map[string]string, error) {
-	fmt.Println("Folders: ")
+	fmt.Println("> Folders: ")
 	folders := make(map[string]string)
 
 	for {
@@ -97,7 +97,7 @@ func getFolders(reader *bufio.Reader) (map[string]string, error) {
 			break
 		}
 		if numFolders > 2 {
-			fmt.Println("Warning: More than two files were given.")
+			fmt.Println("> Warning: More than two files were given.")
 			continue
 		}
 
@@ -107,7 +107,7 @@ func getFolders(reader *bufio.Reader) (map[string]string, error) {
 		// A target should only exist once
 		// A source can be used multiple times
 		if src, ok := folders[target]; ok {
-			fmt.Printf("Warning: Target folder %s is already associated to source folder %s.\n", target, src)
+			fmt.Printf("> Warning: Target folder %s is already associated to source folder %s\n", target, src)
 			continue
 		}
 
@@ -125,7 +125,7 @@ func getFolders(reader *bufio.Reader) (map[string]string, error) {
 }
 
 func getFiles(reader *bufio.Reader) (map[string]string, error) {
-	fmt.Println("Files: ")
+	fmt.Println("> Files: ")
 	files := make(map[string]string)
 
 	for {
@@ -145,7 +145,7 @@ func getFiles(reader *bufio.Reader) (map[string]string, error) {
 			break
 		}
 		if numFiles > 2 {
-			fmt.Println("Warning: More than two files were given.")
+			fmt.Println("> Warning: More than two files were given.")
 			continue
 		}
 
@@ -155,7 +155,7 @@ func getFiles(reader *bufio.Reader) (map[string]string, error) {
 		target := filePair[0]
 
 		if src, ok := files[target]; ok {
-			fmt.Printf("Warning: Target file %s is already associated to source file %s.\n", target, src)
+			fmt.Printf("> Warning: Target file %s is already associated to source file %s\n", target, src)
 			continue
 		}
 
@@ -173,7 +173,7 @@ func getFiles(reader *bufio.Reader) (map[string]string, error) {
 }
 
 func getScripts(reader *bufio.Reader) (map[string]bool, error) {
-	fmt.Println("Scripts: ")
+	fmt.Println("> Scripts: ")
 	scripts := make(map[string]bool)
 
 	for {
@@ -193,7 +193,7 @@ func getScripts(reader *bufio.Reader) (map[string]bool, error) {
 			break
 		}
 		if lenData > 2 {
-			fmt.Println("Warning: More than two files were given.")
+			fmt.Println("> Warning: More than two files were given.")
 			continue
 		}
 
@@ -203,7 +203,7 @@ func getScripts(reader *bufio.Reader) (map[string]bool, error) {
 
 		if lenData == 2 {
 			if scriptData[0] != "sudo" {
-				fmt.Printf("Warning: %s invalid. Has to be 'sudo' or ''(empty).", scriptData[0])
+				fmt.Printf("> Warning: %s invalid. Has to be 'sudo' or ''(empty).", scriptData[0])
 			}
 			sudo = true
 			script = scriptData[1]
@@ -213,7 +213,7 @@ func getScripts(reader *bufio.Reader) (map[string]bool, error) {
 		// A target should only exist once
 		// A source can be used multiple times
 		if _, ok := scripts[script]; ok {
-			fmt.Printf("Warning: Script %s is already in execution list.\n", script)
+			fmt.Printf("> Warning: Script %s is already in execution list\n", script)
 			continue
 		}
 

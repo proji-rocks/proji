@@ -26,10 +26,10 @@ var classExportCmd = &cobra.Command{
 		for _, label := range args {
 			file, err := exportClass(label, projiEnv.Svc)
 			if err != nil {
-				fmt.Printf("Export of '%s' to file %s failed: %v\n", label, file, err)
+				fmt.Printf("> Export of '%s' to file %s failed: %v\n", label, file, err)
 				continue
 			}
-			fmt.Printf("'%s' was successfully exported to file %s.\n", label, file)
+			fmt.Printf("> '%s' was successfully exported to file %s\n", label, file)
 		}
 		return nil
 	},

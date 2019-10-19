@@ -24,20 +24,20 @@ var statusAddCmd = &cobra.Command{
 			status = strings.ToLower(status)
 			comment, err := addStatus(status, projiEnv.Svc)
 			if err != nil {
-				fmt.Printf("Adding status %s failed: %v\n", status, err)
+				fmt.Printf("> Adding status %s failed: %v\n", status, err)
 				if err.Error() == "Status already exists" {
-					if !helper.WantTo("Do you want to update its comment?") {
+					if !helper.WantTo("> Do you want to update its comment?") {
 						continue
 					}
 					if err := replaceStatus(status, comment, projiEnv.Svc); err != nil {
-						fmt.Printf("Updating comment %s failed: %v\n", status, err)
+						fmt.Printf("> Updating comment %s failed: %v\n", status, err)
 						continue
 					}
-					fmt.Printf("Comment for status '%s' was successfully updated.\n", status)
+					fmt.Printf("> Comment for status '%s' was successfully updated\n", status)
 				}
 				continue
 			}
-			fmt.Printf("Status '%s' was successfully created.\n", status)
+			fmt.Printf("> Status '%s' was successfully created\n", status)
 		}
 		return nil
 	},
@@ -54,7 +54,7 @@ func addStatus(title string, svc storage.Service) (string, error) {
 
 	// Get a comment describing the status
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Comment: ")
+	fmt.Print("> Comment: ")
 	comment, err := reader.ReadString('\n')
 	if err != nil {
 		return "", err

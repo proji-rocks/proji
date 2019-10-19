@@ -17,10 +17,10 @@ var classRmCmd = &cobra.Command{
 
 		for _, name := range args {
 			if err := removeClass(name, projiEnv.Svc); err != nil {
-				fmt.Printf("Removing '%s' failed: %v\n", name, err)
+				fmt.Printf("> Removing '%s' failed: %v\n", name, err)
 				continue
 			}
-			fmt.Printf("'%s' was successfully removed.\n", name)
+			fmt.Printf("> '%s' was successfully removed\n", name)
 		}
 		return nil
 	},
