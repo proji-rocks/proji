@@ -51,7 +51,7 @@ func showClass(label string, svc storage.Service) error {
 }
 
 func showInfo(name, label string) {
-	fmt.Println("Name: " + name)
+	fmt.Println("\nName: " + name)
 	fmt.Println("Label: " + label)
 	fmt.Println()
 }
@@ -90,11 +90,11 @@ func showScripts(scripts []*item.Script) {
 	// Table header
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"Script", "As sudo"})
+	t.AppendHeader(table.Row{"#", "Script", "As sudo"})
 
 	// Fill table
 	for _, script := range scripts {
-		t.AppendRow([]interface{}{script.Name, script.RunAsSudo})
+		t.AppendRow([]interface{}{script.ExecNumber, script.Name, script.RunAsSudo})
 	}
 
 	// Print the table
