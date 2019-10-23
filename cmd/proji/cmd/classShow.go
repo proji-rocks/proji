@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/nikoksr/proji/pkg/proji/storage/item"
+
 	"github.com/jedib0t/go-pretty/table"
 	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/spf13/cobra"
@@ -54,45 +56,45 @@ func showInfo(name, label string) {
 	fmt.Println()
 }
 
-func showFolders(folders map[string]string) {
+func showFolders(folders []*item.Folder) {
 	// Table header
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"Folder", "Template"})
 
 	// Fill table
-	for folder, template := range folders {
-		t.AppendRow([]interface{}{folder, template})
+	for _, folder := range folders {
+		t.AppendRow([]interface{}{folder.Destination, folder.Template})
 	}
 
 	// Print the table
 	t.Render()
 }
 
-func showFiles(files map[string]string) {
+func showFiles(files []*item.File) {
 	// Table header
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"File", "Template"})
 
 	// Fill table
-	for folder, template := range files {
-		t.AppendRow([]interface{}{folder, template})
+	for _, file := range files {
+		t.AppendRow([]interface{}{file.Destination, file.Template})
 	}
 
 	// Print the table
 	t.Render()
 }
 
-func showScripts(scripts map[string]bool) {
+func showScripts(scripts []*item.Script) {
 	// Table header
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"Script", "As sudo"})
 
 	// Fill table
-	for script, runAsSudo := range scripts {
-		t.AppendRow([]interface{}{script, runAsSudo})
+	for _, script := range scripts {
+		t.AppendRow([]interface{}{script.Name, script.RunAsSudo})
 	}
 
 	// Print the table
