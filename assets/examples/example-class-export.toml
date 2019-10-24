@@ -1,50 +1,75 @@
-# Proji class template file
-
-# The actual class name.
-# Must be unique and expressive.
+# Proji class template file.
+#
+# Import config files like this to proji with 'proji class import <file>'.
+# Proji will create a class based on this config file. The class can then be used over
+# and over again to create your new projects.
+# Export an existing class with 'proji class export <class-label>'. Proji will create
+# a config file of your class.
+#
+# Classes are like blueprints for the structure and behavior of projects. A class is created
+# once and can be used at any time to easily create new projects. This is what will save you
+# a lot of time in the future and make your projects evenly structured.
+#
+# NAME
+# The name is a long string describing the class' purpose. Not a text but a descriptive string.
 # name = "myTestClass" <- Good
 # name = "t1"          <- Bad, too short and not expressive
-name = "example"
+name = "my-example"
 
-# A short class label. The label must be unique and
-# should ideally be an abbreviation of the class name or something similar.
-# Later on the label will be used to quickly create your projects.
-# e.g.: proji create YOUR-LABEL my-new-project1 my-new-project2
+# LABEL
+# The label is a very short string which is used to quickly and eaily use your class. It would
+# be annoying to always type the whole name when you want to use your class. Typically labels
+# are an abbreviation of the name or somthing in general that lets you quickly identifies your class.
+# A label has to be unique in proji. You can't have two identical labels.
+# e.g.: proji create YOUR-LABEL your-new-project1 your-new-project2
 # label = "mtc"                <- Good
 # label = "myTestClassLabel"   <- Bad - too long
 # label = "ilt"                <- Bad - unrelated to class name
-label = "exp"
+label = "mex"
 
-[folders]
-# Folders to create in or copy to the project folder.
-# Target is a relative path inside the project folder.
-# Template is a relative path to a folder in the configs template folder.
-# (~/.config/proji/templates/)
+# FOLDERS
+# Folders to create in or copy to your projects base folder.
+# 'destination' is a relative path inside the project folder.
+# 'template' is a relative path to a folder in the templates folder (~/.config/proji/templates/).
 # If you don't want to create a folder by copying a template, just leave
-# out the template field and only specify the target. This will create an
-# empty folder.
+# out the template field and only specify the Destination. This will create an empty folder.
 
-# Synatx: "TARGET" = "TEMPLATE"
-# "myNewFolder/" = ""           <- no template, just create the file
-# "foo/bar/" = "templateName"   <- copy template to target location
-"exampleFolder/" = ""
-"foo/bar/" = ""
+# No template, just create an empty folder.
+[[folder]]
+  destination = "src"
+  template = ""
 
-[files]
-# Files to create in or copy to the project folder.
-# See [folders] for instructions.
+# Copy template folder to destination and rename it.
+[[folder]]
+  destination = ".vscode"
+  template = "vscode-py"
 
-# "text/myFile.txt" = ""
-# "myTargetFile.txt" = "templateFile.txt"
-"README.md" = "README.md"
-"exampleFolder/test.txt" = ""
+# FILES
+# Files to create in or copy to your projects base folder.
+# See folders section above for more informations.
 
-[scripts]
-# Scripts you want to execute after the project structure was created.
-# First value should be a script that lies inside the scripts folder (~/.config/proji/scripts/).
-# The second value is of type boolean and should be true or false
-# respectively if the script needs to be executed as root or not.
+# Copy the template main.c to src/main.c inside the new project folder.
+[[file]]
+  destination = "src/main.py"
+  template = "main.py"
 
-# Syntax: "SCRIPTNAME" = RUN_AS_SUDO
-# "myScript.sh" = false    <- run my script as regular user
-# "mySudoScript.sh" = true <- run my script as root
+# Create an empty file called README.md.
+[[file]]
+  destination = "README.md"
+  template = ""
+
+# SCRIPTS
+# Scripts you want to be executed after the project folders and files were created.
+# 'name' should be a script that lies inside the scripts folder (~/.config/proji/scripts/).
+# 'runAsSudo' is of type boolean and determines if you want the script to be executed with sudo or not.
+# 'execNumber' is an integer and determines the position of the script in the execution list. The script with the smallest exec number will be executed first and the script with the largest number will be executed last.
+
+[[script]]
+  name = "init_virtualenv.sh"
+  runAsSudo = false
+  execNumber = 1
+
+[[script]]
+  name = "init_git.sh"
+  runAsSudo = false
+  execNumber = 2
