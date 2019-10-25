@@ -37,7 +37,7 @@ func init() {
 }
 
 func removeProject(projectID uint, svc storage.Service) error {
-	// Check if class exists
+	// Check if project exists
 	if _, err := svc.LoadProject(projectID); err != nil {
 		return err
 	}
