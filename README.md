@@ -81,7 +81,35 @@ Validate the success of your installation by executing `$ proji`. The help text 
 
 ### Tab Completion
 
-Text
+Proji does support tab completion but at the moment you have to set it up yourself. The following instructions were inspired by [kubernetes completion](https://kubernetes.io/docs/tasks/tools/install-kubectl/#enabling-shell-autocompletion).
+
+**Bash**
+
+For this to work you first need to install and enable [bash_completion](https://github.com/scop/bash-completion#installation).
+
+You now need to ensure that the proji completion script gets sourced in all your shell sessions.
+
+```
+# Create the completion file
+./proji completion bash > ~/.config/proji/completion.bash.inc
+
+# Make your bash_profile source it
+printf "
+  # Proji shell completion
+  source '$HOME/.config/proji/completion.bash.inc'
+  " >> $HOME/.bash_profile
+
+# Source it once for immediate completion
+source $HOME/.bash_profile
+```
+
+**Zsh**
+
+This command will create a zsh completion file in your current users default zsh completion folder:
+
+```
+./proji completion zsh > "${fpath[1]}/_proji"
+```
 
 ## Basic Usage <a name="basic_usage"></a>
 
