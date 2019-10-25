@@ -22,15 +22,17 @@ fi
 SHELL_IN_USE=$(basename $(echo "$SHELL"))
 
 if [ "$SHELL_IN_USE" = "bash" ]; then
-    ./proji completion bash
-    # mv proji-bash-completion destination
-    echo "Move the created completion file to your shell's default completion folder."
+    ./proji completion bash >~/.config/proji/completion.bash.inc
+    printf "
+        # Proji shell completion
+        source '$HOME/.config/proji/completion.bash.inc'
+        " >>$HOME/.bash_profile
+    source $HOME/.bash_profile
 elif [ "$SHELL_IN_USE" = "zsh" ]; then
-    ./proji completion zsh
-    # mv proji-zsh-completion destination
-    echo "Move the created completion file to your shell's default completion folder."
+    echo $FPATH
+    # ./proji completion zsh >"${fpath[1]}/_proji"
 else
-    echo "Shell $SHELL_IN_USE is not supoorted for completion yet."
+    echo "Shell $SHELL_IN_USE is not supported for completion."
 fi
 
 # Install the binary
