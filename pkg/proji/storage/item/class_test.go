@@ -29,16 +29,17 @@ func TestClassImportData(t *testing.T) {
 		err        error
 	}{
 		{
-			configName: "../../../../configs/example-class-export.toml", class: &item.Class{
-				Name:  "example",
-				Label: "exp",
+			configName: "../../../../assets/examples/example-class-export.toml", class: &item.Class{
+				Name:  "my-example",
+				Label: "mex",
 				Folders: []*item.Folder{
-					&item.Folder{Destination: "exampleFolder/", Template: ""},
-					&item.Folder{Destination: "foo/bar/", Template: ""},
+					&item.Folder{Destination: "src/", Template: ""},
+					&item.Folder{Destination: "docs/", Template: ""},
+					&item.Folder{Destination: "tests/", Template: ""},
 				},
 				Files: []*item.File{
-					&item.File{Destination: "README.md", Template: "README.md"},
-					&item.File{Destination: "exampleFolder/test.txt", Template: ""},
+					&item.File{Destination: "src/main.py", Template: ""},
+					&item.File{Destination: "README.md", Template: ""},
 				},
 				Scripts: []*item.Script{},
 			},

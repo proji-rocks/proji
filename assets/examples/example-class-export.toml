@@ -39,24 +39,39 @@ label = "mex"
   destination = "src"
   template = ""
 
-# Copy template folder to destination and rename it.
 [[folder]]
-  destination = ".vscode"
-  template = "vscode-py"
+  destination = "docs"
+  template = ""
+
+[[folder]]
+  destination = "tests"
+  template = ""
+
+# This is what a folder with a template would look like.
+# Proji would copy the template folder which must be located at ~/.config/proji/templates/
+# to the destination.
+# Copy template folder to destination and rename it.
+# [[folder]]
+#   destination = ".vscode"
+#   template = "vscode-py"
 
 # FILES
 # Files to create in or copy to your projects base folder.
 # See folders section above for more informations.
 
-# Copy the template main.c to src/main.c inside the new project folder.
+# Create an empty file called README.md.
 [[file]]
   destination = "src/main.py"
-  template = "main.py"
+  template = ""
 
-# Create an empty file called README.md.
 [[file]]
   destination = "README.md"
   template = ""
+
+# Copy the template main.py to src/main.py inside the new project folder.
+# [[file]]
+#   destination = "src/main.py"
+#   template = "main.py"
 
 # SCRIPTS
 # Scripts you want to be executed after the project folders and files were created.
