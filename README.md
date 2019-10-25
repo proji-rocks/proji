@@ -129,7 +129,7 @@ The advantage of the config file is that incorrect information can easily be cor
 
 After the class has been created or imported, we can use the command `$ proji class ls` to display a list of our available classes. The command `$ proji class show LABEL [LABEL...]` allows us to display a detailed view of one or more classes.
 
-### Creating our first project
+### Creating our first projects
 
 Now that we have created our python class in proji, we can use it to easily create new projects. A class is created once and is then reused by proji over and over again, and although the process of creating a class might initially seem a bit complex, you will very soon start saving a lot of time and keystrokes and will improve the structure of your projects.
 
