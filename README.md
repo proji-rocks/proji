@@ -23,20 +23,20 @@
 
 ## Table Of Contents
 
-- [About](#about)
-- [Getting Started](#getting_started)
-  - [Dependencies](#dependencies)
-  - [Installation](#installation)
-  - [Running the Tests](#running_the_tests)
-  - [Tab Completion](#tab_completion)
-- [Basic Usage](#basic_usage)
-  - [Setting up a Class](#setting_up_a_class)
-  - [Creating our first projects](#creating_our_first_projects)
-- [Advanced Usage](#advanced_usage)
-  - [Class](#au_class)
-  - [Project](#au_project)
-  - [Status](#au_status)
-- [License](#license)
+-   [About](#about)
+-   [Getting Started](#getting_started)
+    -   [Dependencies](#dependencies)
+    -   [Installation](#installation)
+    -   [Running the Tests](#running_the_tests)
+    -   [Tab Completion](#tab_completion)
+-   [Basic Usage](#basic_usage)
+    -   [Setting up a Class](#setting_up_a_class)
+    -   [Creating our first projects](#creating_our_first_projects)
+-   [Advanced Usage](#advanced_usage)
+    -   [Class](#au_class)
+    -   [Project](#au_project)
+    -   [Status](#au_status)
+-   [License](#license)
 
 ## About <a name = "about"></a>
 
@@ -57,37 +57,37 @@ Might work under Mac but it's not tested yet.
 
 ### Dependencies <a name = "dependencies"></a>
 
-- [go](https://golang.org/) - Main language
-- [sqlite3](https://www.sqlite.org/index.html) - Database
-- [mattn/go-sqlite3](https://github.com/mattn/go-sqlite3) - Go Sqlite3 Driver
-- [spf13/cobra](https://github.com/spf13/cobra) - CLI commands
-- [spf13/viper](https://github.com/spf13/viper) - Manage config file
-- [BurntSushi/toml](https://github.com/BurntSushi/toml) - Go toml parser
-- [toml-lang/toml](https://github.com/toml-lang/toml) - Config Language
-- [jedib0t/go-pretty](https://github.com/jedib0t/go-pretty) - CLI Styling
-- [stretchr/testify](github.com/stretchr/testify) - Test Framework
+-   [go](https://golang.org/) - Main language
+-   [sqlite3](https://www.sqlite.org/index.html) - Database
+-   [mattn/go-sqlite3](https://github.com/mattn/go-sqlite3) - Go Sqlite3 Driver
+-   [spf13/cobra](https://github.com/spf13/cobra) - CLI commands
+-   [spf13/viper](https://github.com/spf13/viper) - Manage config file
+-   [BurntSushi/toml](https://github.com/BurntSushi/toml) - Go toml parser
+-   [toml-lang/toml](https://github.com/toml-lang/toml) - Config Language
+-   [jedib0t/go-pretty](https://github.com/jedib0t/go-pretty) - CLI Styling
+-   [stretchr/testify](github.com/stretchr/testify) - Test Framework
 
 ### Installation <a name = "installation"></a>
 
 #### Binary Distributions
 
-1. Download the latest [release](https://github.com/nikoksr/proji/releases) for your system
-2. Extract the tar with: `$ tar -xf proji-XXXX-XXX.tar.gz`
-3. Run the installer: `$ ./install.sh`
+1.  Download the latest [release](https://github.com/nikoksr/proji/releases) for your system
+2.  Extract the tar with: `$ tar -xf proji-XXXX-XXX.tar.gz`
+3.  Run the installer: `$ ./install.sh`
 
 #### Install From Source
 
-1. `$ go get -u github.com/nikoksr/proji`
-2. `$ go get -v -t -d ./...`
-3. `$ go install ./cmd/proji/` or `go build -o proji ./cmd/proji`
-4. `$ ./install.sh`
+1.  `$ go get -u github.com/nikoksr/proji`
+2.  `$ go get -v -t -d ./...`
+3.  `$ go install ./cmd/proji/` or `go build -o proji ./cmd/proji`
+4.  `$ ./install.sh`
 
 Validate the success of your installation by executing `$ proji`. The help text for proji should be printed to the cli.
 
 ### Running The Tests <a name = "running_the_tests"></a>
 
-- `$ go vet ./...`
-- `$ go test -v ./...`
+-   `$ go vet ./...`
+-   `$ go test -v ./...`
 
 ### Tab Completion <a name = "tab_completion"></a>
 
@@ -99,27 +99,23 @@ For this to work you first need to install and enable [bash_completion](https://
 
 You now need to ensure that the proji completion script gets sourced in all your shell sessions.
 
-```
-# Create the completion file
-./proji completion bash > ~/.config/proji/completion.bash.inc
+    # Create the completion file
+    ./proji completion bash > ~/.config/proji/completion.bash.inc
 
-# Make your bash_profile source it
-printf "
-  # Proji shell completion
-  source '$HOME/.config/proji/completion.bash.inc'
-  " >> $HOME/.bash_profile
+    # Make your bash_profile source it
+    printf "
+      # Proji shell completion
+      source '$HOME/.config/proji/completion.bash.inc'
+      " >> $HOME/.bash_profile
 
-# Source it once for immediate completion
-source $HOME/.bash_profile
-```
+    # Source it once for immediate completion
+    source $HOME/.bash_profile
 
 #### Zsh
 
 This command will create a zsh completion file in your current users default zsh completion folder:
 
-```
-./proji completion zsh > "${fpath[1]}/_proji"
-```
+    ./proji completion zsh > "${fpath[1]}/_proji"
 
 ## Basic Usage <a name="basic_usage"></a>
 
@@ -139,11 +135,11 @@ In addition, we can assign scripts to a proji class which will be executed in a 
 
 #### Structure of a Class
 
-- **Name:** A name that describes the type/topic of the class (e.g. `python`)
-- **Label:** A label that serves as an abbreviation for easily calling the class (e.g. `py`)
-- **Folders:** A list of folders to be created
-- **Files:** A list of files to be created
-- **Scripts:** A list of scripts to run after the project directory has been created
+-   **Name:** A name that describes the type/topic of the class (e.g. `python`)
+-   **Label:** A label that serves as an abbreviation for easily calling the class (e.g. `py`)
+-   **Folders:** A list of folders to be created
+-   **Files:** A list of files to be created
+-   **Scripts:** A list of scripts to run after the project directory has been created
 
 #### Create a Class
 
@@ -188,41 +184,41 @@ Help for all commands is also available with `$ proji help`.
 
 ### Class <a name = "au_class"></a>
 
-- Add a class: `$ proji class add NAME`
+-   Add a class: `$ proji class add NAME`
 
-- Remove a class: `$ proji class rm LABEL [LABEL...]`
+-   Remove a class: `$ proji class rm LABEL [LABEL...]`
 
-- Import a class: `$ proji class import FILE [FILE...]`
+-   Import a class: `$ proji class import FILE [FILE...]`
 
-- Export a class: `$ proji class export LABEL [LABEL...]`
+-   Export a class: `$ proji class export LABEL [LABEL...]`
 
-- List all classes: `$ proji class ls`
+-   List all classes: `$ proji class ls`
 
-- Show class details: `$ proji class show LABEL [LABEL...]`
+-   Show class details: `$ proji class show LABEL [LABEL...]`
 
 ### Project <a name = "au_project"></a>
 
-- Create a project: `$ proji create LABEL NAME [NAME...]`
+-   Create a project: `$ proji create LABEL NAME [NAME...]`
 
-- Add a project: `$ proji add LABEL PATH STATUS`
+-   Add a project: `$ proji add LABEL PATH STATUS`
 
-- Remove a project: `$ proji rm ID [ID...]`
+-   Remove a project: `$ proji rm ID [ID...]`
 
-- Set new project path: `$ proji set path PATH PROJECT-ID`
+-   Set new project path: `$ proji set path PATH PROJECT-ID`
 
-- Set new project status: `$ proji set status STATUS PROJECT-ID`
+-   Set new project status: `$ proji set status STATUS PROJECT-ID`
 
-- List all projects: `$ proji ls`
+-   List all projects: `$ proji ls`
 
-- Clean up project database: `$ proji clean`
+-   Clean up project database: `$ proji clean`
 
 ### Status <a name = "au_status"></a>
 
-- Add a status: `$ proji status add STATUS [STATUS...]`
+-   Add a status: `$ proji status add STATUS [STATUS...]`
 
-- Remove a status: `$ proji status rm ID [ID...]`
+-   Remove a status: `$ proji status rm ID [ID...]`
 
-- List all statuses: `$ proji status ls`
+-   List all statuses: `$ proji status ls`
 
 ## License <a name = "license"></a>
 
