@@ -11,7 +11,7 @@ import (
 )
 
 func TestClass(t *testing.T) {
-	const numOfDefaultClasses = 1
+	defaultClassNames := []string{"unknown"}
 	dbPath := "/tmp/proji.sqlite3"
 	svc, err := sqlite.New(dbPath)
 	defer os.Remove(dbPath)
@@ -57,10 +57,24 @@ func TestClass(t *testing.T) {
 	classes, err := svc.LoadAllClasses()
 	assert.NoError(t, err)
 	assert.NotNil(t, classes)
-	assert.Equal(t, len(goodClasses), len(classes)-numOfDefaultClasses) // Subtract the number of default classes
+	assert.Equal(t, len(goodClasses), len(classes)-len(defaultClassNames)) // Subtract the number of default classes
 
-	for idx, class := range classes {
+	idx := 0
+	for _, class := range classes {
+		// Skip default classes
+		isDefault := false
+		for _, name := range defaultClassNames {
+			if class.Name == name {
+				isDefault = true
+				break
+			}
+		}
+		if isDefault {
+			idx--
+			continue
+		}
 		assert.Equal(t, goodClasses[idx], class)
+		idx++
 	}
 
 	// Test unique constraint for name and label
