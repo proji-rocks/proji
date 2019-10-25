@@ -1,6 +1,6 @@
 <p align="center">
   <a href="" rel="noopener">
- <img width=200px height=200px src="assets/proji-freelogodesign-200x200.png" alt="Project logo"></a>
+ <img width=200px height=200px src="assets/images/proji-freelogodesign-200x200.png" alt="Project logo"></a>
 </p>
 
 <!--<h3 align="center">proji</h3>-->
@@ -25,20 +25,27 @@
 
 - [About](#about)
 - [Getting Started](#getting_started)
-- [Dependencies](#dependencies)
-- [Installation](#installation)
-- [Tests](#tests)
-- [Usage](#usage)
+- [Basic Usage](#basic_usage)
+- [Advanced Usage](#advanced_usage)
 
 ## About <a name = "about"></a>
 
-I always liked to have orderly project structures but it is so annoying to create all those folders and files each time I want to start a new project. It's so much redundant work that costs me a lot of time. This is why I created proji. Proji automates all of those tasks for you based on templates, configs and scripts you created once.
+I always endeavored to structure my projects as consistently as possible. I do not want to switch from one project directory to another and have to get used to it each time before I can even start working. This means that I always would have to create the same folders and files for each project directory of a specific topic. However, this costs a lot of time and keystrokes. The solution would be to automate the creation of topic-specific project directories and that's exactly what proji does.
+
+My goals with proji are to save time when creating new projects and to have consistently structured project directories.
+
+<p align="center">
+  <a href="" rel="noopener">
+ <img src="assets/gifs/create-one-project.gif" alt="Create a go example project"></a>
+</p>
 
 ## Getting Started <a name = "getting_started"></a>
 
-Proji is currently supported only for linux. You can either download a precompiled binary from the latest [release](https://github.com/nikoksr/proji/releases) or install it from source.
+Proji is currently only supported under linux. You can either download a pre-compiled binary from the latest [release](https://github.com/nikoksr/proji/releases) or install it from source.
 
-### Dependencies <a name = "dependencies"></a>
+Might work under Mac but it's not tested yet.
+
+### Dependencies
 
 - [go](https://golang.org/) - Main language
 - [sqlite3](https://www.sqlite.org/index.html) - Database
@@ -50,7 +57,7 @@ Proji is currently supported only for linux. You can either download a precompil
 - [jedib0t/go-pretty](https://github.com/jedib0t/go-pretty) - CLI Styling
 - [stretchr/testify](github.com/stretchr/testify) - Test Framework
 
-### Installation <a name = "installation"></a>
+### Installation
 
 #### Binary Distributions
 
@@ -61,48 +68,120 @@ Proji is currently supported only for linux. You can either download a precompil
 #### Install From Source
 
 1. `$ go get -u github.com/nikoksr/proji`
-2. `$ go install ./cmd/proji/` or `go build -o proji ./cmd/proji`
-3. `$ ./install.sh`
+2. `$ go get -v -t -d ./...`
+3. `$ go install ./cmd/proji/` or `go build -o proji ./cmd/proji`
+4. `$ ./install.sh`
 
-_Hint:_ Test your installation by executing `$ proji`. On success the help text for proji will be printed.
+Validate the success of your installation by executing `$ proji`. The help text for proji should be printed to the cli.
 
-### Running The Tests <a name = "tests"></a>
+### Running The Tests
 
 - `$ go vet ./...`
 - `$ go test -v ./...`
 
-## Usage <a name="usage"></a>
+### Tab Completion
 
-Let's suppose I want to create a c++ project. Normally, I'd have to execute several commands to create various folders and files, to initialize git, setup cmake etc. But since I always want to use the same structure and tools for my C++ apps, this process can be very well automated.
+Text
 
-With proji all I have to do is run a single command:
+## Basic Usage <a name="basic_usage"></a>
 
-```
+Suppose I create python projects on a regular basis and want to have the same directory structure for each of these projects. I would therefore have to execute every command necessary to create the appropriate directories and files and would then have to run tools like git and virtualenv to fully get my usual development environment up and running.
 
-$ proji create cpp MyProjectName
+That would not be too bad if you only create a new project every few weeks or months. However, if you want to create new projects more regularly, be it to test something quickly, learn something new, or quickly create an environment to reproduce and potentially solve a problem found on stackoverflow, then this process quickly becomes very tiring.
 
-```
+### Setting up a Class
 
-Which results in a project structure like this:
+To solve this problem with proji, we first have to create a so-called class. A class in proji represents the structure and behavior for projects of a particular topic (python in this example). It serves as a template through which proji will create new projects for you in the future.
 
-![proji create result](assets/proji-create-result-cpp.png)
+In our case, we want to have the same basic structure for our python projects in the future. So we'll create a class for python. This class will determine which directories and files we always want to get created by proji and which scripts proji should execute after project generation, for example a script for git which automatically initializes the project, creates several branches and executes a first commit.
 
-Now if I'd want to create a python project:
+Note that folders and files can either be created new and empty or be copied from a so-called template. In the config folder you can find a template folder (~/.config/proji/templates/) in which you can store folders and files that you want to use as templates. In our example we could put a template python file into this folder. The file could contain a very basic python script something like a 'hello world' program. We can tell proji to always copy this file into our newly created python projects. The same goes for folders. The goal of the templates is to save you some more time.
 
-```
+In addition, we can assign scripts to a proji class which will be executed in a desired order after the project directory has been created. Scripts must be saved under `~/.config/proji/scripts/` and can then be used by name in the class.
 
-$ proji create py MyPythonProject
+#### Structure of a Class
 
-```
+- **Name:** A name that describes the type/topic of the class (e.g. `python`)
+- **Label:** A label that serves as an abbreviation for easily calling the class (e.g. `py`)
+- **Folders:** A list of folders to be created
+- **Files:** A list of files to be created
+- **Scripts:** A list of scripts to run after the project directory has been created
 
-Which results in a project structure like this:
+#### Create a Class
 
-![proji create result](assets/proji-create-result-python.png)
+There are two ways to create a new class:
 
-As you can see the two results differ from another. The project relevant folder structure is different and some files are different too.
+1. Config file (recommended)
 
-In the cpp example proji created a cpp specific `.vscode` folder which sets up the debugger in my editor of choice - `vscode`. Proji created a basic project specific `CMakeLists.txt` which enables me to build a debug or release version of my project with `cmake`.
+Proji offers the possibility to export and import classes through config files. The easiest way would be to export the proji sample config and then adapt it to the needs of the class you want to create. To do so execute the command `$ proji class export --example .`.
 
-In the python example proji setup a running `virtuelenv` with all packages of my choice already installed. The `.vscode` folder now contains python specific config files.
+Proji creates the file [proji-class-example.toml](configs/example-class-export.toml) in the current working directory. If you open this file in a text editor, you will find a richly annotated configuration of an example class. This config should then be adapted according to your needs.
 
-In both examples proji created barebone main-files, initialized `git` and checked out the `develop branch`.
+Once the config has been edited and saved, it can be imported using the `$ proji class import proji-class-example.toml` (or whatever you called the file) command. Proji then creates a new class based on the imported config.
+
+_Note: You can import multiple configs at once._
+
+2. Class add command
+
+The second option is to use the `$ proji class add CLASS-NAME [CLASS-NAME...]` command to create one or more classes in an interactive CLI. Proji will query the necessary data for the new class from you and then create the new class based on that data.
+
+The advantage of the config file is that incorrect information can easily be corrected. For example, if you entered a script that does not exist or whose name was simply misspelled, you can easily change the name in the configuration file. This is not possible in the CLI menu. If the entry is incorrect, the creation process must be restarted.
+
+After the class has been created or imported, we can use the command `$ proji class ls` to display a list of our available classes. The command `$ proji class show LABEL [LABEL...]` allows us to display a detailed view of one or more classes.
+
+### Creating our first project
+
+Now that we have created our python class in proji, we can use it to easily create new projects. A class is created once and is then reused by proji over and over again, and although the process of creating a class might initially seem a bit complex, you will very soon start saving a lot of time and keystrokes and will improve the structure of your projects.
+
+Assuming our class has been assigned the label `py`, we can create one or more projects with the command `$ proji create py my-py-project-1 my-py-project-2 my-py-project-3`.
+
+<p align="center">
+  <a href="" rel="noopener">
+ <img src="assets/gifs/create-three-projects.gif" alt="Create projects example"></a>
+</p>
+
+And voilà, proji has created three new project directories where you can start your work immediately. The project directories are all built identically, have the same subdirectories and files, and all ran the same scripts.
+
+Take a look at the [python class config](assets/examples/proji-python.toml) and the [git](assets/examples/init_git.sh) and [virtualenv](assets/examples/init_virtualenv.sh) scripts that were used in this example.
+
+## Advanced Usage <a name="advanced_usage"></a>
+
+Help for all commands is also available with `$ proji help`.
+
+### Class
+
+- Add a class: `$ proji class add NAME`
+
+- Remove a class: `$ proji class rm LABEL [LABEL...]`
+
+- Import a class: `$ proji class import FILE [FILE...]`
+
+- Export a class: `$ proji class export LABEL [LABEL...]`
+
+- List all classes: `$ proji class ls`
+
+- Show class details: `$ proji class show LABEL [LABEL...]`
+
+### Project
+
+- Create a project: `$ proji create LABEL NAME [NAME...]`
+
+- Add a project: `$ proji add LABEL PATH STATUS`
+
+- Remove a project: `$ proji rm ID [ID...]`
+
+- Set new project path: `$ proji set path PATH PROJECT-ID`
+
+- Set new project status: `$ proji set status STATUS PROJECT-ID`
+
+- List all projects: `$ proji ls`
+
+- Clean up project database: `$ proji clean`
+
+### Status
+
+- Add a status: `$ proji status add STATUS [STATUS...]`
+
+- Remove a status: `$ proji status rm ID [ID...]`
+
+- List all statuses: `$ proji status ls`
