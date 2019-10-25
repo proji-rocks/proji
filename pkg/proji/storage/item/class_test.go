@@ -13,9 +13,9 @@ func TestNewClass(t *testing.T) {
 	classExp := &item.Class{
 		Name:    "test",
 		Label:   "tst",
-		Folders: map[string]string{},
-		Files:   map[string]string{},
-		Scripts: map[string]bool{},
+		Folders: []*item.Folder{},
+		Files:   []*item.File{},
+		Scripts: []*item.Script{},
 	}
 
 	classAct := item.NewClass("test", "tst")
@@ -32,15 +32,15 @@ func TestClassImportData(t *testing.T) {
 			configName: "../../../../configs/example-class-export.toml", class: &item.Class{
 				Name:  "example",
 				Label: "exp",
-				Folders: map[string]string{
-					"exampleFolder/": "",
-					"foo/bar/":       "",
+				Folders: []*item.Folder{
+					&item.Folder{Destination: "exampleFolder/", Template: ""},
+					&item.Folder{Destination: "foo/bar/", Template: ""},
 				},
-				Files: map[string]string{
-					"README.md":              "README.md",
-					"exampleFolder/test.txt": "",
+				Files: []*item.File{
+					&item.File{Destination: "README.md", Template: "README.md"},
+					&item.File{Destination: "exampleFolder/test.txt", Template: ""},
 				},
-				Scripts: map[string]bool{},
+				Scripts: []*item.Script{},
 			},
 			err: nil,
 		},
@@ -49,9 +49,9 @@ func TestClassImportData(t *testing.T) {
 			class: &item.Class{
 				Name:    "",
 				Label:   "",
-				Folders: map[string]string{},
-				Files:   map[string]string{},
-				Scripts: map[string]bool{},
+				Folders: []*item.Folder{},
+				Files:   []*item.File{},
+				Scripts: []*item.Script{},
 			},
 			err: errors.New(""),
 		},
@@ -75,15 +75,15 @@ func TestClassExport(t *testing.T) {
 			class: &item.Class{
 				Name:  "example",
 				Label: "exp",
-				Folders: map[string]string{
-					"exampleFolder/": "",
-					"foo/bar/":       "",
+				Folders: []*item.Folder{
+					&item.Folder{Destination: "exampleFolder/", Template: ""},
+					&item.Folder{Destination: "foo/bar/", Template: ""},
 				},
-				Files: map[string]string{
-					"README.md":              "README.md",
-					"exampleFolder/test.txt": "",
+				Files: []*item.File{
+					&item.File{Destination: "README.md", Template: "README.md"},
+					&item.File{Destination: "exampleFolder/test.txt", Template: ""},
 				},
-				Scripts: map[string]bool{},
+				Scripts: []*item.Script{},
 			},
 			configName: "proji-example.toml",
 			err:        nil,

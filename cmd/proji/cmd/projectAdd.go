@@ -33,7 +33,7 @@ var addCmd = &cobra.Command{
 		if err := addProject(label, path, status, projiEnv.Svc); err != nil {
 			return err
 		}
-		fmt.Printf("Project '%s' was successfully added.\n", path)
+		fmt.Printf("> Project '%s' was successfully added\n", path)
 		return nil
 	},
 }

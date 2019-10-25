@@ -10,12 +10,12 @@ import (
 
 // Class struct represents a proji class
 type Class struct {
-	ID      uint              // Class ID in storage
-	Name    string            // Class name
-	Label   string            // Class label
-	Folders map[string]string // Class folders
-	Files   map[string]string // Class files
-	Scripts map[string]bool   // Class scripts
+	ID      uint      // Class ID in storage
+	Name    string    `toml:"name"`   // Class name
+	Label   string    `toml:"label"`  // Class label
+	Folders []*Folder `toml:"folder"` // Class folders
+	Files   []*File   `toml:"file"`   // Class files
+	Scripts []*Script `toml:"script"` // Class scripts
 }
 
 // NewClass returns a new class
@@ -24,9 +24,9 @@ func NewClass(name, label string) *Class {
 		ID:      0,
 		Name:    name,
 		Label:   label,
-		Folders: make(map[string]string),
-		Files:   make(map[string]string),
-		Scripts: make(map[string]bool),
+		Folders: make([]*Folder, 0),
+		Files:   make([]*File, 0),
+		Scripts: make([]*Script, 0),
 	}
 }
 
@@ -55,11 +55,11 @@ func (c *Class) ImportData(configName string) error {
 func (c *Class) Export() (string, error) {
 	// Create config string
 	var configTxt = map[string]interface{}{
-		"name":    c.Name,
-		"label":   c.Label,
-		"folders": c.Folders,
-		"files":   c.Files,
-		"scripts": c.Scripts,
+		"name":   c.Name,
+		"label":  c.Label,
+		"folder": c.Folders,
+		"file":   c.Files,
+		"script": c.Scripts,
 	}
 
 	// Export data to toml

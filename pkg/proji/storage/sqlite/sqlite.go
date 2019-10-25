@@ -52,7 +52,8 @@ func New(path string) (storage.Service, error) {
 				class_script_id INTEGER PRIMARY KEY,
 				class_id INTEGER NOT NULL REFERENCES class(class_id),
 				'name' TEXT NOT NULL,
-				run_as_sudo INTEGER NOT NULL
+				run_as_sudo INTEGER NOT NULL,
+				exec_num INTERGER NOT NULL
 			);
 			CREATE TABLE IF NOT EXISTS project(
 				project_id INTEGER PRIMARY KEY,
@@ -67,6 +68,10 @@ func New(path string) (storage.Service, error) {
 				title TEXT NOT NULL,
 				comment TEXT
 			);
+			INSERT INTO
+				class(name, label)
+			VALUES
+				("unknown", "ukwn");
 			INSERT INTO
 				project_status(title, comment)
 			VALUES
@@ -168,7 +173,7 @@ func (s *sqlite) saveClassInfo(name, label string) error {
 	return err
 }
 
-func (s *sqlite) saveFolders(classID uint, folders map[string]string) error {
+func (s *sqlite) saveFolders(classID uint, folders []*item.Folder) error {
 	query := "INSERT INTO class_folder(class_id, target, template) VALUES(?, ?, ?)"
 	stmt, err := s.tx.Prepare(query)
 	if err != nil {
@@ -176,11 +181,11 @@ func (s *sqlite) saveFolders(classID uint, folders map[string]string) error {
 	}
 	defer stmt.Close()
 
-	for target, template := range folders {
-		if len(template) > 0 {
-			_, err = stmt.Exec(classID, target, template)
+	for _, folder := range folders {
+		if len(folder.Template) > 0 {
+			_, err = stmt.Exec(classID, folder.Destination, folder.Template)
 		} else {
-			_, err = stmt.Exec(classID, target, nil)
+			_, err = stmt.Exec(classID, folder.Destination, nil)
 		}
 		if err != nil {
 			return err
@@ -189,7 +194,7 @@ func (s *sqlite) saveFolders(classID uint, folders map[string]string) error {
 	return nil
 }
 
-func (s *sqlite) saveFiles(classID uint, files map[string]string) error {
+func (s *sqlite) saveFiles(classID uint, files []*item.File) error {
 	query := "INSERT INTO class_file(class_id, target, template) VALUES(?, ?, ?)"
 	stmt, err := s.tx.Prepare(query)
 	if err != nil {
@@ -197,11 +202,11 @@ func (s *sqlite) saveFiles(classID uint, files map[string]string) error {
 	}
 	defer stmt.Close()
 
-	for target, template := range files {
-		if len(template) > 0 {
-			_, err = stmt.Exec(classID, target, template)
+	for _, file := range files {
+		if len(file.Template) > 0 {
+			_, err = stmt.Exec(classID, file.Destination, file.Template)
 		} else {
-			_, err = stmt.Exec(classID, target, nil)
+			_, err = stmt.Exec(classID, file.Destination, nil)
 		}
 		if err != nil {
 			return err
@@ -210,19 +215,19 @@ func (s *sqlite) saveFiles(classID uint, files map[string]string) error {
 	return nil
 }
 
-func (s *sqlite) saveScripts(classID uint, scripts map[string]bool) error {
-	query := "INSERT INTO class_script(class_id, name, run_as_sudo) VALUES(?, ?, ?)"
+func (s *sqlite) saveScripts(classID uint, scripts []*item.Script) error {
+	query := "INSERT INTO class_script(class_id, name, run_as_sudo, exec_num) VALUES(?, ?, ?, ?)"
 	stmt, err := s.tx.Prepare(query)
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
-	for script, asSudo := range scripts {
-		if asSudo {
-			_, err = stmt.Exec(classID, script, 1)
+	for _, script := range scripts {
+		if script.RunAsSudo {
+			_, err = stmt.Exec(classID, script.Name, 1, script.ExecNumber)
 		} else {
-			_, err = stmt.Exec(classID, script, 0)
+			_, err = stmt.Exec(classID, script.Name, 0, script.ExecNumber)
 		}
 		if err != nil {
 			return err
@@ -308,7 +313,7 @@ func (s *sqlite) loadClassInfo(classID uint) (string, string, error) {
 	return name.String, label.String, nil
 }
 
-func (s *sqlite) loadFolders(classID uint) (map[string]string, error) {
+func (s *sqlite) loadFolders(classID uint) ([]*item.Folder, error) {
 	query := "SELECT target, template FROM class_folder WHERE class_id = ? ORDER BY target"
 
 	folderRows, err := s.db.Query(query, classID)
@@ -317,18 +322,18 @@ func (s *sqlite) loadFolders(classID uint) (map[string]string, error) {
 	}
 	defer folderRows.Close()
 
-	folders := make(map[string]string)
+	folders := make([]*item.Folder, 0)
 	for folderRows.Next() {
-		var target, template sql.NullString
-		if err := folderRows.Scan(&target, &template); err != nil {
+		var dest, template sql.NullString
+		if err := folderRows.Scan(&dest, &template); err != nil {
 			return nil, err
 		}
-		folders[target.String] = template.String
+		folders = append(folders, &item.Folder{Destination: dest.String, Template: template.String})
 	}
 	return folders, nil
 }
 
-func (s *sqlite) loadFiles(classID uint) (map[string]string, error) {
+func (s *sqlite) loadFiles(classID uint) ([]*item.File, error) {
 	query := "SELECT target, template FROM class_file WHERE class_id = ? ORDER BY target"
 
 	fileRows, err := s.db.Query(query, classID)
@@ -337,19 +342,19 @@ func (s *sqlite) loadFiles(classID uint) (map[string]string, error) {
 	}
 	defer fileRows.Close()
 
-	files := make(map[string]string)
+	files := make([]*item.File, 0)
 	for fileRows.Next() {
-		var target, template sql.NullString
-		if err := fileRows.Scan(&target, &template); err != nil {
+		var dest, template sql.NullString
+		if err := fileRows.Scan(&dest, &template); err != nil {
 			return nil, err
 		}
-		files[target.String] = template.String
+		files = append(files, &item.File{Destination: dest.String, Template: template.String})
 	}
 	return files, nil
 }
 
-func (s *sqlite) loadScripts(classID uint) (map[string]bool, error) {
-	query := "SELECT name, run_as_sudo FROM class_script WHERE class_id = ? ORDER BY class_script_id"
+func (s *sqlite) loadScripts(classID uint) ([]*item.Script, error) {
+	query := "SELECT name, run_as_sudo, exec_num FROM class_script WHERE class_id = ? ORDER BY exec_num"
 
 	scriptRows, err := s.db.Query(query, classID)
 	if err != nil {
@@ -357,14 +362,15 @@ func (s *sqlite) loadScripts(classID uint) (map[string]bool, error) {
 	}
 	defer scriptRows.Close()
 
-	scripts := make(map[string]bool)
+	scripts := make([]*item.Script, 0)
 	for scriptRows.Next() {
 		var scriptName sql.NullString
 		var runAsSudo sql.NullBool
-		if err := scriptRows.Scan(&scriptName, &runAsSudo); err != nil {
+		var execNum sql.NullInt64
+		if err := scriptRows.Scan(&scriptName, &runAsSudo, &execNum); err != nil {
 			return nil, err
 		}
-		scripts[scriptName.String] = runAsSudo.Bool
+		scripts = append(scripts, &item.Script{Name: scriptName.String, RunAsSudo: runAsSudo.Bool, ExecNumber: int(execNum.Int64)})
 	}
 	return scripts, nil
 }
@@ -455,13 +461,17 @@ func (s *sqlite) LoadProject(projectID uint) (*item.Project, error) {
 
 	class, err := s.LoadClass(uint(classID.Int64))
 	if err != nil {
-		return nil, err
+		// Load class 'unknown'
+		class, err = s.LoadClass(1)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var status *item.Status
 	status, err = s.LoadStatus(uint(statusID.Int64))
 	if err != nil {
-		// Load status unknown
+		// Load status 'unknown'
 		status, err = s.LoadStatus(5)
 		if err != nil {
 			return nil, err

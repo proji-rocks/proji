@@ -1,0 +1,36 @@
+name = "python"
+label = "py"
+
+[[folder]]
+  destination = ".vscode"
+  template = "vscode-py"
+
+[[folder]]
+  destination = "__PROJECT_NAME__"
+  template = ""
+
+[[file]]
+  destination = ".gitignore"
+  template = "gitignore"
+
+[[file]]
+  destination = "README.md"
+  template = "README.md"
+
+[[file]]
+  destination = "__PROJECT_NAME__/__PROJECT_NAME__.py"
+  template = "template.py"
+
+[[file]]
+  destination = "__PROJECT_NAME__/__main__.py"
+  template = "__main__.py"
+
+[[script]]
+  name = "init_virtualenv.sh"
+  runAsSudo = false
+  execNumber = 1
+
+[[script]]
+  name = "init_git.sh"
+  runAsSudo = false
+  execNumber = 2

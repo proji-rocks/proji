@@ -1,0 +1,31 @@
+name = "c-plus-plus"
+label = "cpp"
+
+[[folder]]
+  destination = ".vscode"
+  template = "vscode-cpp"
+
+[[folder]]
+  destination = "bin"
+  template = ""
+
+[[folder]]
+  destination = "src"
+  template = ""
+
+[[folder]]
+  destination = "test"
+  template = ""
+
+[[file]]
+  destination = "README.md"
+  template = "README.md"
+
+[[file]]
+  destination = "src/main.cpp"
+  template = "main.cpp"
+
+[[script]]
+  name = "init_git.sh"
+  runAsSudo = false
+  execNumber = 1

@@ -17,10 +17,10 @@ var classRmCmd = &cobra.Command{
 
 		for _, name := range args {
 			if err := removeClass(name, projiEnv.Svc); err != nil {
-				fmt.Printf("Removing '%s' failed: %v\n", name, err)
+				fmt.Printf("> Removing '%s' failed: %v\n", name, err)
 				continue
 			}
-			fmt.Printf("'%s' was successfully removed.\n", name)
+			fmt.Printf("> '%s' was successfully removed\n", name)
 		}
 		return nil
 	},
@@ -35,5 +35,10 @@ func removeClass(label string, svc storage.Service) error {
 	if err != nil {
 		return err
 	}
+
+	if classID == 1 {
+		return fmt.Errorf("Class 1 can not be removed")
+	}
+
 	return svc.RemoveClass(classID)
 }

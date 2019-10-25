@@ -21,10 +21,10 @@ var classAddCmd = &cobra.Command{
 
 		for _, name := range args {
 			if err := addClass(name, projiEnv.Svc); err != nil {
-				fmt.Printf("Adding class '%s' failed: %v\n", name, err)
+				fmt.Printf("> Adding class '%s' failed: %v\n", name, err)
 				continue
 			}
-			fmt.Printf("Class '%s' was successfully added.\n", name)
+			fmt.Printf("> Class '%s' was successfully added\n", name)
 		}
 		return nil
 	},
@@ -62,7 +62,7 @@ func addClass(name string, svc storage.Service) error {
 }
 
 func getLabel(reader *bufio.Reader) (string, error) {
-	fmt.Print("Label: ")
+	fmt.Print("> Label: ")
 	text, err := reader.ReadString('\n')
 	if err != nil {
 		return "", err
@@ -70,19 +70,20 @@ func getLabel(reader *bufio.Reader) (string, error) {
 
 	labels := strings.Fields(text)
 	if len(labels) > 1 {
-		return "", fmt.Errorf("Only one unique label is allowed")
+		return "", fmt.Errorf("Only one label is needed")
 	}
 	fmt.Println()
 	return labels[0], nil
 }
 
-func getFolders(reader *bufio.Reader) (map[string]string, error) {
-	fmt.Println("Folders: ")
-	folders := make(map[string]string)
+func getFolders(reader *bufio.Reader) ([]*item.Folder, error) {
+	fmt.Println("> Folders: ")
+	folders := make([]*item.Folder, 0)
+	destinations := make(map[string]bool)
 
 	for {
 		// Read in folders
-		// Syntax: Target [Source]
+		// Syntax: Destination [template]
 		fmt.Print("> ")
 		input, err := reader.ReadString('\n')
 		if err != nil {
@@ -97,40 +98,40 @@ func getFolders(reader *bufio.Reader) (map[string]string, error) {
 			break
 		}
 		if numFolders > 2 {
-			fmt.Println("Warning: More than two files were given.")
+			fmt.Println("> Warning: More than two files were given.")
 			continue
 		}
 
-		target := folderPair[0]
+		dest := folderPair[0]
 
-		// Check if target exists
-		// A target should only exist once
-		// A source can be used multiple times
-		if src, ok := folders[target]; ok {
-			fmt.Printf("Warning: Target folder %s is already associated to source folder %s.\n", target, src)
+		// Check if dest exists
+		if _, ok := destinations[dest]; ok {
+			fmt.Printf("> Warning: Destination folder '%s' has already been defined.\n", dest)
 			continue
 		}
 
-		// Add source if given
-		src := ""
+		// Add template if given
+		template := ""
 		if numFolders > 1 {
-			src = folderPair[1]
+			template = folderPair[1]
 		}
 
 		// Add folder(s) to map
-		folders[target] = src
+		destinations[dest] = true
+		folders = append(folders, &item.Folder{Destination: dest, Template: template})
 	}
 	fmt.Println()
 	return folders, nil
 }
 
-func getFiles(reader *bufio.Reader) (map[string]string, error) {
-	fmt.Println("Files: ")
-	files := make(map[string]string)
+func getFiles(reader *bufio.Reader) ([]*item.File, error) {
+	fmt.Println("> Files: ")
+	files := make([]*item.File, 0)
+	destinations := make(map[string]bool)
 
 	for {
 		// Read in files
-		// Syntax: target [source]
+		// Syntax: dest [template]
 		fmt.Print("> ")
 		input, err := reader.ReadString('\n')
 		if err != nil {
@@ -145,36 +146,38 @@ func getFiles(reader *bufio.Reader) (map[string]string, error) {
 			break
 		}
 		if numFiles > 2 {
-			fmt.Println("Warning: More than two files were given.")
+			fmt.Println("> Warning: More than two files were given.")
 			continue
 		}
 
-		// Check if target exists
-		// A target should only exist once
-		// A source can be used multiple times
-		target := filePair[0]
+		// Check if dest exists
+		// A dest should only exist once
+		// A template can be used multiple times
+		dest := filePair[0]
 
-		if src, ok := files[target]; ok {
-			fmt.Printf("Warning: Target file %s is already associated to source file %s.\n", target, src)
+		if _, ok := destinations[dest]; ok {
+			fmt.Printf("> Warning: Destination folder '%s' has already been defined.\n", dest)
 			continue
 		}
 
-		// Add source if given
-		src := ""
+		// Add template if given
+		template := ""
 		if numFiles > 1 {
-			src = filePair[1]
+			template = filePair[1]
 		}
 
 		// Add file(s) to map
-		files[target] = src
+		destinations[dest] = true
+		files = append(files, &item.File{Destination: dest, Template: template})
 	}
 	fmt.Println()
 	return files, nil
 }
 
-func getScripts(reader *bufio.Reader) (map[string]bool, error) {
-	fmt.Println("Scripts: ")
-	scripts := make(map[string]bool)
+func getScripts(reader *bufio.Reader) ([]*item.Script, error) {
+	fmt.Println("> Scripts: ")
+	scripts := make([]*item.Script, 0)
+	scriptNames := make(map[string]bool)
 
 	for {
 		// Read in scripts
@@ -193,32 +196,30 @@ func getScripts(reader *bufio.Reader) (map[string]bool, error) {
 			break
 		}
 		if lenData > 2 {
-			fmt.Println("Warning: More than two files were given.")
+			fmt.Println("> Warning: More than two files were given.")
 			continue
 		}
 
 		// Set sudo to true if given
-		var sudo bool
-		script := scriptData[0]
+		var runAsSudo bool
+		scriptName := scriptData[0]
 
 		if lenData == 2 {
 			if scriptData[0] != "sudo" {
-				fmt.Printf("Warning: %s invalid. Has to be 'sudo' or ''(empty).", scriptData[0])
+				fmt.Printf("> Warning: %s invalid. Has to be 'sudo' or ''(empty).", scriptData[0])
 			}
-			sudo = true
-			script = scriptData[1]
+			runAsSudo = true
+			scriptName = scriptData[1]
 		}
 
-		// Check if target exists
-		// A target should only exist once
-		// A source can be used multiple times
-		if _, ok := scripts[script]; ok {
-			fmt.Printf("Warning: Script %s is already in execution list.\n", script)
+		// Check if script was already added to execution list
+		if _, ok := scriptNames[scriptName]; ok {
+			fmt.Printf("> Warning: Script %s is already in execution list\n", scriptName)
 			continue
 		}
 
-		// Add folder(s) to map
-		scripts[script] = sudo
+		scriptNames[scriptName] = true
+		scripts = append(scripts, &item.Script{Name: scriptName, RunAsSudo: runAsSudo})
 	}
 	fmt.Println()
 	return scripts, nil

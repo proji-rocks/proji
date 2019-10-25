@@ -16,7 +16,7 @@ type Service interface {
 	LoadClassIDByLabel(label string) (uint, error)                  // LoadClassIDByLabel loads the ID of a class by its label.
 	UpdateProjectStatus(projectID, statusID uint) error             // UpdateProjectStatus updates the status of a given project in storage.
 	UpdateProjectLocation(projectID uint, installPath string) error // UpdateProjectLocation updates the location of a project in storage.
-	RemoveProject(projectID uint) error                             // UntrackProject removes a project from storage.
+	RemoveProject(projectID uint) error                             // RemoveProject removes a project from storage.
 	SaveStatus(status *item.Status) error                           // SaveStatus adds a new status to storage.
 	UpdateStatus(statusID uint, title, comment string) error        // UpdateStatus updates a status in storage.
 	LoadStatus(statusID uint) (*item.Status, error)                 // LoadStatus loads a status from storage by its ID.
