@@ -25,8 +25,17 @@
 
 - [About](#about)
 - [Getting Started](#getting_started)
+  - [Dependencies](#dependencies)
+  - [Installation](#installation)
+  - [Running the Tests](#running_the_tests)
+  - [Tab Completion](#tab_completion)
 - [Basic Usage](#basic_usage)
+  - [Setting up a Class](#setting_up_a_class)
+  - [Creating our first projects](#creating_our_first_projects)
 - [Advanced Usage](#advanced_usage)
+  - [Class](#au_class)
+  - [Project](#au_project)
+  - [Status](#au_status)
 
 ## About <a name = "about"></a>
 
@@ -45,7 +54,7 @@ Proji is currently only supported under linux. You can either download a pre-com
 
 Might work under Mac but it's not tested yet.
 
-### Dependencies
+### Dependencies <a name = "dependencies"></a>
 
 - [go](https://golang.org/) - Main language
 - [sqlite3](https://www.sqlite.org/index.html) - Database
@@ -57,7 +66,7 @@ Might work under Mac but it's not tested yet.
 - [jedib0t/go-pretty](https://github.com/jedib0t/go-pretty) - CLI Styling
 - [stretchr/testify](github.com/stretchr/testify) - Test Framework
 
-### Installation
+### Installation <a name = "installation"></a>
 
 #### Binary Distributions
 
@@ -74,16 +83,16 @@ Might work under Mac but it's not tested yet.
 
 Validate the success of your installation by executing `$ proji`. The help text for proji should be printed to the cli.
 
-### Running The Tests
+### Running The Tests <a name = "running_the_tests"></a>
 
 - `$ go vet ./...`
 - `$ go test -v ./...`
 
-### Tab Completion
+### Tab Completion <a name = "tab_completion"></a>
 
 Proji does support tab completion but at the moment you have to set it up yourself. The following instructions were inspired by [kubernetes completion](https://kubernetes.io/docs/tasks/tools/install-kubectl/#enabling-shell-autocompletion).
 
-**Bash**
+#### Bash
 
 For this to work you first need to install and enable [bash_completion](https://github.com/scop/bash-completion#installation).
 
@@ -103,7 +112,7 @@ printf "
 source $HOME/.bash_profile
 ```
 
-**Zsh**
+#### Zsh
 
 This command will create a zsh completion file in your current users default zsh completion folder:
 
@@ -117,7 +126,7 @@ Suppose I create python projects on a regular basis and want to have the same di
 
 That would not be too bad if you only create a new project every few weeks or months. However, if you want to create new projects more regularly, be it to test something quickly, learn something new, or quickly create an environment to reproduce and potentially solve a problem found on stackoverflow, then this process quickly becomes very tiring.
 
-### Setting up a Class
+### Setting up a Class <a name = "setting_up_a_class"></a>
 
 To solve this problem with proji, we first have to create a so-called class. A class in proji represents the structure and behavior for projects of a particular topic (python in this example). It serves as a template through which proji will create new projects for you in the future.
 
@@ -157,7 +166,7 @@ The advantage of the config file is that incorrect information can easily be cor
 
 After the class has been created or imported, we can use the command `$ proji class ls` to display a list of our available classes. The command `$ proji class show LABEL [LABEL...]` allows us to display a detailed view of one or more classes.
 
-### Creating our first projects
+### Creating our first projects <a name = "creating_our_first_projects"></a>
 
 Now that we have created our python class in proji, we can use it to easily create new projects. A class is created once and is then reused by proji over and over again, and although the process of creating a class might initially seem a bit complex, you will very soon start saving a lot of time and keystrokes and will improve the structure of your projects.
 
@@ -176,7 +185,7 @@ Take a look at the [python class config](assets/examples/proji-python.toml) and 
 
 Help for all commands is also available with `$ proji help`.
 
-### Class
+### Class <a name = "au_class"></a>
 
 - Add a class: `$ proji class add NAME`
 
@@ -190,7 +199,7 @@ Help for all commands is also available with `$ proji help`.
 
 - Show class details: `$ proji class show LABEL [LABEL...]`
 
-### Project
+### Project <a name = "au_project"></a>
 
 - Create a project: `$ proji create LABEL NAME [NAME...]`
 
@@ -206,7 +215,7 @@ Help for all commands is also available with `$ proji help`.
 
 - Clean up project database: `$ proji clean`
 
-### Status
+### Status <a name = "au_status"></a>
 
 - Add a status: `$ proji status add STATUS [STATUS...]`
 
