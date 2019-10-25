@@ -44,7 +44,7 @@ I always endeavored to structure my projects as consistently as possible. I do n
 
 My goals with proji are to save time when creating new projects and to have consistently structured project directories.
 
-<p align="center">
+<p align="left">
   <a href="" rel="noopener">
  <img src="assets/gifs/create-one-project.gif" alt="Create a go example project"></a>
 </p>
@@ -173,7 +173,7 @@ Now that we have created our python class in proji, we can use it to easily crea
 
 Assuming our class has been assigned the label `py`, we can create one or more projects with the command `$ proji create py my-py-project-1 my-py-project-2 my-py-project-3`.
 
-<p align="center">
+<p align="left">
   <a href="" rel="noopener">
  <img src="assets/gifs/create-three-projects.gif" alt="Create projects example"></a>
 </p>
