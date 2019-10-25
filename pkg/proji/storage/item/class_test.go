@@ -41,7 +41,18 @@ func TestClassImportData(t *testing.T) {
 					&item.File{Destination: "src/main.py", Template: ""},
 					&item.File{Destination: "README.md", Template: ""},
 				},
-				Scripts: []*item.Script{},
+				Scripts: []*item.Script{
+					&item.Script{
+						Name:       "init_virtualenv.sh",
+						RunAsSudo:  false,
+						ExecNumber: 1,
+					},
+					&item.Script{
+						Name:       "init_git.sh",
+						RunAsSudo:  false,
+						ExecNumber: 2,
+					},
+				},
 			},
 			err: nil,
 		},

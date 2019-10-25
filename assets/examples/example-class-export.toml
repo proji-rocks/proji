@@ -36,15 +36,15 @@ label = "mex"
 
 # No template, just create an empty folder.
 [[folder]]
-  destination = "src"
+  destination = "src/"
   template = ""
 
 [[folder]]
-  destination = "docs"
+  destination = "docs/"
   template = ""
 
 [[folder]]
-  destination = "tests"
+  destination = "tests/"
   template = ""
 
 # This is what a folder with a template would look like.
