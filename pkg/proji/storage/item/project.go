@@ -101,6 +101,7 @@ func (proj *Project) createFiles() error {
 
 func (proj *Project) copyTemplates(configPath string) error {
 	re := regexp.MustCompile(`__PROJECT_NAME__`)
+	templatePath := configPath + "templates/"
 
 	for _, folder := range proj.Class.Folders {
 		if len(folder.Template) < 1 {
@@ -109,8 +110,7 @@ func (proj *Project) copyTemplates(configPath string) error {
 
 		// Replace keyword with project name
 		folder.Destination = re.ReplaceAllString(folder.Destination, proj.Name)
-		folder.Template = configPath + "templates/" + folder.Template
-		if err := copy.Copy(folder.Template, folder.Destination); err != nil {
+		if err := copy.Copy(templatePath+folder.Template, folder.Destination); err != nil {
 			return err
 		}
 	}
@@ -122,8 +122,7 @@ func (proj *Project) copyTemplates(configPath string) error {
 
 		// Replace keyword with project name
 		file.Destination = re.ReplaceAllString(file.Destination, proj.Name)
-		file.Template = configPath + "templates/" + file.Template
-		if err := copy.Copy(file.Template, file.Destination); err != nil {
+		if err := copy.Copy(templatePath+file.Template, file.Destination); err != nil {
 			return err
 		}
 	}
