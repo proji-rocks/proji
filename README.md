@@ -36,6 +36,7 @@
   - [Class](#au_class)
   - [Project](#au_project)
   - [Status](#au_status)
+- [License](#license)
 
 ## About <a name = "about"></a>
 
@@ -222,3 +223,7 @@ Help for all commands is also available with `$ proji help`.
 - Remove a status: `$ proji status rm ID [ID...]`
 
 - List all statuses: `$ proji status ls`
+
+## License <a name = "license"></a>
+
+Proji is released under the MIT license. See [LICENSE](LICENSE)
