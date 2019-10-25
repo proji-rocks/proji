@@ -35,5 +35,10 @@ func removeClass(label string, svc storage.Service) error {
 	if err != nil {
 		return err
 	}
+
+	if classID == 1 {
+		return fmt.Errorf("Class 1 can not be removed")
+	}
+
 	return svc.RemoveClass(classID)
 }

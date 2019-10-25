@@ -69,6 +69,10 @@ func New(path string) (storage.Service, error) {
 				comment TEXT
 			);
 			INSERT INTO
+				class(name, label)
+			VALUES
+				("unknown", "ukwn");
+			INSERT INTO
 				project_status(title, comment)
 			VALUES
 				("active", "Actively working on this project."),
@@ -457,13 +461,17 @@ func (s *sqlite) LoadProject(projectID uint) (*item.Project, error) {
 
 	class, err := s.LoadClass(uint(classID.Int64))
 	if err != nil {
-		return nil, err
+		// Load class 'unknown'
+		class, err = s.LoadClass(1)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var status *item.Status
 	status, err = s.LoadStatus(uint(statusID.Int64))
 	if err != nil {
-		// Load status unknown
+		// Load status 'unknown'
 		status, err = s.LoadStatus(5)
 		if err != nil {
 			return nil, err
