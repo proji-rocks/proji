@@ -18,5 +18,9 @@ if ! [ -f "${CONF_DIR}examples/proji-class.toml" ]; then
     curl --silent -o "${CONF_DIR}examples/proji-class.toml" https://raw.githubusercontent.com/nikoksr/proji/master/assets/examples/example-class-export.toml
 fi
 
-# Install the binary
-sudo install proji /usr/local/bin
+if [ -f "./proji" ]; then
+    # Install the binary
+    sudo install -m755 proji /usr/local/bin
+    # Clean up
+    rm ./proji
+fi
