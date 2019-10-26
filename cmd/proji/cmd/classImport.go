@@ -18,10 +18,10 @@ var classImportCmd = &cobra.Command{
 
 		for _, config := range args {
 			if err := importClass(config, projiEnv.Svc); err != nil {
-				fmt.Printf("Import of '%s' failed: %v\n", config, err)
+				fmt.Printf("> Import of '%s' failed: %v\n", config, err)
 				continue
 			}
-			fmt.Printf("'%s' was successfully imported.\n", config)
+			fmt.Printf("> '%s' was successfully imported\n", config)
 		}
 		return nil
 	},
@@ -33,7 +33,7 @@ func init() {
 
 func importClass(config string, svc storage.Service) error {
 	// Import class data
-	class := item.NewClass("", "")
+	class := item.NewClass("", "", false)
 	if err := class.ImportData(config); err != nil {
 		return err
 	}

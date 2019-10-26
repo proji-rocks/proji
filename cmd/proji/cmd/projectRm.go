@@ -8,10 +8,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var rmAll bool
+
 var rmCmd = &cobra.Command{
 	Use:   "rm ID [ID...]",
 	Short: "Remove one or more projects",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if rmAll {
+			err := removeAllProjects(projiEnv.Svc)
+			if err != nil {
+				fmt.Printf("> Removing of all projects failed: %v\n", err)
+				return err
+			}
+			fmt.Println("> All projects were successfully removed")
+			return nil
+		}
+
 		if len(args) < 1 {
 			return fmt.Errorf("Missing project id")
 		}
@@ -23,10 +35,10 @@ var rmCmd = &cobra.Command{
 			}
 
 			if err := removeProject(id, projiEnv.Svc); err != nil {
-				fmt.Printf("Removing project '%d' failed: %v\n", id, err)
+				fmt.Printf("> Removing project '%d' failed: %v\n", id, err)
 				continue
 			}
-			fmt.Printf("Project '%d' was successfully removed.\n", id)
+			fmt.Printf("> Project '%d' was successfully removed\n", id)
 		}
 		return nil
 	},
@@ -34,12 +46,28 @@ var rmCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(rmCmd)
+	rmCmd.Flags().BoolVarP(&rmAll, "all", "a", false, "Remove all projects")
 }
 
 func removeProject(projectID uint, svc storage.Service) error {
-	// Check if class exists
+	// Check if project exists
 	if _, err := svc.LoadProject(projectID); err != nil {
 		return err
 	}
 	return svc.RemoveProject(projectID)
+}
+
+func removeAllProjects(svc storage.Service) error {
+	projects, err := svc.LoadAllProjects()
+	if err != nil {
+		return err
+	}
+
+	for _, project := range projects {
+		err = svc.RemoveProject(project.ID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

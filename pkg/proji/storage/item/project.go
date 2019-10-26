@@ -66,15 +66,15 @@ func (proj *Project) createSubFolders() error {
 	// Regex to replace keyword with project name
 	re := regexp.MustCompile(`__PROJECT_NAME__`)
 
-	for folder, template := range proj.Class.Folders {
+	for _, folder := range proj.Class.Folders {
 		// Skip, folder has a template
-		if len(template) > 0 {
+		if len(folder.Template) > 0 {
 			continue
 		}
 
 		// Replace keyword with project name
-		folder = re.ReplaceAllString(folder, proj.Name)
-		if err := os.MkdirAll(folder, os.ModePerm); err != nil {
+		folder.Destination = re.ReplaceAllString(folder.Destination, proj.Name)
+		if err := os.MkdirAll(folder.Destination, os.ModePerm); err != nil {
 			return err
 		}
 	}
@@ -84,15 +84,15 @@ func (proj *Project) createSubFolders() error {
 func (proj *Project) createFiles() error {
 	re := regexp.MustCompile(`__PROJECT_NAME__`)
 
-	for file, template := range proj.Class.Files {
+	for _, file := range proj.Class.Files {
 		// Skip, file has a template
-		if len(template) > 0 {
+		if len(file.Template) > 0 {
 			continue
 		}
 
 		// Replace keyword with project name
-		file = re.ReplaceAllString(file, proj.Name)
-		if _, err := os.OpenFile(file, os.O_RDONLY|os.O_CREATE, os.ModePerm); err != nil {
+		file.Destination = re.ReplaceAllString(file.Destination, proj.Name)
+		if _, err := os.OpenFile(file.Destination, os.O_RDONLY|os.O_CREATE, os.ModePerm); err != nil {
 			return err
 		}
 	}
@@ -101,33 +101,43 @@ func (proj *Project) createFiles() error {
 
 func (proj *Project) copyTemplates(configPath string) error {
 	re := regexp.MustCompile(`__PROJECT_NAME__`)
+	templatePath := configPath + "templates/"
 
-	for _, templates := range []map[string]string{proj.Class.Folders, proj.Class.Files} {
-		for fifo, template := range templates {
-			if len(template) < 1 {
-				continue
-			}
+	for _, folder := range proj.Class.Folders {
+		if len(folder.Template) < 1 {
+			continue
+		}
 
-			// Replace keyword with project name
-			fifo = re.ReplaceAllString(fifo, proj.Name)
-			template = configPath + "templates/" + template
-			if err := copy.Copy(template, fifo); err != nil {
-				return err
-			}
+		// Replace keyword with project name
+		folder.Destination = re.ReplaceAllString(folder.Destination, proj.Name)
+		if err := copy.Copy(templatePath+folder.Template, folder.Destination); err != nil {
+			return err
+		}
+	}
+
+	for _, file := range proj.Class.Files {
+		if len(file.Template) < 1 {
+			continue
+		}
+
+		// Replace keyword with project name
+		file.Destination = re.ReplaceAllString(file.Destination, proj.Name)
+		if err := copy.Copy(templatePath+file.Template, file.Destination); err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
 func (proj *Project) runScripts(configPath string) error {
-	for script, runAsSudo := range proj.Class.Scripts {
-		script = configPath + "scripts/" + script
+	for _, script := range proj.Class.Scripts {
+		scriptPath := configPath + "scripts/" + script.Name
 
-		if runAsSudo {
-			script = "sudo " + script
+		if script.RunAsSudo {
+			scriptPath = "sudo " + scriptPath
 		}
 
-		cmd := exec.Command(script)
+		cmd := exec.Command(scriptPath)
 		cmd.Stdout = os.Stdout
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr

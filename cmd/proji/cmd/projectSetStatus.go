@@ -24,10 +24,10 @@ var projectSetStatusCmd = &cobra.Command{
 		}
 
 		if err := setStatus(projectID, status, projiEnv.Svc); err != nil {
-			fmt.Printf("Setting status '%s' for project %d failed: %v\n", status, projectID, err)
+			fmt.Printf("> Setting status '%s' for project %d failed: %v\n", status, projectID, err)
 			return err
 		}
-		fmt.Printf("Status '%s' was successfully set for project %d.\n", status, projectID)
+		fmt.Printf("> Status '%s' was successfully set for project %d\n", status, projectID)
 		return nil
 	},
 }

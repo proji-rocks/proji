@@ -11,14 +11,15 @@ import (
 
 func TestNewClass(t *testing.T) {
 	classExp := &item.Class{
-		Name:    "test",
-		Label:   "tst",
-		Folders: map[string]string{},
-		Files:   map[string]string{},
-		Scripts: map[string]bool{},
+		Name:      "test",
+		Label:     "tst",
+		IsDefault: false,
+		Folders:   []*item.Folder{},
+		Files:     []*item.File{},
+		Scripts:   []*item.Script{},
 	}
 
-	classAct := item.NewClass("test", "tst")
+	classAct := item.NewClass("test", "tst", false)
 	assert.Equal(t, classExp, classAct)
 }
 
@@ -29,36 +30,50 @@ func TestClassImportData(t *testing.T) {
 		err        error
 	}{
 		{
-			configName: "../../../../configs/example-class-export.toml", class: &item.Class{
-				Name:  "example",
-				Label: "exp",
-				Folders: map[string]string{
-					"exampleFolder/": "",
-					"foo/bar/":       "",
+			configName: "../../../../assets/examples/example-class-export.toml", class: &item.Class{
+				Name:      "my-example",
+				Label:     "mex",
+				IsDefault: false,
+				Folders: []*item.Folder{
+					&item.Folder{Destination: "src/", Template: ""},
+					&item.Folder{Destination: "docs/", Template: ""},
+					&item.Folder{Destination: "tests/", Template: ""},
 				},
-				Files: map[string]string{
-					"README.md":              "README.md",
-					"exampleFolder/test.txt": "",
+				Files: []*item.File{
+					&item.File{Destination: "src/main.py", Template: ""},
+					&item.File{Destination: "README.md", Template: ""},
 				},
-				Scripts: map[string]bool{},
+				Scripts: []*item.Script{
+					&item.Script{
+						Name:       "init_virtualenv.sh",
+						RunAsSudo:  false,
+						ExecNumber: 1,
+					},
+					&item.Script{
+						Name:       "init_git.sh",
+						RunAsSudo:  false,
+						ExecNumber: 2,
+					},
+				},
 			},
 			err: nil,
 		},
 		{
 			configName: "example.yaml",
 			class: &item.Class{
-				Name:    "",
-				Label:   "",
-				Folders: map[string]string{},
-				Files:   map[string]string{},
-				Scripts: map[string]bool{},
+				Name:      "",
+				Label:     "",
+				IsDefault: false,
+				Folders:   []*item.Folder{},
+				Files:     []*item.File{},
+				Scripts:   []*item.Script{},
 			},
 			err: errors.New(""),
 		},
 	}
 
 	for _, test := range tests {
-		c := item.NewClass("", "")
+		c := item.NewClass("", "", false)
 		err := c.ImportData(test.configName)
 		assert.IsType(t, test.err, err)
 		assert.Equal(t, test.class, c)
@@ -73,17 +88,18 @@ func TestClassExport(t *testing.T) {
 	}{
 		{
 			class: &item.Class{
-				Name:  "example",
-				Label: "exp",
-				Folders: map[string]string{
-					"exampleFolder/": "",
-					"foo/bar/":       "",
+				Name:      "example",
+				Label:     "exp",
+				IsDefault: false,
+				Folders: []*item.Folder{
+					&item.Folder{Destination: "exampleFolder/", Template: ""},
+					&item.Folder{Destination: "foo/bar/", Template: ""},
 				},
-				Files: map[string]string{
-					"README.md":              "README.md",
-					"exampleFolder/test.txt": "",
+				Files: []*item.File{
+					&item.File{Destination: "README.md", Template: "README.md"},
+					&item.File{Destination: "exampleFolder/test.txt", Template: ""},
 				},
-				Scripts: map[string]bool{},
+				Scripts: []*item.Script{},
 			},
 			configName: "proji-example.toml",
 			err:        nil,

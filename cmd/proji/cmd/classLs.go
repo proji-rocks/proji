@@ -34,6 +34,9 @@ func listClasses(svc storage.Service) error {
 
 	// Fill table
 	for _, class := range classes {
+		if class.IsDefault {
+			continue
+		}
 		t.AppendRow([]interface{}{class.Name, class.Label})
 	}
 

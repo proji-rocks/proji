@@ -27,10 +27,10 @@ var projectSetPathCmd = &cobra.Command{
 		}
 
 		if err := projiEnv.Svc.UpdateProjectLocation(projectID, path); err != nil {
-			fmt.Printf("Setting path '%s' for project %d failed: %v\n", path, projectID, err)
+			fmt.Printf("> Setting path '%s' for project %d failed: %v\n", path, projectID, err)
 			return err
 		}
-		fmt.Printf("Path '%s' was successfully set for project %d.\n", path, projectID)
+		fmt.Printf("> Path '%s' was successfully set for project %d\n", path, projectID)
 		return nil
 	},
 }

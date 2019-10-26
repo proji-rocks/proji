@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/storage"
@@ -27,23 +26,42 @@ var createCmd = &cobra.Command{
 			return err
 		}
 
+		// Load class and status once for all projects
+		classID, err := projiEnv.Svc.LoadClassIDByLabel(label)
+		if err != nil {
+			return err
+		}
+
+		class, err := projiEnv.Svc.LoadClass(classID)
+		if err != nil {
+			return err
+		}
+
+		// Load status active by default
+		status, err := projiEnv.Svc.LoadStatus(1)
+		if err != nil {
+			return err
+		}
+
 		for _, name := range projects {
-			if err := createProject(name, label, cwd, projiEnv.ConfPath, projiEnv.Svc); err != nil {
-				fmt.Printf("Creating project %s failed: %v\n", name, err)
+			fmt.Printf("\n> Creating project %s\n", name)
+
+			if err := createProject(name, label, cwd, projiEnv.ConfPath, class, status, projiEnv.Svc); err != nil {
+				fmt.Printf(" -> Failed: %v\n", err)
 
 				if err.Error() == "Project already exists" {
-					if !helper.WantTo("Do you want to replace it?") {
+					if !helper.WantTo("> Do you want to replace it?") {
 						continue
 					}
-					if err := replaceProject(name, label, cwd, projiEnv.ConfPath, projiEnv.Svc); err != nil {
-						fmt.Printf("Replacing project %s failed: %v\n", name, err)
+					if err := replaceProject(name, label, cwd, projiEnv.ConfPath, class, status, projiEnv.Svc); err != nil {
+						fmt.Printf("> Replacing project %s failed: %v\n", name, err)
 						continue
 					}
-					fmt.Printf("Project %s was successfully replaced.\n", name)
+					fmt.Printf("> Project %s was successfully replaced\n", name)
 				}
 				continue
 			}
-			fmt.Printf("Project %s was successfully created.\n", name)
+			fmt.Printf("> Project %s was successfully created\n", name)
 		}
 		return nil
 	},
@@ -53,25 +71,7 @@ func init() {
 	rootCmd.AddCommand(createCmd)
 }
 
-func createProject(name, label, cwd, configPath string, svc storage.Service) error {
-	classID, err := svc.LoadClassIDByLabel(label)
-	if err != nil {
-		return err
-	}
-
-	class, err := svc.LoadClass(classID)
-	if err != nil {
-		return err
-	}
-
-	// Load status active by default
-	var status *item.Status
-	status, err = svc.LoadStatus(1)
-	if err != nil {
-		return err
-	}
-
-	label = strings.ToLower(label)
+func createProject(name, label, cwd, configPath string, class *item.Class, status *item.Status, svc storage.Service) error {
 	proj := item.NewProject(0, name, cwd+"/"+name, class, status)
 
 	// Save it first to see if it already exists in the database
@@ -85,7 +85,7 @@ func createProject(name, label, cwd, configPath string, svc storage.Service) err
 	return nil
 }
 
-func replaceProject(name, label, cwd, configPath string, svc storage.Service) error {
+func replaceProject(name, label, cwd, configPath string, class *item.Class, status *item.Status, svc storage.Service) error {
 	id, err := svc.LoadProjectID(cwd + "/" + name)
 	if err != nil {
 		return err
@@ -95,5 +95,5 @@ func replaceProject(name, label, cwd, configPath string, svc storage.Service) er
 	if err = svc.RemoveProject(id); err != nil {
 		return err
 	}
-	return createProject(name, label, cwd, configPath, svc)
+	return createProject(name, label, cwd, configPath, class, status, svc)
 }

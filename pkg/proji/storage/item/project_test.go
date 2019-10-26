@@ -10,8 +10,8 @@ import (
 )
 
 func TestNewProject(t *testing.T) {
-	class := item.NewClass("testclass", "tc")
-	status := item.NewStatus(9999, "test", "This is a test status.")
+	class := item.NewClass("testclass", "tc", false)
+	status := item.NewStatus(9999, "test", "This is a test status.", false)
 
 	projExp := &item.Project{
 		ID:          99,
@@ -45,15 +45,15 @@ func TestProjectCreate(t *testing.T) {
 				Class: &item.Class{
 					Name:  "example",
 					Label: "exp",
-					Folders: map[string]string{
-						"exampleFolder/": "",
-						"foo/bar/":       "",
+					Folders: []*item.Folder{
+						&item.Folder{Destination: "exampleFolder/", Template: ""},
+						&item.Folder{Destination: "foo/bar/", Template: ""},
 					},
-					Files: map[string]string{
-						"README.md":              "README.md",
-						"exampleFolder/test.txt": "",
+					Files: []*item.File{
+						&item.File{Destination: "README.md", Template: "README.md"},
+						&item.File{Destination: "exampleFolder/test.txt", Template: ""},
 					},
-					Scripts: map[string]bool{},
+					Scripts: []*item.Script{},
 				},
 				Status: &item.Status{
 					ID:      1,
@@ -79,13 +79,13 @@ func TestProjectCreate(t *testing.T) {
 		assert.DirExists(t, test.proj.Name)
 
 		// Subfolders should exist
-		for folder, _ := range test.proj.Class.Folders {
-			assert.DirExists(t, test.proj.Name+"/"+folder)
+		for _, folder := range test.proj.Class.Folders {
+			assert.DirExists(t, test.proj.Name+"/"+folder.Destination)
 		}
 
 		// Project files should exist
-		for file, _ := range test.proj.Class.Files {
-			assert.FileExists(t, test.proj.Name+"/"+file)
+		for _, file := range test.proj.Class.Files {
+			assert.FileExists(t, test.proj.Name+"/"+file.Destination)
 		}
 
 		// Compare old cwd to current cwd. Should be equal
