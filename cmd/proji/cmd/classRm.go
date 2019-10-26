@@ -19,7 +19,7 @@ var classRmCmd = &cobra.Command{
 				fmt.Printf("> Removing of all classes failed: %v\n", err)
 				return err
 			}
-			fmt.Println("> All classes were successfully exported")
+			fmt.Println("> All classes were successfully removed")
 			return nil
 		}
 
