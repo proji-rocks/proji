@@ -257,7 +257,7 @@ func (s *sqlite) LoadClass(classID uint) (*item.Class, error) {
 		return nil, err
 	}
 
-	// Assign when no errors occured
+	// Assign when no errors occurred
 	class.ID = classID
 	class.Folders = folders
 	class.Files = files
