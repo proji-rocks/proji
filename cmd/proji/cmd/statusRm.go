@@ -43,19 +43,19 @@ func init() {
 	statusRmCmd.Flags().BoolVarP(&rmAllStatuses, "all", "a", false, "Remove all statuses")
 }
 
-func removeStatus(status string, svc storage.Service) error {
-	statusID, err := helper.StrToUInt(status)
+func removeStatus(id string, svc storage.Service) error {
+	statusID, err := helper.StrToUInt(id)
 	if err != nil {
 		return err
 	}
 
-	if statusID < 6 {
-		return fmt.Errorf("statuses 1-5 can not be removed")
+	status, err := svc.LoadStatus(statusID)
+	if err != nil {
+		return err
 	}
 
-	// Check if status exists
-	if _, err := svc.LoadStatus(statusID); err != nil {
-		return err
+	if status.IsDefault {
+		return fmt.Errorf("Default statuses can not be removed")
 	}
 	return svc.RemoveStatus(statusID)
 }
@@ -67,7 +67,7 @@ func removeAllStatuses(svc storage.Service) error {
 	}
 
 	for _, status := range statuses {
-		if status.ID < 6 {
+		if status.IsDefault {
 			continue
 		}
 		err = svc.RemoveStatus(status.ID)

@@ -48,9 +48,13 @@ func removeClass(label string, svc storage.Service) error {
 	if err != nil {
 		return err
 	}
+	class, err := svc.LoadClass(classID)
+	if err != nil {
+		return err
+	}
 
-	if classID == 1 {
-		return fmt.Errorf("Class 1 can not be removed")
+	if class.IsDefault {
+		return fmt.Errorf("Default classes can not be removed")
 	}
 
 	return svc.RemoveClass(classID)
@@ -63,7 +67,7 @@ func removeAllClasses(svc storage.Service) error {
 	}
 
 	for _, class := range classes {
-		if class.ID == 1 {
+		if class.IsDefault {
 			continue
 		}
 		err = svc.RemoveClass(class.ID)

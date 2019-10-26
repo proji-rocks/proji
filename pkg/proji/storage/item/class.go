@@ -10,23 +10,25 @@ import (
 
 // Class struct represents a proji class
 type Class struct {
-	ID      uint      // Class ID in storage
-	Name    string    `toml:"name"`   // Class name
-	Label   string    `toml:"label"`  // Class label
-	Folders []*Folder `toml:"folder"` // Class folders
-	Files   []*File   `toml:"file"`   // Class files
-	Scripts []*Script `toml:"script"` // Class scripts
+	ID        uint      // Class ID in storage. Not exported/imported.
+	IsDefault bool      // Is this a default class? Not exported/imported.
+	Name      string    `toml:"name"`   // Class name
+	Label     string    `toml:"label"`  // Class label
+	Folders   []*Folder `toml:"folder"` // Class folders
+	Files     []*File   `toml:"file"`   // Class files
+	Scripts   []*Script `toml:"script"` // Class scripts
 }
 
 // NewClass returns a new class
-func NewClass(name, label string) *Class {
+func NewClass(name, label string, isDefault bool) *Class {
 	return &Class{
-		ID:      0,
-		Name:    name,
-		Label:   label,
-		Folders: make([]*Folder, 0),
-		Files:   make([]*File, 0),
-		Scripts: make([]*Script, 0),
+		ID:        0,
+		IsDefault: isDefault,
+		Name:      name,
+		Label:     label,
+		Folders:   make([]*Folder, 0),
+		Files:     make([]*File, 0),
+		Scripts:   make([]*Script, 0),
 	}
 }
 

@@ -12,7 +12,7 @@ import (
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
 )
 
-// Sqlite represents a sqlite connection.
+// sqlite represents a sqlite connection.
 type sqlite struct {
 	db *sql.DB
 	tx *sql.Tx
@@ -34,7 +34,8 @@ func New(path string) (storage.Service, error) {
 			`CREATE TABLE IF NOT EXISTS class(
 				class_id INTEGER PRIMARY KEY,
 				'name' TEXT NOT NULL,
-				label TEXT NOT NULL
+				label TEXT NOT NULL,
+				is_default INTEGER NOT NULL
 		  	);
 		  	CREATE TABLE IF NOT EXISTS class_folder(
 				class_folder_id INTEGER PRIMARY KEY,
@@ -66,20 +67,21 @@ func New(path string) (storage.Service, error) {
 		  	CREATE TABLE IF NOT EXISTS project_status(
 				project_status_id INTEGER PRIMARY KEY,
 				title TEXT NOT NULL,
+				is_default INTEGER NOT NULL,
 				comment TEXT
 			);
 			INSERT INTO
-				class(name, label)
+				class(name, label, is_default)
 			VALUES
-				("unknown", "ukwn");
+				("unknown", "ukwn", 1);
 			INSERT INTO
-				project_status(title, comment)
+				project_status(title, is_default, comment)
 			VALUES
-				("active", "Actively working on this project."),
-  				("inactive", "Stopped working on this project for now."),
-  				("done", "There is nothing left to do"),
-				("dead", "This project is dead."),
-				("unknown", "Status of this project is unknown.");
+				("active", 1, "Actively working on this project."),
+  				("inactive", 1, "Stopped working on this project for now."),
+  				("done", 1, "There is nothing left to do."),
+				("dead", 1, "This project is dead."),
+				("unknown", 1, "Status of this project is unknown.");
 			CREATE UNIQUE INDEX u_class_name_idx ON class('name');
 			CREATE UNIQUE INDEX u_class_label_idx ON class(label);
 			CREATE UNIQUE INDEX u_class_folder_idx ON class_folder(class_id, 'target');
@@ -110,7 +112,7 @@ func (s *sqlite) Close() error {
 }
 
 func (s *sqlite) SaveClass(class *item.Class) error {
-	if err := s.saveClassInfo(class.Name, class.Label); err != nil {
+	if err := s.saveClassInfo(class.Name, class.Label, class.IsDefault); err != nil {
 		if sqliteErr, ok := err.(sqlite3.Error); ok {
 			if sqliteErr.Code == sqlite3.ErrConstraint {
 				return fmt.Errorf("Class '%s' or label '%s' already exists", class.Name, class.Label)
@@ -165,11 +167,15 @@ func (s *sqlite) cancelSave(classID uint) error {
 	return s.RemoveClass(classID)
 }
 
-func (s *sqlite) saveClassInfo(name, label string) error {
-	query := "INSERT INTO class(name, label) VALUES(?, ?)"
+func (s *sqlite) saveClassInfo(name, label string, isDefault bool) error {
+	query := "INSERT INTO class(name, label, is_default) VALUES(?, ?, ?)"
 	name = strings.ToLower(name)
 	label = strings.ToLower(label)
-	_, err := s.db.Exec(query, name, label)
+	def := 0
+	if isDefault {
+		def = 1
+	}
+	_, err := s.db.Exec(query, name, label, def)
 	return err
 }
 
@@ -237,12 +243,12 @@ func (s *sqlite) saveScripts(classID uint, scripts []*item.Script) error {
 }
 
 func (s *sqlite) LoadClass(classID uint) (*item.Class, error) {
-	name, label, err := s.loadClassInfo(classID)
+	name, label, isDefault, err := s.loadClassInfo(classID)
 	if err != nil {
 		return nil, err
 	}
 
-	class := item.NewClass(name, label)
+	class := item.NewClass(name, label, isDefault)
 
 	folders, err := s.loadFolders(classID)
 	if err != nil {
@@ -301,16 +307,17 @@ func (s *sqlite) LoadClassIDByLabel(label string) (uint, error) {
 	return uint(classID.Int64), nil
 }
 
-func (s *sqlite) loadClassInfo(classID uint) (string, string, error) {
-	query := "SELECT name, label FROM class WHERE class_id = ?"
+func (s *sqlite) loadClassInfo(classID uint) (string, string, bool, error) {
+	query := "SELECT name, label, is_default FROM class WHERE class_id = ?"
 	var name, label sql.NullString
-	if err := s.db.QueryRow(query, classID).Scan(&name, &label); err != nil {
+	var isDefault sql.NullBool
+	if err := s.db.QueryRow(query, classID).Scan(&name, &label, &isDefault); err != nil {
 		if err == sql.ErrNoRows {
-			return "", "", fmt.Errorf("Class '%d' does not exist", classID)
+			return "", "", false, fmt.Errorf("Class '%d' does not exist", classID)
 		}
-		return "", "", err
+		return "", "", false, err
 	}
-	return name.String, label.String, nil
+	return name.String, label.String, isDefault.Bool, nil
 }
 
 func (s *sqlite) loadFolders(classID uint) ([]*item.Folder, error) {
@@ -527,8 +534,9 @@ func (s *sqlite) RemoveProject(projectID uint) error {
 
 func (s *sqlite) SaveStatus(status *item.Status) error {
 	_, err := s.db.Exec(
-		"INSERT INTO project_status(title, comment) VALUES(?, ?)",
+		"INSERT INTO project_status(title, is_default, comment) VALUES(?, ?, ?)",
 		strings.ToLower(status.Title),
+		status.IsDefault,
 		status.Comment,
 	)
 
@@ -550,15 +558,16 @@ func (s *sqlite) UpdateStatus(statusID uint, title, comment string) error {
 }
 
 func (s *sqlite) LoadStatus(statusID uint) (*item.Status, error) {
-	query := "SELECT title, comment FROM project_status WHERE project_status_id = ?"
+	query := "SELECT title, is_default, comment FROM project_status WHERE project_status_id = ?"
 	var title, comment sql.NullString
-	if err := s.db.QueryRow(query, statusID).Scan(&title, &comment); err != nil {
+	var isDefault sql.NullBool
+	if err := s.db.QueryRow(query, statusID).Scan(&title, &isDefault, &comment); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("Status '%d' does not exist", statusID)
 		}
 		return nil, err
 	}
-	return item.NewStatus(statusID, title.String, comment.String), nil
+	return item.NewStatus(statusID, title.String, comment.String, isDefault.Bool), nil
 }
 
 func (s *sqlite) LoadStatusID(title string) (uint, error) {

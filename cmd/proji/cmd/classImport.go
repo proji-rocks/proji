@@ -33,7 +33,7 @@ func init() {
 
 func importClass(config string, svc storage.Service) error {
 	// Import class data
-	class := item.NewClass("", "")
+	class := item.NewClass("", "", false)
 	if err := class.ImportData(config); err != nil {
 		return err
 	}
