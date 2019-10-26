@@ -204,7 +204,6 @@ func TestStatus(t *testing.T) {
 	// Try to save a status that already exists; should fail
 	err = svc.SaveStatus(badStatus)
 	assert.Error(t, err)
-	badStatus = nil
 
 	// Load the status ID
 	id, err := svc.LoadStatusID(status.Title)
