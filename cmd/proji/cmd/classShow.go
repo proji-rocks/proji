@@ -53,6 +53,9 @@ func showClass(label string, svc storage.Service) error {
 	if err != nil {
 		return nil
 	}
+	if class.IsDefault {
+		return fmt.Errorf("Default classes can not be shown")
+	}
 
 	showInfo(class.Name, class.Label)
 	showFolders(class.Folders)
@@ -68,7 +71,7 @@ func showAllClasses(svc storage.Service) error {
 	}
 
 	for _, class := range classes {
-		if class.ID == 1 {
+		if class.IsDefault {
 			continue
 		}
 		showInfo(class.Name, class.Label)

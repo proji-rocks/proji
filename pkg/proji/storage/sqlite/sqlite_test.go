@@ -11,7 +11,6 @@ import (
 )
 
 func TestClass(t *testing.T) {
-	defaultClassNames := []string{"unknown"}
 	dbPath := "/tmp/proji.sqlite3"
 	svc, err := sqlite.New(dbPath)
 	defer os.Remove(dbPath)
@@ -20,7 +19,8 @@ func TestClass(t *testing.T) {
 
 	className := "testclass1"
 	classLabel := "tc1"
-	class := item.NewClass(className, classLabel)
+	isDefault := false
+	class := item.NewClass(className, classLabel, isDefault)
 	assert.NotNil(t, class)
 
 	// Test SaveClass
@@ -40,9 +40,9 @@ func TestClass(t *testing.T) {
 
 	// Save more classes and try to load them all
 	goodClasses := make([]*item.Class, 0)
-	goodClasses = append(goodClasses, item.NewClass("testclass2", "tc2"))
-	goodClasses = append(goodClasses, item.NewClass("testclass3", "tc3"))
-	goodClasses = append(goodClasses, item.NewClass("testclass4", "tc4"))
+	goodClasses = append(goodClasses, item.NewClass("testclass2", "tc2", false))
+	goodClasses = append(goodClasses, item.NewClass("testclass3", "tc3", false))
+	goodClasses = append(goodClasses, item.NewClass("testclass4", "tc4", false))
 
 	for _, goodClass := range goodClasses {
 		err = svc.SaveClass(goodClass)
@@ -55,21 +55,23 @@ func TestClass(t *testing.T) {
 
 	goodClasses = append([]*item.Class{testClass}, goodClasses...)
 	classes, err := svc.LoadAllClasses()
+
+	// Count default classes
+	numDefClasses := 0
+	for _, class := range classes {
+		if class.IsDefault {
+			numDefClasses++
+		}
+	}
+
 	assert.NoError(t, err)
 	assert.NotNil(t, classes)
-	assert.Equal(t, len(goodClasses), len(classes)-len(defaultClassNames)) // Subtract the number of default classes
+	assert.Equal(t, len(goodClasses), len(classes)-numDefClasses) // Subtract the number of default classes
 
 	idx := 0
 	for _, class := range classes {
 		// Skip default classes
-		isDefault := false
-		for _, name := range defaultClassNames {
-			if class.Name == name {
-				isDefault = true
-				break
-			}
-		}
-		if isDefault {
+		if class.IsDefault {
 			idx--
 			continue
 		}
@@ -80,16 +82,19 @@ func TestClass(t *testing.T) {
 	// Test unique constraint for name and label
 	badClasses := []*item.Class{
 		&item.Class{
-			Name:  className,
-			Label: classLabel,
+			Name:      className,
+			Label:     classLabel,
+			IsDefault: isDefault,
 		},
 		&item.Class{
-			Name:  className,
-			Label: "x",
+			Name:      className,
+			Label:     "x",
+			IsDefault: isDefault,
 		},
 		&item.Class{
-			Name:  "myNewClass",
-			Label: classLabel,
+			Name:      "myNewClass",
+			Label:     classLabel,
+			IsDefault: isDefault,
 		},
 	}
 
@@ -115,7 +120,7 @@ func TestProject(t *testing.T) {
 	projectsInMem := make([]*item.Project, 0)
 
 	// Create a temporary class
-	class := item.NewClass("testclass", "tc")
+	class := item.NewClass("testclass", "tc", false)
 	err = svc.SaveClass(class)
 	assert.NoError(t, err)
 
@@ -194,8 +199,8 @@ func TestStatus(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, svc)
 
-	status := item.NewStatus(0, "test", "This is a test status.")
-	badStatus := item.NewStatus(1, "active", "This status should already exist.")
+	status := item.NewStatus(0, "test", "This is a test status.", false)
+	badStatus := item.NewStatus(1, "active", "This status should already exist.", false)
 
 	// Try to save the new status; should be successful
 	err = svc.SaveStatus(status)
@@ -230,7 +235,7 @@ func TestStatus(t *testing.T) {
 	status.ID = id
 
 	// Add another status, then try to load and remove all
-	status2 := item.NewStatus(0, "test2", "This is the second test status.")
+	status2 := item.NewStatus(0, "test2", "This is the second test status.", false)
 	err = svc.SaveStatus(status2)
 	assert.NoError(t, err)
 	id, err = svc.LoadStatusID(status2.Title)

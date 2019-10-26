@@ -11,14 +11,15 @@ import (
 
 func TestNewClass(t *testing.T) {
 	classExp := &item.Class{
-		Name:    "test",
-		Label:   "tst",
-		Folders: []*item.Folder{},
-		Files:   []*item.File{},
-		Scripts: []*item.Script{},
+		Name:      "test",
+		Label:     "tst",
+		IsDefault: false,
+		Folders:   []*item.Folder{},
+		Files:     []*item.File{},
+		Scripts:   []*item.Script{},
 	}
 
-	classAct := item.NewClass("test", "tst")
+	classAct := item.NewClass("test", "tst", false)
 	assert.Equal(t, classExp, classAct)
 }
 
@@ -30,8 +31,9 @@ func TestClassImportData(t *testing.T) {
 	}{
 		{
 			configName: "../../../../assets/examples/example-class-export.toml", class: &item.Class{
-				Name:  "my-example",
-				Label: "mex",
+				Name:      "my-example",
+				Label:     "mex",
+				IsDefault: false,
 				Folders: []*item.Folder{
 					&item.Folder{Destination: "src/", Template: ""},
 					&item.Folder{Destination: "docs/", Template: ""},
@@ -59,18 +61,19 @@ func TestClassImportData(t *testing.T) {
 		{
 			configName: "example.yaml",
 			class: &item.Class{
-				Name:    "",
-				Label:   "",
-				Folders: []*item.Folder{},
-				Files:   []*item.File{},
-				Scripts: []*item.Script{},
+				Name:      "",
+				Label:     "",
+				IsDefault: false,
+				Folders:   []*item.Folder{},
+				Files:     []*item.File{},
+				Scripts:   []*item.Script{},
 			},
 			err: errors.New(""),
 		},
 	}
 
 	for _, test := range tests {
-		c := item.NewClass("", "")
+		c := item.NewClass("", "", false)
 		err := c.ImportData(test.configName)
 		assert.IsType(t, test.err, err)
 		assert.Equal(t, test.class, c)
@@ -85,8 +88,9 @@ func TestClassExport(t *testing.T) {
 	}{
 		{
 			class: &item.Class{
-				Name:  "example",
-				Label: "exp",
+				Name:      "example",
+				Label:     "exp",
+				IsDefault: false,
 				Folders: []*item.Folder{
 					&item.Folder{Destination: "exampleFolder/", Template: ""},
 					&item.Folder{Destination: "foo/bar/", Template: ""},

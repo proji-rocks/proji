@@ -62,6 +62,9 @@ func exportClass(label string, svc storage.Service) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if class.IsDefault {
+		return "", fmt.Errorf("Default classes can not be exported")
+	}
 	return class.Export()
 }
 
@@ -72,6 +75,9 @@ func exportAllClasses(svc storage.Service) error {
 	}
 
 	for _, class := range classes {
+		if class.IsDefault {
+			continue
+		}
 		_, err = class.Export()
 		if err != nil {
 			return err

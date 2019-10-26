@@ -10,8 +10,8 @@ import (
 )
 
 func TestNewProject(t *testing.T) {
-	class := item.NewClass("testclass", "tc")
-	status := item.NewStatus(9999, "test", "This is a test status.")
+	class := item.NewClass("testclass", "tc", false)
+	status := item.NewStatus(9999, "test", "This is a test status.", false)
 
 	projExp := &item.Project{
 		ID:          99,
