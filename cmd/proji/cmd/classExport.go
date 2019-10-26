@@ -11,6 +11,7 @@ import (
 )
 
 var exampleDest string
+var exportAll bool
 
 var classExportCmd = &cobra.Command{
 	Use:   "export LABEL [LABEL...]",
@@ -20,9 +21,20 @@ var classExportCmd = &cobra.Command{
 			return exportExample(exampleDest, projiEnv.ConfPath)
 		}
 
+		if exportAll {
+			err := exportAllClasses(projiEnv.Svc)
+			if err != nil {
+				fmt.Printf("> Export of all classes failed: %v\n", err)
+				return err
+			}
+			fmt.Println("> All classes were successfully exported")
+			return nil
+		}
+
 		if len(args) < 1 {
 			return fmt.Errorf("Missing class label")
 		}
+
 		for _, label := range args {
 			file, err := exportClass(label, projiEnv.Svc)
 			if err != nil {
@@ -38,6 +50,7 @@ var classExportCmd = &cobra.Command{
 func init() {
 	classCmd.AddCommand(classExportCmd)
 	classExportCmd.Flags().StringVarP(&exampleDest, "example", "e", "", "Export an example")
+	classExportCmd.Flags().BoolVarP(&exportAll, "all", "a", false, "Export all classes")
 }
 
 func exportClass(label string, svc storage.Service) (string, error) {
@@ -50,6 +63,21 @@ func exportClass(label string, svc storage.Service) (string, error) {
 		return "", err
 	}
 	return class.Export()
+}
+
+func exportAllClasses(svc storage.Service) error {
+	classes, err := svc.LoadAllClasses()
+	if err != nil {
+		return err
+	}
+
+	for _, class := range classes {
+		_, err = class.Export()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func exportExample(destFolder, confPath string) error {

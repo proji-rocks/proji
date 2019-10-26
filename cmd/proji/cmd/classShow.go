@@ -11,10 +11,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var showAll bool
+
 var classShowCmd = &cobra.Command{
 	Use:   "show LABEL [LABEL...]",
 	Short: "Show details about one or more classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if showAll {
+			err := showAllClasses(projiEnv.Svc)
+			if err != nil {
+				fmt.Printf("> Showing of all classes failed: %v\n", err)
+				return err
+			}
+			return nil
+		}
+
 		if len(args) < 1 {
 			return fmt.Errorf("Missing class label")
 		}
@@ -30,6 +41,7 @@ var classShowCmd = &cobra.Command{
 
 func init() {
 	classCmd.AddCommand(classShowCmd)
+	classShowCmd.Flags().BoolVarP(&showAll, "all", "a", false, "Show all classes")
 }
 
 func showClass(label string, svc storage.Service) error {
@@ -42,11 +54,28 @@ func showClass(label string, svc storage.Service) error {
 		return nil
 	}
 
-	// fmt.Println(helper.ProjectHeader(c.Name))
 	showInfo(class.Name, class.Label)
 	showFolders(class.Folders)
 	showFiles(class.Files)
 	showScripts(class.Scripts)
+	return nil
+}
+
+func showAllClasses(svc storage.Service) error {
+	classes, err := svc.LoadAllClasses()
+	if err != nil {
+		return err
+	}
+
+	for _, class := range classes {
+		if class.ID == 1 {
+			continue
+		}
+		showInfo(class.Name, class.Label)
+		showFolders(class.Folders)
+		showFiles(class.Files)
+		showScripts(class.Scripts)
+	}
 	return nil
 }
 
