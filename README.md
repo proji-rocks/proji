@@ -15,11 +15,9 @@
 
 </div>
 
----
+* * *
 
-<p align="center">Proji is a simple and fast project creator and manager.
-    <br>
-</p>
+<p align="center">Proji is a simple and fast project creator and manager.<br></p>
 
 ## Table Of Contents
 
@@ -40,9 +38,9 @@
 
 ## About <a name = "about"></a>
 
-I always endeavored to structure my projects as consistently as possible. I do not want to switch from one project directory to another and have to get used to it each time before I can even start working. This means that I always would have to create the same folders and files for each project directory of a specific topic. However, this costs a lot of time and keystrokes. The solution would be to automate the creation of topic-specific project directories and that's exactly what proji does.
+Proji helps you to quickly and easily start new projects. With a single command, it creates complex project directories in seconds, which would normally take you minutes to fully set up. Proji creates directories and files for you that are either completely new or copied from a template. Why should you, for example, write a completely new ReadMe for every project, if you can use a template that you then only have to adapt to your project? Moreover, after creating the project directory for you, proji can also execute scripts that initialize tools relevant to your work and project (for example, git).
 
-My goals with proji are to save time when creating new projects and to have consistently structured project directories.
+Proji boosts your efficiency, simplifies your workflow and improves the structure of your projects directories.
 
 <p align="left">
   <a href="" rel="noopener">
@@ -51,7 +49,7 @@ My goals with proji are to save time when creating new projects and to have cons
 
 ## Getting Started <a name = "getting_started"></a>
 
-Proji is currently only supported under linux. You can either download a pre-compiled binary from the latest [release](https://github.com/nikoksr/proji/releases) or install it from source.
+Proji is currently only supported under linux and a work in progress. You can either download a pre-compiled binary from the latest [release](https://github.com/nikoksr/proji/releases) or install it from source.
 
 Might work under Mac but it's not tested yet.
 
@@ -95,7 +93,7 @@ Proji does support tab completion but at the moment you have to set it up yourse
 
 #### Bash
 
-For this to work you first need to install and enable [bash_completion](https://github.com/scop/bash-completion#installation).
+For tab-completion under bash you first need to install and enable [bash_completion](https://github.com/scop/bash-completion#installation).
 
 You now need to ensure that the proji completion script gets sourced in all your shell sessions.
 
@@ -125,13 +123,13 @@ That would not be too bad if you only create a new project every few weeks or mo
 
 ### Setting up a Class <a name = "setting_up_a_class"></a>
 
-To solve this problem with proji, we first have to create a so-called class. A class in proji represents the structure and behavior for projects of a particular topic (python in this example). It serves as a template through which proji will create new projects for you in the future.
+To solve this problem with proji, we first have to create a so-called class. A class in proji defines the structure and behavior for projects of a particular topic (python in this example). It serves as a template through which proji will create new projects for you in the future.
 
-In our case, we want to have the same basic structure for our python projects in the future. So we'll create a class for python. This class will determine which directories and files we always want to get created by proji and which scripts proji should execute after project generation, for example a script for git which automatically initializes the project, creates several branches and executes a first commit.
+In our case, we want to have the same basic structure for our python projects in the future. So we'll create a class for python. This class will determine which directories and files we always want to get created by proji and which scripts proji should execute after project generation, for example a script for git which automatically initializes the project, creates a develop branch and makes a first commit.
 
-Note that folders and files can either be created new and empty or be copied from a so-called template. In the config folder you can find a template folder (~/.config/proji/templates/) in which you can store folders and files that you want to use as templates. In our example we could put a template python file into this folder. The file could contain a very basic python script something like a 'hello world' program. We can tell proji to always copy this file into our newly created python projects. The same goes for folders. The goal of the templates is to save you some more time.
+Note that folders and files can either be created new and empty or be copied from a so-called template. In the config folder you can find a template folder (`~/.config/proji/templates/`) in which you can store folders and files that you want to use as templates. In our example we could put a template python file into this folder. The file could contain a very basic python script something like a 'hello world' program. We can tell proji to always copy this file into our newly created python projects. The same goes for folders. The goal of the templates is to save you some more time.
 
-In addition, we can assign scripts to a proji class which will be executed in a desired order after the project directory has been created. Scripts must be saved under `~/.config/proji/scripts/` and can then be used by name in the class.
+In addition, we can assign scripts to a proji class which will be executed in a desired order after the project directory has been created. Scripts must be saved under `~/.config/proji/scripts/` and can then be referenced by name in the class config.
 
 #### Structure of a Class
 
@@ -147,7 +145,7 @@ There are two ways to create a new class:
 
 **1. Config file (recommended)**
 
-Proji offers the possibility to export and import classes through config files. The easiest way would be to export the proji sample config and then adapt it to the needs of the class you want to create. To do so execute the command `$ proji class export --example .`.
+Proji offers the possibility to export and import classes through config files. The easiest way to create a new class would be to export the proji sample config and then adapt it to the needs of the class you want to create. To do so execute the command `$ proji class export --example .`.
 
 Proji creates the file [proji-class-example.toml](configs/example-class-export.toml) in the current working directory. If you open this file in a text editor, you will find a richly annotated configuration of an example class. This config should then be adapted according to your needs.
 
@@ -165,7 +163,7 @@ After the class has been created or imported, we can use the command `$ proji cl
 
 ### Creating our first projects <a name = "creating_our_first_projects"></a>
 
-Now that we have created our python class in proji, we can use it to easily create new projects. A class is created once and is then reused by proji over and over again, and although the process of creating a class might initially seem a bit complex, you will very soon start saving a lot of time and keystrokes and will improve the structure of your projects.
+Now that we have created our python class in proji, we can use it to easily create new projects. A class is created once and is then reused by proji over and over again, and although the process of creating a class might initially seem a bit complex, you will very soon start saving a lot of time and keystrokes and will improve the general structure of your projects.
 
 Assuming our class has been assigned the label `py`, we can create one or more projects with the command `$ proji create py my-py-project-1 my-py-project-2 my-py-project-3`.
 
@@ -186,23 +184,23 @@ Help for all commands is also available with `$ proji help`.
 
 -   Add a class: `$ proji class add NAME`
 
--   Remove a class: `$ proji class rm LABEL [LABEL...]`
+-   Remove one or more classes: `$ proji class rm LABEL [LABEL...]`
 
--   Import a class: `$ proji class import FILE [FILE...]`
+-   Import one or more classes: `$ proji class import FILE [FILE...]`
 
--   Export a class: `$ proji class export LABEL [LABEL...]`
+-   Export one or more classes: `$ proji class export LABEL [LABEL...]`
 
 -   List all classes: `$ proji class ls`
 
--   Show class details: `$ proji class show LABEL [LABEL...]`
+-   Show details of one or more classes: `$ proji class show LABEL [LABEL...]`
 
 ### Project <a name = "au_project"></a>
 
--   Create a project: `$ proji create LABEL NAME [NAME...]`
+-   Create one or more projects: `$ proji create LABEL NAME [NAME...]`
 
 -   Add a project: `$ proji add LABEL PATH STATUS`
 
--   Remove a project: `$ proji rm ID [ID...]`
+-   Remove one or more projects: `$ proji rm ID [ID...]`
 
 -   Set new project path: `$ proji set path PATH PROJECT-ID`
 
@@ -214,9 +212,9 @@ Help for all commands is also available with `$ proji help`.
 
 ### Status <a name = "au_status"></a>
 
--   Add a status: `$ proji status add STATUS [STATUS...]`
+-   Add one or more statuses: `$ proji status add STATUS [STATUS...]`
 
--   Remove a status: `$ proji status rm ID [ID...]`
+-   Remove one or more statuses: `$ proji status rm ID [ID...]`
 
 -   List all statuses: `$ proji status ls`
 
