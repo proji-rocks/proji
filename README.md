@@ -51,7 +51,7 @@ Common way:
 
 <p align="center">
   <a href="" rel="noopener">
-    <img height=250 src="assets/gifs/regular-project-demo.gif" alt="Create a go example project">
+    <img src="assets/gifs/regular-project-demo.gif" alt="Create a go example project">
   </a>
 </p>
 
@@ -59,11 +59,11 @@ Proji:
 
 <p align="center">
   <a href="" rel="noopener">
-    <img height=250 src="assets/gifs/proji-project-demo.gif" alt="Create a go project">
+    <img src="assets/gifs/proji-project-demo.gif" alt="Create a go project">
   </a>
 </p>
 
-As you can see proji would have saved you about 1:15 minutes and 230 keystrokes. And remember, this would have been only for one project and it would not have been not a very complex one either.
+As you can see **proji would have saved you about 1:15 minutes and 230 keystrokes**. And remember, this would have been only for one project and it would not have been not a very complex one either.
 
 ## Getting Started <a name = "getting_started"></a>
 
