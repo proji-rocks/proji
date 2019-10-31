@@ -41,6 +41,8 @@
 
 Proji helps you to quickly and easily start new projects. With a single command, it creates complex project directories in seconds, which would normally take you minutes to fully set up. Proji creates directories and files for you that are either completely new or copied from a template. Why should you, for example, write a completely new ReadMe for every project, if you can use a template that you then only have to adapt to your project? Moreover, after creating the project directory for you, proji can also execute scripts that initialize tools relevant to your work and project (for example, git).
 
+Proji is not just for software developers, but for anyone who regularly creates new projects and wants to save time and effort. Developers, authors, artists or just for general organization... it doesn't matter, because you define what you need.
+
 Proji boosts your efficiency, simplifies your workflow and improves the structure of your projects directories.
 
 ## Demo <a name = "demo"></a>
