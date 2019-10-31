@@ -165,7 +165,7 @@ There are two ways to create a new class:
 
 Proji offers the possibility to export and import classes through config files. The easiest way to create a new class would be to export the proji sample config and then adapt it to the needs of the class you want to create. To do so execute the command `$ proji class export --example .`.
 
-Proji creates the file [proji-class-example.toml](configs/example-class-export.toml) in the current working directory. If you open this file in a text editor, you will find a richly annotated configuration of an example class. This config should then be adapted according to your needs.
+Proji creates the file [proji-class-example.toml](assets/examples/example-class-export.toml) in the current working directory. If you open this file in a text editor, you will find a richly annotated configuration of an example class. This config should then be adapted according to your needs.
 
 Once the config has been edited and saved, it can be imported using the `$ proji class import proji-class-example.toml` (or whatever you called the file) command. Proji then creates a new class based on the imported config.
 
