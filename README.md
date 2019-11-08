@@ -239,7 +239,6 @@ Help for all commands is also available with `$ proji help`.
 
 -   List all statuses: `$ proji status ls`
 
-
 ## Contributing <a name = "contributing"></a>
 
 Contributions to the project are highly appreciated. Take a look at the [code of conduct](./CODE_OF_CONDUCT.md) and at the [contribution instructions](./CONTRIBUTING.md) and you should be good to go.
