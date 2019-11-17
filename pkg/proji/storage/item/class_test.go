@@ -74,7 +74,7 @@ func TestClassImportData(t *testing.T) {
 
 	for _, test := range tests {
 		c := item.NewClass("", "", false)
-		err := c.ImportData(test.configName)
+		err := c.ImportFromConfig(test.configName)
 		assert.IsType(t, test.err, err)
 		assert.Equal(t, test.class, c)
 	}

@@ -32,8 +32,8 @@ func NewClass(name, label string, isDefault bool) *Class {
 	}
 }
 
-// ImportData imports class data from a given config file.
-func (c *Class) ImportData(configName string) error {
+// ImportFromConfig imports class data from a given config file.
+func (c *Class) ImportFromConfig(configName string) error {
 	// Validate that it's a toml file
 	if !strings.HasSuffix(configName, ".toml") {
 		return fmt.Errorf("Import file has to be of type 'toml'")
