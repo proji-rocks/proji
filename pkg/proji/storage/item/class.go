@@ -73,3 +73,56 @@ func (c *Class) Export() (string, error) {
 	defer conf.Close()
 	return confName, toml.NewEncoder(conf).Encode(configTxt)
 }
+
+func pickLabel(className string) string {
+	nameLen := len(className)
+	if nameLen < 2 {
+		return strings.ToLower(className)
+	}
+
+	label := ""
+	maxLabelLen := 4
+
+	// Create label by separators
+	seps := []string{"-", "_", ".", " "}
+	parts := make([]string, 0)
+
+	for _, d := range seps {
+		parts = strings.Split(className, d)
+		if len(parts) > 1 {
+			break
+		}
+	}
+
+	if len(parts) > 1 {
+		for i, part := range parts {
+			if i > maxLabelLen {
+				break
+			}
+			label += string(part[0])
+		}
+		return strings.ToLower(label)
+	}
+
+	// Create label by uppercase
+	if !unicode.IsUpper(rune(className[0])) {
+		className = string(byte(unicode.ToUpper(rune(className[0])))) + className[1:]
+	}
+
+	re := regexp.MustCompile(`[A-Z][^A-Z]*`)
+	parts = re.FindAllString(className, -1)
+
+	if len(parts) > 1 {
+		for i, part := range parts {
+			if i > maxLabelLen {
+				break
+			}
+			label += string(part[0])
+		}
+		return strings.ToLower(label)
+	}
+
+	// Pick first, middle and last byte in string
+	label = string(className[0]) + string(className[nameLen/2]) + string(className[nameLen-1])
+	return strings.ToLower(label)
+}
