@@ -3,7 +3,13 @@ package item
 import (
 	"fmt"
 	"os"
+	"path"
+	"path/filepath"
+	"regexp"
 	"strings"
+	"unicode"
+
+	"github.com/nikoksr/proji/pkg/helper"
 
 	"github.com/BurntSushi/toml"
 )
@@ -53,6 +59,47 @@ func (c *Class) ImportFromConfig(configName string) error {
 	return err
 }
 
+// ImportFromDirectory imports a class from a given directory. Proji will copy the
+// structure and content of the directory and create a class based on it.
+func (c *Class) ImportFromDirectory(directory string) error {
+	// Validate that the directory exists
+	if !helper.DoesPathExist(directory) {
+		return fmt.Errorf("Given directory does not exist")
+	}
+
+	// Set class name from directory base name
+	base := path.Base(directory)
+	c.Name = base
+	c.Label = pickLabel(c.Name)
+
+	// This map of directories that should be skipped might be moved to the main config
+	// file so that it's editable and extensible.
+	skipDirs := map[string]bool{".git": true, ".env": true}
+
+	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
+		// Skip base directory
+		if directory == path {
+			return nil
+		}
+		// Extract relative path
+		relPath, err := filepath.Rel(base, path)
+		if err != nil {
+			return err
+		}
+		// Add file or folder to class
+		if info.IsDir() {
+			c.Folders = append(c.Folders, &Folder{Destination: relPath, Template: ""})
+			if _, ok := skipDirs[info.Name()]; ok {
+				return filepath.SkipDir
+			}
+		} else {
+			c.Files = append(c.Files, &File{Destination: relPath, Template: ""})
+		}
+		return nil
+	})
+	return err
+}
+
 // Export exports a given class to a toml config file
 func (c *Class) Export() (string, error) {
 	// Create config string
@@ -83,7 +130,7 @@ func pickLabel(className string) string {
 	label := ""
 	maxLabelLen := 4
 
-	// Create label by separators
+	// Try to create label by separators
 	seps := []string{"-", "_", ".", " "}
 	parts := make([]string, 0)
 
@@ -104,7 +151,7 @@ func pickLabel(className string) string {
 		return strings.ToLower(label)
 	}
 
-	// Create label by uppercase
+	// Try to create label by uppercase letters
 	if !unicode.IsUpper(rune(className[0])) {
 		className = string(byte(unicode.ToUpper(rune(className[0])))) + className[1:]
 	}
@@ -122,7 +169,7 @@ func pickLabel(className string) string {
 		return strings.ToLower(label)
 	}
 
-	// Pick first, middle and last byte in string
+	// Pick first, mid and last byte in string
 	label = string(className[0]) + string(className[nameLen/2]) + string(className[nameLen-1])
 	return strings.ToLower(label)
 }
