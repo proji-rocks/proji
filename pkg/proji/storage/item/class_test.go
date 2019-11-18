@@ -23,7 +23,7 @@ func TestNewClass(t *testing.T) {
 	assert.Equal(t, classExp, classAct)
 }
 
-func TestClassImportData(t *testing.T) {
+func TestClassImportFromConfig(t *testing.T) {
 	tests := []struct {
 		configName string
 		class      *item.Class
@@ -76,6 +76,70 @@ func TestClassImportData(t *testing.T) {
 		c := item.NewClass("", "", false)
 		err := c.ImportFromConfig(test.configName)
 		assert.IsType(t, test.err, err)
+		assert.Equal(t, test.class, c)
+	}
+}
+
+func TestClassImportFromDirectory(t *testing.T) {
+	tests := []struct {
+		baseName string
+		folders  []*item.Folder
+		files    []*item.File
+		class    *item.Class
+		err      error
+	}{
+		{
+			baseName: "new-project",
+			folders: []*item.Folder{
+				&item.Folder{Destination: "new-project", Template: ""},
+				&item.Folder{Destination: "new-project/test", Template: ""},
+				&item.Folder{Destination: "new-project/cmd", Template: ""},
+				&item.Folder{Destination: "new-project/cmd/base", Template: ""},
+				&item.Folder{Destination: "new-project/docs", Template: ""},
+			},
+			files: []*item.File{
+				&item.File{Destination: "new-project/test.txt", Template: ""},
+				&item.File{Destination: "new-project/README.md", Template: ""},
+				&item.File{Destination: "new-project/cmd/main.go", Template: ""},
+				&item.File{Destination: "new-project/test/main_test.go", Template: ""},
+			},
+			class: &item.Class{
+				Name:      "new-project",
+				Label:     "np",
+				IsDefault: false,
+				Folders: []*item.Folder{
+					&item.Folder{Destination: "cmd", Template: ""},
+					&item.Folder{Destination: "cmd/base", Template: ""},
+					&item.Folder{Destination: "docs", Template: ""},
+					&item.Folder{Destination: "test", Template: ""},
+				},
+				Files: []*item.File{
+					&item.File{Destination: "README.md", Template: ""},
+					&item.File{Destination: "cmd/main.go", Template: ""},
+					&item.File{Destination: "test/main_test.go", Template: ""},
+					&item.File{Destination: "test.txt", Template: ""},
+				},
+				Scripts: []*item.Script{},
+			},
+			err: nil,
+		},
+	}
+
+	for _, test := range tests {
+		for _, dir := range test.folders {
+			assert.NoError(t, os.Mkdir(dir.Destination, 0755))
+		}
+		for _, file := range test.files {
+			_, err := os.Create(file.Destination)
+			assert.NoError(t, err)
+		}
+		defer os.RemoveAll(test.baseName)
+		c := item.NewClass("", "", false)
+		assert.NoError(t, c.ImportFromDirectory(test.baseName))
+		conf, err := c.Export()
+		defer os.Remove(conf)
+		assert.NoError(t, err)
+		assert.NoError(t, c.ImportFromConfig(conf))
 		assert.Equal(t, test.class, c)
 	}
 }
