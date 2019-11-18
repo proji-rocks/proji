@@ -3,25 +3,33 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
 	"github.com/spf13/cobra"
 )
 
-var directories, configs []string
+var directories, configs, exclude []string
 
 var classImportCmd = &cobra.Command{
 	Use:   "import FILE [FILE...]",
 	Short: "Import one or more classes",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if len(configs) < 1 && len(directories) < 1 {
-			return fmt.Errorf("No config or directory path was given")
+			return fmt.Errorf("No flag was passed. You have to pass the '--config' or '--directory' flag at least once")
 		}
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Import configs
-		for _, config := range configs {
+		// Concat the two arrays so that '... import --config *.toml' is a valid command.
+		// Without appending the args, proji would only use the first toml-file and not all of
+		// them as intended with the '*'.
+		// TODO: This section should be optimized and cleaned up.
+		for _, config := range append(configs, args...) {
+			if helper.IsInSlice(exclude, config) {
+				continue
+			}
 			if err := importClassFromConfig(config, projiEnv.Svc); err != nil {
 				fmt.Printf("> Import of '%s' failed: %v\n", config, err)
 				continue
@@ -30,14 +38,17 @@ var classImportCmd = &cobra.Command{
 		}
 
 		// Import directories
-		for _, config := range directories {
-			if err := importClassFromConfig(config, projiEnv.Svc); err != nil {
-				fmt.Printf("> Import of '%s' failed: %v\n", config, err)
+		for _, directory := range directories {
+			if helper.IsInSlice(exclude, directory) {
 				continue
 			}
-			fmt.Printf("> '%s' was successfully imported\n", config)
+			confName, err := importClassFromDirectory(directory, projiEnv.Svc)
+			if err != nil {
+				fmt.Printf("> Import of '%s' failed: %v\n", directory, err)
+				continue
+			}
+			fmt.Printf("> Directory '%s' was successfully exported to '%s'\n", directory, confName)
 		}
-
 		return nil
 	},
 }
@@ -50,6 +61,9 @@ func init() {
 
 	classImportCmd.Flags().StringSliceVar(&configs, "config", []string{}, "import a class from a config file")
 	classImportCmd.MarkFlagFilename("config")
+
+	classImportCmd.Flags().StringSliceVar(&exclude, "exclude", []string{}, "files/folders to exclude from import")
+	classImportCmd.MarkFlagFilename("exclude")
 }
 
 func importClassFromConfig(config string, svc storage.Service) error {
@@ -61,6 +75,11 @@ func importClassFromConfig(config string, svc storage.Service) error {
 	return svc.SaveClass(class)
 }
 
-func importClassFromDirectory(directory string, svc storage.Service) error {
-	return nil
+func importClassFromDirectory(directory string, svc storage.Service) (string, error) {
+	// Import class data
+	class := item.NewClass("", "", false)
+	if err := class.ImportFromDirectory(directory); err != nil {
+		return "", err
+	}
+	return class.Export()
 }
