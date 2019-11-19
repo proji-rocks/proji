@@ -21,7 +21,9 @@ jobs:
       run: |
         go get -v -t -d ./...
     - name: Setup config directory
-      run: ./install.sh
+      run: |
+        ./install.sh
+        touch ~/.config/proji/templates/README.md
     - name: Run go vet
       run: go vet ./...
     - name: Run go test
