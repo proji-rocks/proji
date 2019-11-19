@@ -56,6 +56,14 @@ func (c *Class) ImportFromConfig(configName string) error {
 
 	// Decode the file
 	_, err = toml.DecodeFile(configName, &c)
+
+	if len(c.Name) < 1 {
+		return fmt.Errorf("Name cannot be an empty string")
+	}
+	if len(c.Label) < 1 {
+		return fmt.Errorf("Label cannot be an empty string")
+	}
+
 	return err
 }
 
