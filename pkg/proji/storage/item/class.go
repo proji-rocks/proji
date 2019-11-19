@@ -3,7 +3,13 @@ package item
 import (
 	"fmt"
 	"os"
+	"path"
+	"path/filepath"
+	"regexp"
 	"strings"
+	"unicode"
+
+	"github.com/nikoksr/proji/pkg/helper"
 
 	"github.com/BurntSushi/toml"
 )
@@ -32,8 +38,8 @@ func NewClass(name, label string, isDefault bool) *Class {
 	}
 }
 
-// ImportData imports class data from a given config file.
-func (c *Class) ImportData(configName string) error {
+// ImportFromConfig imports class data from a given config file.
+func (c *Class) ImportFromConfig(configName string) error {
 	// Validate that it's a toml file
 	if !strings.HasSuffix(configName, ".toml") {
 		return fmt.Errorf("Import file has to be of type 'toml'")
@@ -50,6 +56,47 @@ func (c *Class) ImportData(configName string) error {
 
 	// Decode the file
 	_, err = toml.DecodeFile(configName, &c)
+	return err
+}
+
+// ImportFromDirectory imports a class from a given directory. Proji will copy the
+// structure and content of the directory and create a class based on it.
+func (c *Class) ImportFromDirectory(directory string) error {
+	// Validate that the directory exists
+	if !helper.DoesPathExist(directory) {
+		return fmt.Errorf("Given directory does not exist")
+	}
+
+	// Set class name from directory base name
+	base := path.Base(directory)
+	c.Name = base
+	c.Label = pickLabel(c.Name)
+
+	// This map of directories that should be skipped might be moved to the main config
+	// file so that it's editable and extensible.
+	skipDirs := map[string]bool{".git": true, ".env": true}
+
+	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
+		// Skip base directory
+		if directory == path {
+			return nil
+		}
+		// Extract relative path
+		relPath, err := filepath.Rel(base, path)
+		if err != nil {
+			return err
+		}
+		// Add file or folder to class
+		if info.IsDir() {
+			c.Folders = append(c.Folders, &Folder{Destination: relPath, Template: ""})
+			if _, ok := skipDirs[info.Name()]; ok {
+				return filepath.SkipDir
+			}
+		} else {
+			c.Files = append(c.Files, &File{Destination: relPath, Template: ""})
+		}
+		return nil
+	})
 	return err
 }
 
@@ -72,4 +119,57 @@ func (c *Class) Export() (string, error) {
 	}
 	defer conf.Close()
 	return confName, toml.NewEncoder(conf).Encode(configTxt)
+}
+
+func pickLabel(className string) string {
+	nameLen := len(className)
+	if nameLen < 2 {
+		return strings.ToLower(className)
+	}
+
+	label := ""
+	maxLabelLen := 4
+
+	// Try to create label by separators
+	seps := []string{"-", "_", ".", " "}
+	parts := make([]string, 0)
+
+	for _, d := range seps {
+		parts = strings.Split(className, d)
+		if len(parts) > 1 {
+			break
+		}
+	}
+
+	if len(parts) > 1 {
+		for i, part := range parts {
+			if i > maxLabelLen {
+				break
+			}
+			label += string(part[0])
+		}
+		return strings.ToLower(label)
+	}
+
+	// Try to create label by uppercase letters
+	if !unicode.IsUpper(rune(className[0])) {
+		className = string(byte(unicode.ToUpper(rune(className[0])))) + className[1:]
+	}
+
+	re := regexp.MustCompile(`[A-Z][^A-Z]*`)
+	parts = re.FindAllString(className, -1)
+
+	if len(parts) > 1 {
+		for i, part := range parts {
+			if i > maxLabelLen {
+				break
+			}
+			label += string(part[0])
+		}
+		return strings.ToLower(label)
+	}
+
+	// Pick first, mid and last byte in string
+	label = string(className[0]) + string(className[nameLen/2]) + string(className[nameLen-1])
+	return strings.ToLower(label)
 }

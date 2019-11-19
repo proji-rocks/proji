@@ -51,3 +51,13 @@ func WantTo(question string) bool {
 		}
 	}
 }
+
+// IsInSlice returns true if a given string is found in the given slice and false if not.
+func IsInSlice(slice []string, val string) bool {
+	for _, item := range slice {
+		if item == val {
+			return true
+		}
+	}
+	return false
+}
