@@ -135,7 +135,7 @@ func TestClassImportFromDirectory(t *testing.T) {
 		}
 		defer os.RemoveAll(test.baseName)
 		c := item.NewClass("", "", false)
-		assert.NoError(t, c.ImportFromDirectory(test.baseName))
+		assert.NoError(t, c.ImportFromDirectory(test.baseName, []string{}))
 		conf, err := c.Export()
 		defer os.Remove(conf)
 		assert.NoError(t, err)

@@ -39,10 +39,7 @@ var classImportCmd = &cobra.Command{
 
 		// Import directories
 		for _, directory := range directories {
-			if helper.IsInSlice(exclude, directory) {
-				continue
-			}
-			confName, err := importClassFromDirectory(directory, projiEnv.Svc)
+			confName, err := importClassFromDirectory(directory, exclude, projiEnv.Svc)
 			if err != nil {
 				fmt.Printf("> Import of '%s' failed: %v\n", directory, err)
 				continue
@@ -75,10 +72,10 @@ func importClassFromConfig(config string, svc storage.Service) error {
 	return svc.SaveClass(class)
 }
 
-func importClassFromDirectory(directory string, svc storage.Service) (string, error) {
+func importClassFromDirectory(directory string, excludeDir []string, svc storage.Service) (string, error) {
 	// Import class data
 	class := item.NewClass("", "", false)
-	if err := class.ImportFromDirectory(directory); err != nil {
+	if err := class.ImportFromDirectory(directory, excludeDir); err != nil {
 		return "", err
 	}
 	return class.Export()

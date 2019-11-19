@@ -69,7 +69,7 @@ func (c *Class) ImportFromConfig(configName string) error {
 
 // ImportFromDirectory imports a class from a given directory. Proji will copy the
 // structure and content of the directory and create a class based on it.
-func (c *Class) ImportFromDirectory(directory string) error {
+func (c *Class) ImportFromDirectory(directory string, excludeDirs []string) error {
 	// Validate that the directory exists
 	if !helper.DoesPathExist(directory) {
 		return fmt.Errorf("Given directory does not exist")
@@ -82,7 +82,7 @@ func (c *Class) ImportFromDirectory(directory string) error {
 
 	// This map of directories that should be skipped might be moved to the main config
 	// file so that it's editable and extensible.
-	skipDirs := map[string]bool{".git": true, ".env": true}
+	excludeDirs = append(excludeDirs, []string{".git", ".env"}...)
 
 	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
 		// Skip base directory
@@ -97,7 +97,7 @@ func (c *Class) ImportFromDirectory(directory string) error {
 		// Add file or folder to class
 		if info.IsDir() {
 			c.Folders = append(c.Folders, &Folder{Destination: relPath, Template: ""})
-			if _, ok := skipDirs[info.Name()]; ok {
+			if helper.IsInSlice(excludeDirs, info.Name()) {
 				return filepath.SkipDir
 			}
 		} else {
