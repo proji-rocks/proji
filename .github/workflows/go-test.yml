@@ -16,7 +16,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v1
     - name: Install sqlite
-      run: sudo apt install -y libsqlite3-dev || true
+      run: sudo apt-get install -y libsqlite3-dev || true
     - name: Get dependencies
       run: |
         go get -v -t -d ./...
