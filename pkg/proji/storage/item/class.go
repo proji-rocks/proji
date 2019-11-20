@@ -109,7 +109,7 @@ func (c *Class) ImportFromDirectory(directory string, excludeDirs []string) erro
 }
 
 // Export exports a given class to a toml config file
-func (c *Class) Export() (string, error) {
+func (c *Class) Export(destination string) (string, error) {
 	// Create config string
 	var configTxt = map[string]interface{}{
 		"name":   c.Name,
@@ -120,7 +120,7 @@ func (c *Class) Export() (string, error) {
 	}
 
 	// Export data to toml
-	confName := "proji-" + c.Name + ".toml"
+	confName := destination + "/proji-" + c.Name + ".toml"
 	conf, err := os.Create(confName)
 	if err != nil {
 		return confName, err

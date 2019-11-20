@@ -136,7 +136,7 @@ func TestClassImportFromDirectory(t *testing.T) {
 		defer os.RemoveAll(test.baseName)
 		c := item.NewClass("", "", false)
 		assert.NoError(t, c.ImportFromDirectory(test.baseName, []string{}))
-		conf, err := c.Export()
+		conf, err := c.Export(".")
 		defer os.Remove(conf)
 		assert.NoError(t, err)
 		assert.NoError(t, c.ImportFromConfig(conf))
@@ -165,13 +165,13 @@ func TestClassExport(t *testing.T) {
 				},
 				Scripts: []*item.Script{},
 			},
-			configName: "proji-example.toml",
+			configName: "./proji-example.toml",
 			err:        nil,
 		},
 	}
 
 	for _, test := range tests {
-		configName, err := test.class.Export()
+		configName, err := test.class.Export(".")
 		defer os.Remove(configName)
 		assert.IsType(t, test.err, err)
 		assert.Equal(t, test.configName, configName)
