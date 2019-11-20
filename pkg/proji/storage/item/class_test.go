@@ -165,7 +165,7 @@ func TestClassExport(t *testing.T) {
 				},
 				Scripts: []*item.Script{},
 			},
-			configName: "proji-example.toml",
+			configName: "./proji-example.toml",
 			err:        nil,
 		},
 	}
