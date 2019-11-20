@@ -24,7 +24,5 @@ jobs:
         run: |
           ./install.sh
           touch ~/.config/proji/templates/README.md
-      - name: Run go vet
-        run: go vet ./...
       - name: Run go test
         run: go test ./...
