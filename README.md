@@ -164,7 +164,7 @@ In addition, we can assign scripts to a proji class which will be executed in a 
 
 There are three ways to create a new class:
 
-**1. Config file (recommended)**
+##### 1. Config file (recommended)
 
 Proji offers the possibility to export and import classes through config files. The easiest way to create a new class would be to export the proji sample config and then adapt it to the needs of the class you want to create. To do so execute the command `$ proji class export --example .`.
 
@@ -174,13 +174,13 @@ Once the config has been edited and saved, it can be imported using the `$ proji
 
 _Note: You can import multiple configs at once._
 
-**2. Imitate an existing directory**
+##### 2. Imitate an existing directory
 
 Proji can create a class from a directory that exists in your file system. It will analyze the directory and create a class config based on all subdirectories and files in that main directory. To do so first create the config with `$ proji class import --directory dirToImitate`. Then edit the resulting config in your editor of choice. For example, remove folders and files that you do not want to add to your class, or add files, folders, and scripts that are missing. When you are done, import the configuration as above with `$ proji class import --config proji-dirToImitate.toml`.
 
-_Note: You can ignore folders and/or files with the exclude flag._
+_Note: You can ignore folders and files with the exclude flag._
 
-**3. Class add command**
+##### 3. Class add command
 
 The third option is to use the `$ proji class add CLASS-NAME [CLASS-NAME...]` command to create one or more classes in an interactive CLI. Proji will query the necessary data for the new class from you and then create the new class based on that data.
 
