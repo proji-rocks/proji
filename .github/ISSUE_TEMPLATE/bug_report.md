@@ -24,10 +24,10 @@ If applicable, add screenshots to help explain your problem.
 
 **Desktop (please complete the following information):**
 
--   OS: [e.g. Arch Linux]
--   Terminal Emulator [e.g. Gnome Terminal]
--   Shell [e.g. zsh]
--   Proji Version [e.g. v0.17.0]
+-   OS: (e.g. Arch Linux)
+-   Terminal Emulator (e.g. Gnome Terminal)
+-   Shell (e.g. zsh)
+-   Proji Version (e.g. v0.17.0)
 
 **Additional context**
 Add any other context about the problem here.
