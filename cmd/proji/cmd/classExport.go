@@ -10,19 +10,33 @@ import (
 	"github.com/spf13/viper"
 )
 
-var exampleDest string
-var exportAll bool
+var exportAll, example bool
+var destination string
 
 var classExportCmd = &cobra.Command{
 	Use:   "export LABEL [LABEL...]",
 	Short: "Export one or more classes",
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		if exportAll && example {
+			return fmt.Errorf("The flags 'example' and 'all' cannot be passed at the same time")
+		}
+		return nil
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(exampleDest) > 0 {
-			return exportExample(exampleDest, projiEnv.ConfPath)
+		// Export an example class
+		if example {
+			file, err := exportExample(destination, projiEnv.ConfPath)
+			if err != nil {
+				fmt.Printf("> Export of example class failed: %v\n", err)
+				return err
+			}
+			fmt.Printf("> Example class was successfully exported to %s\n", file)
+			return nil
 		}
 
+		// Export all classes
 		if exportAll {
-			err := exportAllClasses(projiEnv.Svc)
+			err := exportAllClasses(destination, projiEnv.Svc)
 			if err != nil {
 				fmt.Printf("> Export of all classes failed: %v\n", err)
 				return err
@@ -31,12 +45,13 @@ var classExportCmd = &cobra.Command{
 			return nil
 		}
 
+		// Regular export
 		if len(args) < 1 {
 			return fmt.Errorf("Missing class label")
 		}
 
 		for _, label := range args {
-			file, err := exportClass(label, projiEnv.Svc)
+			file, err := exportClass(label, destination, projiEnv.Svc)
 			if err != nil {
 				fmt.Printf("> Export of '%s' to file %s failed: %v\n", label, file, err)
 				continue
@@ -49,11 +64,14 @@ var classExportCmd = &cobra.Command{
 
 func init() {
 	classCmd.AddCommand(classExportCmd)
-	classExportCmd.Flags().StringVarP(&exampleDest, "example", "e", "", "Export an example")
+	classExportCmd.Flags().BoolVarP(&example, "example", "e", false, "Export an example class")
 	classExportCmd.Flags().BoolVarP(&exportAll, "all", "a", false, "Export all classes")
+
+	classExportCmd.Flags().StringVarP(&destination, "destination", "d", ".", "Destination for the export")
+	classExportCmd.MarkFlagDirname("destination")
 }
 
-func exportClass(label string, svc storage.Service) (string, error) {
+func exportClass(label, destination string, svc storage.Service) (string, error) {
 	classID, err := svc.LoadClassIDByLabel(label)
 	if err != nil {
 		return "", err
@@ -65,10 +83,10 @@ func exportClass(label string, svc storage.Service) (string, error) {
 	if class.IsDefault {
 		return "", fmt.Errorf("Default classes can not be exported")
 	}
-	return class.Export()
+	return class.Export(destination)
 }
 
-func exportAllClasses(svc storage.Service) error {
+func exportAllClasses(destination string, svc storage.Service) error {
 	classes, err := svc.LoadAllClasses()
 	if err != nil {
 		return err
@@ -78,7 +96,7 @@ func exportAllClasses(svc storage.Service) error {
 		if class.IsDefault {
 			continue
 		}
-		_, err = class.Export()
+		_, err = class.Export(destination)
 		if err != nil {
 			return err
 		}
@@ -86,33 +104,34 @@ func exportAllClasses(svc storage.Service) error {
 	return nil
 }
 
-func exportExample(destFolder, confPath string) error {
+func exportExample(destination, confPath string) (string, error) {
 	examplePath, ok := viper.Get("examples.path").(string)
 	if !ok {
-		return fmt.Errorf("Could not read path of example config file")
+		return "", fmt.Errorf("Could not read path of example config file")
 	}
 
 	examplePath = confPath + examplePath
 	sourceFileStat, err := os.Stat(examplePath)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if !sourceFileStat.Mode().IsRegular() {
-		return fmt.Errorf("%s is not a regular file", examplePath)
+		return "", fmt.Errorf("%s is not a regular file", examplePath)
 	}
 
-	source, err := os.Open(examplePath)
+	src, err := os.Open(examplePath)
 	if err != nil {
-		return err
+		return "", err
 	}
-	defer source.Close()
+	defer src.Close()
 
-	destination, err := os.Create(destFolder + "/proji-class-example.toml")
+	dstPath := destination + "/proji-class-example.toml"
+	dst, err := os.Create(dstPath)
 	if err != nil {
-		return err
+		return "", err
 	}
-	defer destination.Close()
-	_, err = io.Copy(destination, source)
-	return err
+	defer dst.Close()
+	_, err = io.Copy(dst, src)
+	return dstPath, err
 }

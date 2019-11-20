@@ -78,5 +78,5 @@ func importClassFromDirectory(directory string, excludeDir []string, svc storage
 	if err := class.ImportFromDirectory(directory, excludeDir); err != nil {
 		return "", err
 	}
-	return class.Export()
+	return class.Export(".")
 }
