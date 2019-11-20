@@ -1,5 +1,5 @@
 name: Go Test
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
   test:
@@ -9,22 +9,22 @@ jobs:
         platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
     steps:
-    - name: Install Go
-      uses: actions/setup-go@v1
-      with:
-        go-version: ${{ matrix.go-version }}
-    - name: Checkout code
-      uses: actions/checkout@v1
-    - name: Install sqlite
-      run: sudo apt-get install -y libsqlite3-dev || true
-    - name: Get dependencies
-      run: |
-        go get -v -t -d ./...
-    - name: Setup config directory
-      run: |
-        ./install.sh
-        touch ~/.config/proji/templates/README.md
-    - name: Run go vet
-      run: go vet ./...
-    - name: Run go test
-      run: go test ./...  
+      - name: Install Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Checkout code
+        uses: actions/checkout@v1
+      - name: Install sqlite
+        run: sudo apt-get install -y libsqlite3-dev || true
+      - name: Get dependencies
+        run: |
+          go get -v -t -d ./...
+      - name: Setup config directory
+        run: |
+          ./install.sh
+          touch ~/.config/proji/templates/README.md
+      - name: Run go vet
+        run: go vet ./...
+      - name: Run go test
+        run: go test ./...
