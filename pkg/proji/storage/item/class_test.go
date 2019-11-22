@@ -46,13 +46,17 @@ func TestClassImportFromConfig(t *testing.T) {
 				Scripts: []*item.Script{
 					&item.Script{
 						Name:       "init_virtualenv.sh",
-						RunAsSudo:  false,
+						Type:       "post",
 						ExecNumber: 1,
+						RunAsSudo:  false,
+						Args:       []string{},
 					},
 					&item.Script{
 						Name:       "init_git.sh",
-						RunAsSudo:  false,
+						Type:       "post",
 						ExecNumber: 2,
+						RunAsSudo:  false,
+						Args:       []string{},
 					},
 				},
 			},

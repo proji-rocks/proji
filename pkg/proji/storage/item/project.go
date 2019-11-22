@@ -45,6 +45,9 @@ func (proj *Project) Create(cwd, configPath string) error {
 	}
 	defer os.Chdir(cwd)
 
+	if err := proj.preRunScripts(configPath); err != nil {
+		return err
+	}
 	if err := proj.createSubFolders(); err != nil {
 		return err
 	}
@@ -54,7 +57,7 @@ func (proj *Project) Create(cwd, configPath string) error {
 	if err := proj.copyTemplates(configPath); err != nil {
 		return err
 	}
-	return proj.runScripts(configPath)
+	return proj.postRunScripts(configPath)
 }
 
 // createProjectFolder tries to create the main project folder.
@@ -129,15 +132,32 @@ func (proj *Project) copyTemplates(configPath string) error {
 	return nil
 }
 
-func (proj *Project) runScripts(configPath string) error {
+func (proj *Project) preRunScripts(configPath string) error {
+	return proj.runScripts("pre", configPath)
+}
+
+func (proj *Project) postRunScripts(configPath string) error {
+	return proj.runScripts("post", configPath)
+}
+
+func (proj *Project) runScripts(scriptType, configPath string) error {
 	for _, script := range proj.Class.Scripts {
+		if script.Type != scriptType {
+			continue
+		}
+
 		scriptPath := configPath + "scripts/" + script.Name
 
 		if script.RunAsSudo {
 			scriptPath = "sudo " + scriptPath
 		}
 
-		cmd := exec.Command(scriptPath)
+		re := regexp.MustCompile(`__PROJECT_NAME__`)
+		for idx, arg := range script.Args {
+			script.Args[idx] = re.ReplaceAllString(arg, proj.Name)
+		}
+
+		cmd := exec.Command(scriptPath, script.Args...)
 		cmd.Stdout = os.Stdout
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr

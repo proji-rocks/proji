@@ -53,8 +53,10 @@ func New(path string) (storage.Service, error) {
 				class_script_id INTEGER PRIMARY KEY,
 				class_id INTEGER NOT NULL REFERENCES class(class_id),
 				'name' TEXT NOT NULL,
+				type TEXT NOT NULL,
 				run_as_sudo INTEGER NOT NULL,
-				exec_num INTERGER NOT NULL
+				exec_num INTERGER NOT NULL,
+				args TEXT
 			);
 			CREATE TABLE IF NOT EXISTS project(
 				project_id INTEGER PRIMARY KEY,
@@ -78,15 +80,16 @@ func New(path string) (storage.Service, error) {
 				project_status(title, is_default, comment)
 			VALUES
 				("active", 1, "Actively working on this project."),
-  				("inactive", 1, "Stopped working on this project for now."),
-  				("done", 1, "There is nothing left to do."),
+				("inactive", 1, "Stopped working on this project for now."),
+				("done", 1, "There is nothing left to do."),
 				("dead", 1, "This project is dead."),
 				("unknown", 1, "Status of this project is unknown.");
 			CREATE UNIQUE INDEX u_class_name_idx ON class('name');
 			CREATE UNIQUE INDEX u_class_label_idx ON class(label);
 			CREATE UNIQUE INDEX u_class_folder_idx ON class_folder(class_id, 'target');
 			CREATE UNIQUE INDEX u_class_file_idx ON class_file(class_id, 'target');
-			CREATE UNIQUE INDEX u_class_script_idx ON class_script(class_id, 'name');
+			CREATE UNIQUE INDEX u_class_script_id_name_idx ON class_script(class_id, 'name');
+			CREATE UNIQUE INDEX u_class_script_type_exec_num_idx ON class_script(class_id, type, exec_num);
 			CREATE UNIQUE INDEX u_project_path_idx ON project(install_path);
 			CREATE UNIQUE INDEX u_status_title_idx ON project_status(title);`,
 		); err != nil {
@@ -222,7 +225,7 @@ func (s *sqlite) saveFiles(classID uint, files []*item.File) error {
 }
 
 func (s *sqlite) saveScripts(classID uint, scripts []*item.Script) error {
-	query := "INSERT INTO class_script(class_id, name, run_as_sudo, exec_num) VALUES(?, ?, ?, ?)"
+	query := "INSERT INTO class_script(class_id, name, type, exec_num, run_as_sudo, args) VALUES(?, ?, ?, ?, ?, ?)"
 	stmt, err := s.tx.Prepare(query)
 	if err != nil {
 		return err
@@ -230,10 +233,17 @@ func (s *sqlite) saveScripts(classID uint, scripts []*item.Script) error {
 	defer stmt.Close()
 
 	for _, script := range scripts {
+		script.Type = strings.ToLower(script.Type)
+		if script.Type != "pre" && script.Type != "post" {
+			return fmt.Errorf("Script type has to be one of the following (without the single quotes): 'pre', 'post'")
+		}
+
+		args := strings.Join(script.Args, ", ")
+
 		if script.RunAsSudo {
-			_, err = stmt.Exec(classID, script.Name, 1, script.ExecNumber)
+			_, err = stmt.Exec(classID, script.Name, script.Type, script.ExecNumber, 1, args)
 		} else {
-			_, err = stmt.Exec(classID, script.Name, 0, script.ExecNumber)
+			_, err = stmt.Exec(classID, script.Name, script.Type, script.ExecNumber, 0, args)
 		}
 		if err != nil {
 			return err
@@ -361,7 +371,7 @@ func (s *sqlite) loadFiles(classID uint) ([]*item.File, error) {
 }
 
 func (s *sqlite) loadScripts(classID uint) ([]*item.Script, error) {
-	query := "SELECT name, run_as_sudo, exec_num FROM class_script WHERE class_id = ? ORDER BY exec_num"
+	query := "SELECT name, type, exec_num, run_as_sudo, args FROM class_script WHERE class_id = ? ORDER BY type, exec_num"
 
 	scriptRows, err := s.db.Query(query, classID)
 	if err != nil {
@@ -371,13 +381,23 @@ func (s *sqlite) loadScripts(classID uint) ([]*item.Script, error) {
 
 	scripts := make([]*item.Script, 0)
 	for scriptRows.Next() {
-		var scriptName sql.NullString
+		var scriptName, scriptArgs, scriptType sql.NullString
 		var runAsSudo sql.NullBool
 		var execNum sql.NullInt64
-		if err := scriptRows.Scan(&scriptName, &runAsSudo, &execNum); err != nil {
+		if err := scriptRows.Scan(&scriptName, &scriptType, &execNum, &runAsSudo, &scriptArgs); err != nil {
 			return nil, err
 		}
-		scripts = append(scripts, &item.Script{Name: scriptName.String, RunAsSudo: runAsSudo.Bool, ExecNumber: int(execNum.Int64)})
+		args := make([]string, 0)
+		if scriptArgs.String != "" {
+			args = strings.Split(scriptArgs.String, ", ")
+		}
+		scripts = append(scripts, &item.Script{
+			Name:       scriptName.String,
+			Type:       scriptType.String,
+			ExecNumber: int(execNum.Int64),
+			RunAsSudo:  runAsSudo.Bool,
+			Args:       args,
+		})
 	}
 	return scripts, nil
 }

@@ -27,5 +27,7 @@ label = "cpp"
 
 [[script]]
   name = "init_git.sh"
-  runAsSudo = false
+  type = "post"
   execNumber = 1
+  runAsSudo = false
+  args = []
