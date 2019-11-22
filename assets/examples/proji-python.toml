@@ -27,10 +27,14 @@ label = "py"
 
 [[script]]
   name = "init_virtualenv.sh"
-  runAsSudo = false
+  type = "post"
   execNumber = 1
+  runAsSudo = false
+  args = []
 
 [[script]]
   name = "init_git.sh"
-  runAsSudo = false
+  type = "post"
   execNumber = 2
+  runAsSudo = false
+  args = []
