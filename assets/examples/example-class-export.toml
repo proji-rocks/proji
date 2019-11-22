@@ -76,20 +76,24 @@ label = "mex"
 # SCRIPTS
 # Scripts you want to be executed after the project folders and files were created.
 # 'name' should be a script that lies inside the scripts folder (~/.config/proji/scripts/).
-# 'runAsSudo' is of type boolean and determines if you want the script to be executed with sudo or not.
+# 'type' determines if the script will be executed before or after the creation of subfolders and files.
+#  Possible values: pre, post
 # 'execNumber' is an integer and determines the position of the script in the execution list.
 #  The script with the smallest exec number will be executed first and the script with the largest number will be executed last.
+# 'runAsSudo' is of type boolean and determines if you want the script to be executed with sudo or not.
 # 'args' is a string array which can hold arguments that you want to pass to your script. You can use the keyword __PROJECT_NAME__
 #  in order to pass the name of the current project to the script.
 
 [[script]]
   name = "init_virtualenv.sh"
-  runAsSudo = false
+  type = "post"
   execNumber = 1
+  runAsSudo = false
   args = []
 
 [[script]]
   name = "init_git.sh"
-  runAsSudo = false
+  type = "post"
   execNumber = 2
+  runAsSudo = false
   args = []
