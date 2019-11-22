@@ -137,7 +137,12 @@ func (proj *Project) runScripts(configPath string) error {
 			scriptPath = "sudo " + scriptPath
 		}
 
-		cmd := exec.Command(scriptPath)
+		re := regexp.MustCompile(`__PROJECT_NAME__`)
+		for idx, arg := range script.Args {
+			script.Args[idx] = re.ReplaceAllString(arg, proj.Name)
+		}
+
+		cmd := exec.Command(scriptPath, script.Args...)
 		cmd.Stdout = os.Stdout
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr
