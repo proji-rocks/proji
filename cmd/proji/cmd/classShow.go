@@ -123,11 +123,11 @@ func showScripts(scripts []*item.Script) {
 	// Table header
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"#", "Script", "As sudo", "Args"})
+	t.AppendHeader(table.Row{"#", "Script", "Type", "As sudo", "Args"})
 
 	// Fill table
 	for _, script := range scripts {
-		t.AppendRow([]interface{}{script.ExecNumber, script.Name, script.RunAsSudo, strings.Join(script.Args, ", ")})
+		t.AppendRow([]interface{}{script.ExecNumber, script.Name, script.Type, script.RunAsSudo, strings.Join(script.Args, ", ")})
 	}
 
 	// Print the table
