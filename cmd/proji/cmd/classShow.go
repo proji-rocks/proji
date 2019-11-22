@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
 
@@ -122,11 +123,11 @@ func showScripts(scripts []*item.Script) {
 	// Table header
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"#", "Script", "As sudo"})
+	t.AppendHeader(table.Row{"#", "Script", "As sudo", "Args"})
 
 	// Fill table
 	for _, script := range scripts {
-		t.AppendRow([]interface{}{script.ExecNumber, script.Name, script.RunAsSudo})
+		t.AppendRow([]interface{}{script.ExecNumber, script.Name, script.RunAsSudo, strings.Join(script.Args, ", ")})
 	}
 
 	// Print the table
