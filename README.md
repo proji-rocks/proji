@@ -1,11 +1,7 @@
-<p align="center">
-  <a href="" rel="noopener">
- <img width=200px height=200px src="assets/images/proji-freelogodesign-200x200.png" alt="Project logo"></a>
-</p>
-
-<!--<h3 align="center">proji</h3>-->
-
 <div align="center">
+<img width=300px height=300px src="assets/images/proji-logo.svg" alt="proji logo">
+
+<h2 align="center">proji</h2>
 
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/nikoksr/proji?sort=semver)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
@@ -17,7 +13,7 @@
 
 * * *
 
-<p align="center">Proji is a simple and fast project creator and manager.<br></p>
+<p align="center">Proji is a simple and fast project creator and manager.</p><br />
 
 ## Table Of Contents
 
@@ -36,6 +32,7 @@
     -   [Project](#au_project)
     -   [Status](#au_status)
 -   [Contributing](#contributing)
+-   [Credits](#credits)
 -   [License](#license)
 
 ## About <a name = "about"></a>
@@ -250,6 +247,10 @@ Help for all commands is also available with `$ proji help`.
 ## Contributing <a name = "contributing"></a>
 
 Contributions to the project are highly appreciated. Take a look at the [code of conduct](./CODE_OF_CONDUCT.md) and at the [contribution instructions](./CONTRIBUTING.md) and you should be good to go.
+
+## Credits <a name = "credits"></a>
+
+-   Logo by Alex Potterson (alexeyrdoxi@gmail.com)
 
 ## License <a name = "license"></a>
 
