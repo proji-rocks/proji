@@ -2,21 +2,23 @@ package cmd
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/briandowns/spinner"
 	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
 	"github.com/spf13/cobra"
 )
 
-var directories, configs, exclude []string
+var remoteRepos, directories, configs, exclude []string
 
 var classImportCmd = &cobra.Command{
 	Use:   "import FILE [FILE...]",
 	Short: "Import one or more classes",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if len(configs) < 1 && len(directories) < 1 {
-			return fmt.Errorf("No flag was passed. You have to pass the '--config' or '--directory' flag at least once")
+		if len(configs) < 1 && len(directories) < 1 && len(remoteRepos) < 1 {
+			return fmt.Errorf("No flag was passed. You have to pass the '--config', 'remote-repo' or '--directory' flag at least once")
 		}
 		return nil
 	},
@@ -46,12 +48,29 @@ var classImportCmd = &cobra.Command{
 			}
 			fmt.Printf("> Directory '%s' was successfully exported to '%s'\n", directory, confName)
 		}
+
+		// Import repos
+		for _, repo := range remoteRepos {
+			s := spinner.New(spinner.CharSets[9], 100*time.Millisecond)
+			s.Prefix = "Importing repo "
+			s.Start()
+			confName, err := importClassFromRemoteRepo(repo, exclude, projiEnv.Svc)
+			s.Stop()
+			if err != nil {
+				fmt.Printf("> Import of '%s' failed: %v\n", repo, err)
+				continue
+			}
+			fmt.Printf("> Repository '%s' was successfully exported to '%s'\n", repo, confName)
+		}
 		return nil
 	},
 }
 
 func init() {
 	classCmd.AddCommand(classImportCmd)
+
+	classImportCmd.Flags().StringSliceVar(&remoteRepos, "remote-repo", []string{}, "import/imitate an existing remote repo")
+	classImportCmd.MarkFlagDirname("remote-repo")
 
 	classImportCmd.Flags().StringSliceVar(&directories, "directory", []string{}, "import/imitate an existing directory")
 	classImportCmd.MarkFlagDirname("directory")
@@ -76,6 +95,15 @@ func importClassFromDirectory(directory string, excludeDir []string, svc storage
 	// Import class data
 	class := item.NewClass("", "", false)
 	if err := class.ImportFromDirectory(directory, excludeDir); err != nil {
+		return "", err
+	}
+	return class.Export(".")
+}
+
+func importClassFromRemoteRepo(URL string, excludeDir []string, svc storage.Service) (string, error) {
+	// Import class data
+	class := item.NewClass("", "", false)
+	if err := class.ImportFromURL(URL, excludeDir); err != nil {
 		return "", err
 	}
 	return class.Export(".")
