@@ -1,20 +1,19 @@
-package item_test
+package item
 
 import (
 	"testing"
 
-	"github.com/nikoksr/proji/pkg/proji/storage/item"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewStatus(t *testing.T) {
-	statusExp := &item.Status{
+	statusExp := &Status{
 		ID:        99,
 		Title:     "active",
 		IsDefault: false,
 		Comment:   "This project is active.",
 	}
 
-	statusAct := item.NewStatus(99, "active", "This project is active.", false)
+	statusAct := NewStatus(99, "active", "This project is active.", false)
 	assert.Equal(t, statusExp, statusAct)
 }
