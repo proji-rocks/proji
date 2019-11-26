@@ -82,6 +82,8 @@ Might work under Mac but it's not tested yet.
 -   [toml-lang/toml](https://github.com/toml-lang/toml) - Config Language
 -   [jedib0t/go-pretty](https://github.com/jedib0t/go-pretty) - CLI Styling
 -   [stretchr/testify](https://github.com/stretchr/testify) - Test Framework
+-   [gocolly/colly](https://github.com/gocolly/colly) - Web Scraping
+-   [briandowns/spinner](https://github.com/briandowns/spinner) - Terminal Spinner
 
 ### Installation <a name = "installation"></a>
 
