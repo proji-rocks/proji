@@ -1,10 +1,9 @@
-package helper_test
+package helper
 
 import (
 	"strconv"
 	"testing"
 
-	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,7 +19,7 @@ func TestDoesPathExist(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		exists := helper.DoesPathExist(test.path)
+		exists := DoesPathExist(test.path)
 		assert.Equal(t, test.exists, exists)
 	}
 }
@@ -38,7 +37,7 @@ func TestStrToUInt(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actNum, err := helper.StrToUInt(test.numAsStr)
+		actNum, err := StrToUInt(test.numAsStr)
 		assert.IsType(t, test.err, err)
 		assert.Equal(t, test.expNum, actNum)
 	}

@@ -1,4 +1,4 @@
-package sqlite_test
+package sqlite
 
 import (
 	"os"
@@ -6,13 +6,12 @@ import (
 
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
 
-	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestClass(t *testing.T) {
 	dbPath := "/tmp/proji.sqlite3"
-	svc, err := sqlite.New(dbPath)
+	svc, err := New(dbPath)
 	defer os.Remove(dbPath)
 	assert.NoError(t, err)
 	assert.NotNil(t, svc)
@@ -112,7 +111,7 @@ func TestClass(t *testing.T) {
 
 func TestProject(t *testing.T) {
 	dbPath := "/tmp/proji.sqlite3"
-	svc, err := sqlite.New(dbPath)
+	svc, err := New(dbPath)
 	defer os.Remove(dbPath)
 	assert.NoError(t, err)
 	assert.NotNil(t, svc)
@@ -194,7 +193,7 @@ func TestProject(t *testing.T) {
 
 func TestStatus(t *testing.T) {
 	dbPath := "/tmp/proji.sqlite3"
-	svc, err := sqlite.New(dbPath)
+	svc, err := New(dbPath)
 	defer os.Remove(dbPath)
 	assert.NoError(t, err)
 	assert.NotNil(t, svc)

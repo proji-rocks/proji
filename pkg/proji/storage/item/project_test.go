@@ -1,19 +1,18 @@
-package item_test
+package item
 
 import (
 	"os"
 	"testing"
 
 	"github.com/mitchellh/go-homedir"
-	"github.com/nikoksr/proji/pkg/proji/storage/item"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewProject(t *testing.T) {
-	class := item.NewClass("testclass", "tc", false)
-	status := item.NewStatus(9999, "test", "This is a test status.", false)
+	class := NewClass("testclass", "tc", false)
+	status := NewStatus(9999, "test", "This is a test status.", false)
 
-	projExp := &item.Project{
+	projExp := &Project{
 		ID:          99,
 		Name:        "test",
 		InstallPath: "./local/",
@@ -21,7 +20,7 @@ func TestNewProject(t *testing.T) {
 		Status:      status,
 	}
 
-	projAct := item.NewProject(99, "test", "./local/", class, status)
+	projAct := NewProject(99, "test", "./local/", class, status)
 	assert.Equal(t, projExp, projAct)
 }
 
@@ -35,27 +34,27 @@ func TestProjectCreate(t *testing.T) {
 	tests := []struct {
 		cwd        string
 		configPath string
-		proj       *item.Project
+		proj       *Project
 		err        error
 	}{
 		{
-			proj: &item.Project{
+			proj: &Project{
 				Name:        "example",
 				InstallPath: "",
-				Class: &item.Class{
+				Class: &Class{
 					Name:  "example",
 					Label: "exp",
-					Folders: []*item.Folder{
-						&item.Folder{Destination: "exampleFolder/", Template: ""},
-						&item.Folder{Destination: "foo/bar/", Template: ""},
+					Folders: []*Folder{
+						&Folder{Destination: "exampleFolder/", Template: ""},
+						&Folder{Destination: "foo/bar/", Template: ""},
 					},
-					Files: []*item.File{
-						&item.File{Destination: "README.md", Template: "README.md"},
-						&item.File{Destination: "exampleFolder/test.txt", Template: ""},
+					Files: []*File{
+						&File{Destination: "README.md", Template: "README.md"},
+						&File{Destination: "exampleFolder/test.txt", Template: ""},
 					},
-					Scripts: []*item.Script{},
+					Scripts: []*Script{},
 				},
-				Status: &item.Status{
+				Status: &Status{
 					ID:      1,
 					Title:   "active",
 					Comment: "This project is active.",
