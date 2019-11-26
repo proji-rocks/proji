@@ -1,5 +1,6 @@
 # Folders
 .vscode/
+.idea/
 templates/
 vendor/
 bin/
