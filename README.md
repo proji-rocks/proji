@@ -81,7 +81,7 @@ Might work under Mac but it's not tested yet.
 -   [BurntSushi/toml](https://github.com/BurntSushi/toml) - Go toml parser
 -   [toml-lang/toml](https://github.com/toml-lang/toml) - Config Language
 -   [jedib0t/go-pretty](https://github.com/jedib0t/go-pretty) - CLI Styling
--   [stretchr/testify](github.com/stretchr/testify) - Test Framework
+-   [stretchr/testify](https://github.com/stretchr/testify) - Test Framework
 
 ### Installation <a name = "installation"></a>
 
