@@ -7,14 +7,6 @@ import (
 	"strings"
 )
 
-// ProjectHeader returns an individual graphical header for a project
-func ProjectHeader(title string) string {
-	numChars := len(title) + 4
-	separatorLine := "+" + strings.Repeat("-", numChars-2) + "+\n"
-	projectLine := "| " + title + " |\n"
-	return (separatorLine + projectLine + separatorLine)
-}
-
 // DoesPathExist checks if a given path exists in the filesystem.
 func DoesPathExist(path string) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
