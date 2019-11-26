@@ -3,10 +3,11 @@ package sqlite
 import (
 	"database/sql"
 	"fmt"
+	"github.com/mattn/go-sqlite3"
 	"strings"
 	"time"
 
-	"github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
@@ -55,7 +56,7 @@ func New(path string) (storage.Service, error) {
 				'name' TEXT NOT NULL,
 				type TEXT NOT NULL,
 				run_as_sudo INTEGER NOT NULL,
-				exec_num INTERGER NOT NULL,
+				exec_num INTEGER NOT NULL,
 				args TEXT
 			);
 			CREATE TABLE IF NOT EXISTS project(
@@ -93,7 +94,7 @@ func New(path string) (storage.Service, error) {
 			CREATE UNIQUE INDEX u_project_path_idx ON project(install_path);
 			CREATE UNIQUE INDEX u_status_title_idx ON project_status(title);`,
 		); err != nil {
-			db.Close()
+			_ = db.Close()
 			return nil, err
 		}
 	} else {
