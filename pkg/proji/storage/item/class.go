@@ -60,6 +60,9 @@ func (c *Class) ImportFromConfig(configName string) error {
 
 	// Decode the file
 	_, err = toml.DecodeFile(configName, &c)
+	if err != nil {
+		return err
+	}
 
 	if len(c.Name) < 1 {
 		return fmt.Errorf("Name cannot be an empty string")
@@ -68,7 +71,10 @@ func (c *Class) ImportFromConfig(configName string) error {
 		return fmt.Errorf("Label cannot be an empty string")
 	}
 
-	return err
+	if c.isEmpty() {
+		return fmt.Errorf("no relevant data was found. Config might be empty")
+	}
+	return nil
 }
 
 // ImportFromDirectory imports a class from a given directory. Proji will copy the
@@ -109,6 +115,10 @@ func (c *Class) ImportFromDirectory(directory string, excludeDirs []string) erro
 		}
 		return nil
 	})
+
+	if c.isEmpty() {
+		return fmt.Errorf("no relevant data was found. Directory might be empty")
+	}
 	return err
 }
 
@@ -138,6 +148,10 @@ func (c *Class) ImportFromURL(URL string, excludes []string) error {
 
 	repoStructure := crawlRepo(URL, excludes)
 	c.Folders, c.Files = cleanUpURLList(repoStructure, URL)
+
+	if c.isEmpty() {
+		return fmt.Errorf("no relevant data was found. Website might be unsupported")
+	}
 	return nil
 }
 
@@ -160,6 +174,13 @@ func (c *Class) Export(destination string) (string, error) {
 	}
 	defer conf.Close()
 	return confName, toml.NewEncoder(conf).Encode(configTxt)
+}
+
+func (c *Class) isEmpty() bool {
+	if len(c.Folders) == 0 && len(c.Files) == 0 && len(c.Scripts) == 0 {
+		return true
+	}
+	return false
 }
 
 func pickLabel(className string) string {
