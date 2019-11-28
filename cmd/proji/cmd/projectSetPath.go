@@ -13,7 +13,7 @@ var projectSetPathCmd = &cobra.Command{
 	Short: "Set a new path",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("Missing path or project-ID")
+			return fmt.Errorf("missing path or project-ID")
 		}
 
 		path, err := filepath.Abs(args[0])
@@ -26,7 +26,8 @@ var projectSetPathCmd = &cobra.Command{
 			return err
 		}
 
-		if err := projiEnv.Svc.UpdateProjectLocation(projectID, path); err != nil {
+		err = projiEnv.Svc.UpdateProjectLocation(projectID, path)
+		if err != nil {
 			fmt.Printf("> Setting path '%s' for project %d failed: %v\n", path, projectID, err)
 			return err
 		}

@@ -16,7 +16,7 @@ var addCmd = &cobra.Command{
 	Short: "Add an existing project",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 3 {
-			return fmt.Errorf("Missing label, path or status")
+			return fmt.Errorf("missing label, path or status")
 		}
 
 		path, err := filepath.Abs(args[1])
@@ -30,7 +30,8 @@ var addCmd = &cobra.Command{
 		label := strings.ToLower(args[0])
 		status := strings.ToLower(args[2])
 
-		if err := addProject(label, path, status, projiEnv.Svc); err != nil {
+		err = addProject(label, path, status, projiEnv.Svc)
+		if err != nil {
 			return err
 		}
 		fmt.Printf("> Project '%s' was successfully added\n", path)
@@ -70,8 +71,5 @@ func addProject(label, path, statusTitle string, svc storage.Service) error {
 	}
 
 	proj := item.NewProject(0, name, path, class, status)
-	if err := svc.SaveProject(proj); err != nil {
-		return err
-	}
-	return nil
+	return svc.SaveProject(proj)
 }

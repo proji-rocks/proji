@@ -9,7 +9,8 @@ import (
 
 // DoesPathExist checks if a given path exists in the filesystem.
 func DoesPathExist(path string) bool {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
 		return false
 	}
 	return true

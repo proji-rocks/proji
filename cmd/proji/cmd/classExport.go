@@ -18,7 +18,7 @@ var classExportCmd = &cobra.Command{
 	Short: "Export one or more classes",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if exportAll && example {
-			return fmt.Errorf("The flags 'example' and 'all' cannot be passed at the same time")
+			return fmt.Errorf("the flags 'example' and 'all' cannot be passed at the same time")
 		}
 		return nil
 	},
@@ -47,7 +47,7 @@ var classExportCmd = &cobra.Command{
 
 		// Regular export
 		if len(args) < 1 {
-			return fmt.Errorf("Missing class label")
+			return fmt.Errorf("missing class label")
 		}
 
 		for _, label := range args {
@@ -68,7 +68,7 @@ func init() {
 	classExportCmd.Flags().BoolVarP(&exportAll, "all", "a", false, "Export all classes")
 
 	classExportCmd.Flags().StringVarP(&destination, "destination", "d", ".", "Destination for the export")
-	classExportCmd.MarkFlagDirname("destination")
+	_ = classExportCmd.MarkFlagDirname("destination")
 }
 
 func exportClass(label, destination string, svc storage.Service) (string, error) {
@@ -81,7 +81,7 @@ func exportClass(label, destination string, svc storage.Service) (string, error)
 		return "", err
 	}
 	if class.IsDefault {
-		return "", fmt.Errorf("Default classes can not be exported")
+		return "", fmt.Errorf("default classes can not be exported")
 	}
 	return class.Export(destination)
 }
@@ -107,7 +107,7 @@ func exportAllClasses(destination string, svc storage.Service) error {
 func exportExample(destination, confPath string) (string, error) {
 	examplePath, ok := viper.Get("examples.path").(string)
 	if !ok {
-		return "", fmt.Errorf("Could not read path of example config file")
+		return "", fmt.Errorf("could not read path of example config file")
 	}
 
 	examplePath = confPath + examplePath

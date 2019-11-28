@@ -17,7 +17,7 @@ var statusAddCmd = &cobra.Command{
 	Short: "Add one or more statuses",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("Missing status")
+			return fmt.Errorf("missing status")
 		}
 
 		for _, status := range args {
@@ -29,7 +29,8 @@ var statusAddCmd = &cobra.Command{
 					if !helper.WantTo("> Do you want to update its comment?") {
 						continue
 					}
-					if err := replaceStatus(status, comment, projiEnv.Svc); err != nil {
+					err := replaceStatus(status, comment, projiEnv.Svc)
+					if err != nil {
 						fmt.Printf("> Updating comment %s failed: %v\n", status, err)
 						continue
 					}

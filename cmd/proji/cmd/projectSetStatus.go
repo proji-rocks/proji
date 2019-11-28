@@ -14,7 +14,7 @@ var projectSetStatusCmd = &cobra.Command{
 	Short: "Set a new status",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("Missing status or project-ID")
+			return fmt.Errorf("missing status or project-ID")
 		}
 
 		status := strings.ToLower(args[0])
@@ -23,7 +23,8 @@ var projectSetStatusCmd = &cobra.Command{
 			return err
 		}
 
-		if err := setStatus(projectID, status, projiEnv.Svc); err != nil {
+		err = setStatus(projectID, status, projiEnv.Svc)
+		if err != nil {
 			fmt.Printf("> Setting status '%s' for project %d failed: %v\n", status, projectID, err)
 			return err
 		}
@@ -43,7 +44,8 @@ func setStatus(projectID uint, statusTitle string, svc storage.Service) error {
 		return err
 	}
 	// Validate project
-	if _, err := svc.LoadProject(projectID); err != nil {
+	_, err = svc.LoadProject(projectID)
+	if err != nil {
 		return err
 	}
 	return svc.UpdateProjectStatus(projectID, statusID)

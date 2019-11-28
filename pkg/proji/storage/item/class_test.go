@@ -34,23 +34,23 @@ func TestClassImportFromConfig(t *testing.T) {
 				Label:     "mex",
 				IsDefault: false,
 				Folders: []*Folder{
-					&Folder{Destination: "src/", Template: ""},
-					&Folder{Destination: "docs/", Template: ""},
-					&Folder{Destination: "tests/", Template: ""},
+					{Destination: "src/", Template: ""},
+					{Destination: "docs/", Template: ""},
+					{Destination: "tests/", Template: ""},
 				},
 				Files: []*File{
-					&File{Destination: "src/main.py", Template: ""},
-					&File{Destination: "README.md", Template: ""},
+					{Destination: "src/main.py", Template: ""},
+					{Destination: "README.md", Template: ""},
 				},
 				Scripts: []*Script{
-					&Script{
+					{
 						Name:       "init_virtualenv.sh",
 						Type:       "post",
 						ExecNumber: 1,
 						RunAsSudo:  false,
 						Args:       []string{},
 					},
-					&Script{
+					{
 						Name:       "init_git.sh",
 						Type:       "post",
 						ExecNumber: 2,
@@ -94,33 +94,33 @@ func TestClassImportFromDirectory(t *testing.T) {
 		{
 			baseName: "new-project",
 			folders: []*Folder{
-				&Folder{Destination: "new-project", Template: ""},
-				&Folder{Destination: "new-project/test", Template: ""},
-				&Folder{Destination: "new-project/cmd", Template: ""},
-				&Folder{Destination: "new-project/cmd/base", Template: ""},
-				&Folder{Destination: "new-project/docs", Template: ""},
+				{Destination: "new-project", Template: ""},
+				{Destination: "new-project/test", Template: ""},
+				{Destination: "new-project/cmd", Template: ""},
+				{Destination: "new-project/cmd/base", Template: ""},
+				{Destination: "new-project/docs", Template: ""},
 			},
 			files: []*File{
-				&File{Destination: "new-project/test.txt", Template: ""},
-				&File{Destination: "new-project/README.md", Template: ""},
-				&File{Destination: "new-project/cmd/main.go", Template: ""},
-				&File{Destination: "new-project/test/main_test.go", Template: ""},
+				{Destination: "new-project/test.txt", Template: ""},
+				{Destination: "new-project/README.md", Template: ""},
+				{Destination: "new-project/cmd/main.go", Template: ""},
+				{Destination: "new-project/test/main_test.go", Template: ""},
 			},
 			class: &Class{
 				Name:      "new-project",
 				Label:     "np",
 				IsDefault: false,
 				Folders: []*Folder{
-					&Folder{Destination: "cmd", Template: ""},
-					&Folder{Destination: "cmd/base", Template: ""},
-					&Folder{Destination: "docs", Template: ""},
-					&Folder{Destination: "test", Template: ""},
+					{Destination: "cmd", Template: ""},
+					{Destination: "cmd/base", Template: ""},
+					{Destination: "docs", Template: ""},
+					{Destination: "test", Template: ""},
 				},
 				Files: []*File{
-					&File{Destination: "README.md", Template: ""},
-					&File{Destination: "cmd/main.go", Template: ""},
-					&File{Destination: "test/main_test.go", Template: ""},
-					&File{Destination: "test.txt", Template: ""},
+					{Destination: "README.md", Template: ""},
+					{Destination: "cmd/main.go", Template: ""},
+					{Destination: "test/main_test.go", Template: ""},
+					{Destination: "test.txt", Template: ""},
 				},
 				Scripts: []*Script{},
 			},
@@ -136,14 +136,17 @@ func TestClassImportFromDirectory(t *testing.T) {
 			_, err := os.Create(file.Destination)
 			assert.NoError(t, err)
 		}
-		defer os.RemoveAll(test.baseName)
+
 		c := NewClass("", "", false)
 		assert.NoError(t, c.ImportFromDirectory(test.baseName, []string{}))
 		conf, err := c.Export(".")
-		defer os.Remove(conf)
 		assert.NoError(t, err)
 		assert.NoError(t, c.ImportFromConfig(conf))
 		assert.Equal(t, test.class, c)
+
+		// Clean up
+		_ = os.Remove(conf)
+		_ = os.RemoveAll(test.baseName)
 	}
 }
 
@@ -159,12 +162,12 @@ func TestClassExport(t *testing.T) {
 				Label:     "exp",
 				IsDefault: false,
 				Folders: []*Folder{
-					&Folder{Destination: "exampleFolder/", Template: ""},
-					&Folder{Destination: "foo/bar/", Template: ""},
+					{Destination: "exampleFolder/", Template: ""},
+					{Destination: "foo/bar/", Template: ""},
 				},
 				Files: []*File{
-					&File{Destination: "README.md", Template: "README.md"},
-					&File{Destination: "exampleFolder/test.txt", Template: ""},
+					{Destination: "README.md", Template: "README.md"},
+					{Destination: "exampleFolder/test.txt", Template: ""},
 				},
 				Scripts: []*Script{},
 			},
@@ -178,7 +181,7 @@ func TestClassExport(t *testing.T) {
 		assert.IsType(t, test.err, err)
 		assert.Equal(t, test.configName, configName)
 		assert.FileExists(t, test.configName, "Cannot find the exported config file.")
-		os.Remove(configName)
+		_ = os.Remove(configName)
 	}
 }
 
@@ -193,23 +196,23 @@ func TestClassIsEmpty(t *testing.T) {
 				Label:     "mex",
 				IsDefault: false,
 				Folders: []*Folder{
-					&Folder{Destination: "src/", Template: ""},
-					&Folder{Destination: "docs/", Template: ""},
-					&Folder{Destination: "tests/", Template: ""},
+					{Destination: "src/", Template: ""},
+					{Destination: "docs/", Template: ""},
+					{Destination: "tests/", Template: ""},
 				},
 				Files: []*File{
-					&File{Destination: "src/main.py", Template: ""},
-					&File{Destination: "README.md", Template: ""},
+					{Destination: "src/main.py", Template: ""},
+					{Destination: "README.md", Template: ""},
 				},
 				Scripts: []*Script{
-					&Script{
+					{
 						Name:       "init_virtualenv.sh",
 						Type:       "post",
 						ExecNumber: 1,
 						RunAsSudo:  false,
 						Args:       []string{},
 					},
-					&Script{
+					{
 						Name:       "init_git.sh",
 						Type:       "post",
 						ExecNumber: 2,

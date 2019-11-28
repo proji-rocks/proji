@@ -45,12 +45,12 @@ func TestProjectCreate(t *testing.T) {
 					Name:  "example",
 					Label: "exp",
 					Folders: []*Folder{
-						&Folder{Destination: "exampleFolder/", Template: ""},
-						&Folder{Destination: "foo/bar/", Template: ""},
+						{Destination: "exampleFolder/", Template: ""},
+						{Destination: "foo/bar/", Template: ""},
 					},
 					Files: []*File{
-						&File{Destination: "README.md", Template: "README.md"},
-						&File{Destination: "exampleFolder/test.txt", Template: ""},
+						{Destination: "README.md", Template: "README.md"},
+						{Destination: "exampleFolder/test.txt", Template: ""},
 					},
 					Scripts: []*Script{},
 				},
@@ -71,7 +71,6 @@ func TestProjectCreate(t *testing.T) {
 		}
 
 		err = test.proj.Create(originalCwd, configPath)
-		defer os.RemoveAll(originalCwd + "/" + test.proj.Name)
 		assert.IsType(t, test.err, err)
 
 		// Project folder should exist
@@ -93,5 +92,7 @@ func TestProjectCreate(t *testing.T) {
 			t.FailNow()
 		}
 		assert.True(t, originalCwd == currentCwd)
+
+		_ = os.RemoveAll(originalCwd + "/" + test.proj.Name)
 	}
 }

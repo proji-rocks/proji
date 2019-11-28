@@ -25,11 +25,12 @@ var statusRmCmd = &cobra.Command{
 		}
 
 		if len(args) < 1 {
-			return fmt.Errorf("Missing status-ID")
+			return fmt.Errorf("missing status-ID")
 		}
 
 		for _, status := range args {
-			if err := removeStatus(status, projiEnv.Svc); err != nil {
+			err := removeStatus(status, projiEnv.Svc)
+			if err != nil {
 				fmt.Printf("> Removing status %s failed: %v\n", status, err)
 			}
 			fmt.Printf("> Status '%s' was successfully removed\n", status)
@@ -55,7 +56,7 @@ func removeStatus(id string, svc storage.Service) error {
 	}
 
 	if status.IsDefault {
-		return fmt.Errorf("Default statuses can not be removed")
+		return fmt.Errorf("default statuses can not be removed")
 	}
 	return svc.RemoveStatus(statusID)
 }

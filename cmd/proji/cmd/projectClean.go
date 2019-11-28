@@ -44,14 +44,16 @@ func cleanProjects(svc storage.Service) error {
 		if !overallGood {
 			if !pathGood {
 				// Remove the project
-				if err := svc.RemoveProject(project.ID); err != nil {
+				err := svc.RemoveProject(project.ID)
+				if err != nil {
 					return err
 				}
 				continue
 			}
 			if !statusGood {
 				// Update projects status to unknown (ID 5 in storage)
-				if err = svc.UpdateProjectStatus(project.ID, 5); err != nil {
+				err = svc.UpdateProjectStatus(project.ID, 5)
+				if err != nil {
 					return err
 				}
 				continue

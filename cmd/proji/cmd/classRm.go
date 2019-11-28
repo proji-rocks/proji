@@ -24,11 +24,12 @@ var classRmCmd = &cobra.Command{
 		}
 
 		if len(args) < 1 {
-			return fmt.Errorf("Missing class label")
+			return fmt.Errorf("missing class label")
 		}
 
 		for _, name := range args {
-			if err := removeClass(name, projiEnv.Svc); err != nil {
+			err := removeClass(name, projiEnv.Svc)
+			if err != nil {
 				fmt.Printf("> Removing '%s' failed: %v\n", name, err)
 				continue
 			}
@@ -54,7 +55,7 @@ func removeClass(label string, svc storage.Service) error {
 	}
 
 	if class.IsDefault {
-		return fmt.Errorf("Default classes can not be removed")
+		return fmt.Errorf("default classes can not be removed")
 	}
 
 	return svc.RemoveClass(classID)

@@ -35,7 +35,7 @@ var rootCmd = &cobra.Command{
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
 		if projiEnv.Svc != nil {
-			projiEnv.Svc.Close()
+			_ = projiEnv.Svc.Close()
 			projiEnv.Svc = nil
 		}
 	},
@@ -44,7 +44,8 @@ var rootCmd = &cobra.Command{
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	err := rootCmd.Execute()
+	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
@@ -68,7 +69,8 @@ func initConfig() {
 	viper.SetConfigName("config")
 	viper.AutomaticEnv()
 
-	if err := viper.ReadInConfig(); err != nil {
+	err = viper.ReadInConfig()
+	if err != nil {
 		fmt.Printf("Could not read config file %s", viper.ConfigFileUsed())
 		os.Exit(1)
 	}

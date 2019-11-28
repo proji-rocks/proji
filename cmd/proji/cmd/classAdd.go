@@ -16,11 +16,12 @@ var classAddCmd = &cobra.Command{
 	Short: "Add one or more classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("Missing class name")
+			return fmt.Errorf("missing class name")
 		}
 
 		for _, name := range args {
-			if err := addClass(name, projiEnv.Svc); err != nil {
+			err := addClass(name, projiEnv.Svc)
+			if err != nil {
 				fmt.Printf("> Adding class '%s' failed: %v\n", name, err)
 				continue
 			}
@@ -70,7 +71,7 @@ func getLabel(reader *bufio.Reader) (string, error) {
 
 	labels := strings.Fields(text)
 	if len(labels) > 1 {
-		return "", fmt.Errorf("Only one label is needed")
+		return "", fmt.Errorf("only one label is needed")
 	}
 	fmt.Println()
 	return labels[0], nil
