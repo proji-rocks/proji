@@ -18,8 +18,7 @@ func TestClass(t *testing.T) {
 
 	className := "testclass1"
 	classLabel := "tc1"
-	isDefault := false
-	class := item.NewClass(className, classLabel, isDefault)
+	class := item.NewClass(className, classLabel, false)
 	assert.NotNil(t, class)
 
 	// Test SaveClass
@@ -80,20 +79,20 @@ func TestClass(t *testing.T) {
 
 	// Test unique constraint for name and label
 	badClasses := []*item.Class{
-		&item.Class{
+		{
 			Name:      className,
 			Label:     classLabel,
-			IsDefault: isDefault,
+			IsDefault: false,
 		},
-		&item.Class{
+		{
 			Name:      className,
 			Label:     "x",
-			IsDefault: isDefault,
+			IsDefault: false,
 		},
-		&item.Class{
+		{
 			Name:      "myNewClass",
 			Label:     classLabel,
-			IsDefault: isDefault,
+			IsDefault: false,
 		},
 	}
 

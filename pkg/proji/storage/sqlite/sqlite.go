@@ -30,7 +30,7 @@ func New(path string) (storage.Service, error) {
 		}
 
 		// Create tables
-		if _, err = db.Exec(
+		_, err = db.Exec(
 			`CREATE TABLE IF NOT EXISTS class(
 				class_id INTEGER PRIMARY KEY,
 				'name' TEXT NOT NULL,
@@ -92,7 +92,8 @@ func New(path string) (storage.Service, error) {
 			CREATE UNIQUE INDEX u_class_script_type_exec_num_idx ON class_script(class_id, type, exec_num);
 			CREATE UNIQUE INDEX u_project_path_idx ON project(install_path);
 			CREATE UNIQUE INDEX u_status_title_idx ON project_status(title);`,
-		); err != nil {
+		)
+		if err != nil {
 			_ = db.Close()
 			return nil, err
 		}
@@ -104,7 +105,8 @@ func New(path string) (storage.Service, error) {
 	}
 
 	// Verify connection
-	if err = db.Ping(); err != nil {
+	err = db.Ping()
+	if err != nil {
 		return nil, err
 	}
 	return &sqlite{db, nil}, nil
@@ -115,10 +117,12 @@ func (s *sqlite) Close() error {
 }
 
 func (s *sqlite) SaveClass(class *item.Class) error {
-	if err := s.saveClassInfo(class.Name, class.Label, class.IsDefault); err != nil {
-		if sqliteErr, ok := err.(sqlite3.Error); ok {
+	err := s.saveClassInfo(class.Name, class.Label, class.IsDefault)
+	if err != nil {
+		sqliteErr, ok := err.(sqlite3.Error)
+		if ok {
 			if sqliteErr.Code == sqlite3.ErrConstraint {
-				return fmt.Errorf("Class '%s' or label '%s' already exists", class.Name, class.Label)
+				return fmt.Errorf("class '%s' or label '%s' already exists", class.Name, class.Label)
 			}
 		}
 		return err
@@ -137,21 +141,24 @@ func (s *sqlite) SaveClass(class *item.Class) error {
 	}
 	s.tx = tx
 
-	if err := s.saveFolders(class.ID, class.Folders); err != nil {
+	err := s.saveFolders(class.ID, class.Folders)
+	if err != nil {
 		if e := s.cancelSave(class.ID); e != nil {
 			return e
 		}
 		return err
 	}
 
-	if err := s.saveFiles(class.ID, class.Files); err != nil {
+	err := s.saveFiles(class.ID, class.Files)
+	if err != nil {
 		if e := s.cancelSave(class.ID); e != nil {
 			return e
 		}
 		return err
 	}
 
-	if err := s.saveScripts(class.ID, class.Scripts); err != nil {
+	err := s.saveScripts(class.ID, class.Scripts)
+	if err != nil {
 		if e := s.cancelSave(class.ID); e != nil {
 			return e
 		}
@@ -163,7 +170,8 @@ func (s *sqlite) SaveClass(class *item.Class) error {
 
 func (s *sqlite) cancelSave(classID uint) error {
 	if s.tx != nil {
-		if err := s.tx.Rollback(); err != nil {
+		err := s.tx.Rollback()
+		if err != nil {
 			return err
 		}
 	}
@@ -235,7 +243,7 @@ func (s *sqlite) saveScripts(classID uint, scripts []*item.Script) error {
 	for _, script := range scripts {
 		script.Type = strings.ToLower(script.Type)
 		if script.Type != "pre" && script.Type != "post" {
-			return fmt.Errorf("Script type has to be one of the following (without the single quotes): 'pre', 'post'")
+			return fmt.Errorf("script type has to be one of the following (without the single quotes): 'pre', 'post'")
 		}
 
 		args := strings.Join(script.Args, ", ")
@@ -293,7 +301,8 @@ func (s *sqlite) LoadAllClasses() ([]*item.Class, error) {
 	var classes []*item.Class
 	for labelRows.Next() {
 		var classID sql.NullInt64
-		if err := labelRows.Scan(&classID); err != nil {
+		err := labelRows.Scan(&classID)
+		if err != nil {
 			return nil, err
 		}
 		class, err := s.LoadClass(uint(classID.Int64))
@@ -308,9 +317,10 @@ func (s *sqlite) LoadAllClasses() ([]*item.Class, error) {
 func (s *sqlite) LoadClassIDByLabel(label string) (uint, error) {
 	query := "SELECT class_id FROM class WHERE label = ?"
 	var classID sql.NullInt64
-	if err := s.db.QueryRow(query, label).Scan(&classID); err != nil {
+	err := s.db.QueryRow(query, label).Scan(&classID)
+	if err != nil {
 		if err == sql.ErrNoRows {
-			return 0, fmt.Errorf("Class '%s' does not exist", label)
+			return 0, fmt.Errorf("class '%s' does not exist", label)
 		}
 		return 0, err
 	}
@@ -321,9 +331,10 @@ func (s *sqlite) loadClassInfo(classID uint) (string, string, bool, error) {
 	query := "SELECT name, label, is_default FROM class WHERE class_id = ?"
 	var name, label sql.NullString
 	var isDefault sql.NullBool
-	if err := s.db.QueryRow(query, classID).Scan(&name, &label, &isDefault); err != nil {
+	err := s.db.QueryRow(query, classID).Scan(&name, &label, &isDefault)
+	if err != nil {
 		if err == sql.ErrNoRows {
-			return "", "", false, fmt.Errorf("Class '%d' does not exist", classID)
+			return "", "", false, fmt.Errorf("class '%d' does not exist", classID)
 		}
 		return "", "", false, err
 	}
@@ -342,7 +353,8 @@ func (s *sqlite) loadFolders(classID uint) ([]*item.Folder, error) {
 	folders := make([]*item.Folder, 0)
 	for folderRows.Next() {
 		var dest, template sql.NullString
-		if err := folderRows.Scan(&dest, &template); err != nil {
+		err := folderRows.Scan(&dest, &template)
+		if err != nil {
 			return nil, err
 		}
 		folders = append(folders, &item.Folder{Destination: dest.String, Template: template.String})
@@ -362,7 +374,8 @@ func (s *sqlite) loadFiles(classID uint) ([]*item.File, error) {
 	files := make([]*item.File, 0)
 	for fileRows.Next() {
 		var dest, template sql.NullString
-		if err := fileRows.Scan(&dest, &template); err != nil {
+		err := fileRows.Scan(&dest, &template)
+		if err != nil {
 			return nil, err
 		}
 		files = append(files, &item.File{Destination: dest.String, Template: template.String})
@@ -384,7 +397,8 @@ func (s *sqlite) loadScripts(classID uint) ([]*item.Script, error) {
 		var scriptName, scriptArgs, scriptType sql.NullString
 		var runAsSudo sql.NullBool
 		var execNum sql.NullInt64
-		if err := scriptRows.Scan(&scriptName, &scriptType, &execNum, &runAsSudo, &scriptArgs); err != nil {
+		err := scriptRows.Scan(&scriptName, &scriptType, &execNum, &runAsSudo, &scriptArgs)
+		if err != nil {
 			return nil, err
 		}
 		args := make([]string, 0)
@@ -410,16 +424,23 @@ func (s *sqlite) RemoveClass(classID uint) error {
 	}
 
 	// Remove class and dependencies
-	if err = s.removeScripts(classID); err != nil {
+	err = s.removeScripts(classID)
+	if err != nil {
 		return err
 	}
-	if err = s.removeFiles(classID); err != nil {
+
+	err = s.removeFiles(classID)
+	if err != nil {
 		return err
 	}
-	if err = s.removeFolders(classID); err != nil {
+
+	err = s.removeFolders(classID)
+	if err != nil {
 		return err
 	}
-	if err = s.removeClassInfo(classID); err != nil {
+
+	err = s.removeClassInfo(classID)
+	if err != nil {
 		return err
 	}
 	return s.tx.Commit()
@@ -456,9 +477,10 @@ func (s *sqlite) SaveProject(proj *item.Project) error {
 		1,
 	)
 
-	if sqliteErr, ok := err.(sqlite3.Error); ok {
+	sqliteErr, ok := err.(sqlite3.Error)
+	if ok {
 		if sqliteErr.Code == sqlite3.ErrConstraint {
-			return fmt.Errorf("Project already exists")
+			return fmt.Errorf("project already exists")
 		}
 	}
 	return err
@@ -479,9 +501,10 @@ func (s *sqlite) LoadProject(projectID uint) (*item.Project, error) {
 
 	var name, installPath sql.NullString
 	var classID, statusID sql.NullInt64
-	if err := s.db.QueryRow(query, projectID).Scan(&name, &classID, &installPath, &statusID); err != nil {
+	err := s.db.QueryRow(query, projectID).Scan(&name, &classID, &installPath, &statusID)
+	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("Project '%d' does not exist", projectID)
+			return nil, fmt.Errorf("project '%d' does not exist", projectID)
 		}
 		return nil, err
 	}
@@ -522,7 +545,8 @@ func (s *sqlite) LoadAllProjects() ([]*item.Project, error) {
 	for projectRows.Next() {
 		var projectID sql.NullInt64
 
-		if err := projectRows.Scan(&projectID); err != nil {
+		err := projectRows.Scan(&projectID)
+		if err != nil {
 			return nil, err
 		}
 
@@ -538,9 +562,10 @@ func (s *sqlite) LoadAllProjects() ([]*item.Project, error) {
 func (s *sqlite) LoadProjectID(installPath string) (uint, error) {
 	query := "SELECT project_id FROM project WHERE install_path = ?"
 	var classID sql.NullInt64
-	if err := s.db.QueryRow(query, installPath).Scan(&classID); err != nil {
+	err := s.db.QueryRow(query, installPath).Scan(&classID)
+	if err != nil {
 		if err == sql.ErrNoRows {
-			return 0, fmt.Errorf("Project '%s' does not exist", installPath)
+			return 0, fmt.Errorf("project '%s' does not exist", installPath)
 		}
 		return 0, err
 	}
@@ -562,7 +587,7 @@ func (s *sqlite) SaveStatus(status *item.Status) error {
 
 	if sqliteErr, ok := err.(sqlite3.Error); ok {
 		if sqliteErr.Code == sqlite3.ErrConstraint {
-			return fmt.Errorf("Status '%s' already exists", status.Title)
+			return fmt.Errorf("status '%s' already exists", status.Title)
 		}
 	}
 	return err
@@ -581,9 +606,10 @@ func (s *sqlite) LoadStatus(statusID uint) (*item.Status, error) {
 	query := "SELECT title, is_default, comment FROM project_status WHERE project_status_id = ?"
 	var title, comment sql.NullString
 	var isDefault sql.NullBool
-	if err := s.db.QueryRow(query, statusID).Scan(&title, &isDefault, &comment); err != nil {
+	err := s.db.QueryRow(query, statusID).Scan(&title, &isDefault, &comment)
+	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("Status '%d' does not exist", statusID)
+			return nil, fmt.Errorf("status '%d' does not exist", statusID)
 		}
 		return nil, err
 	}
@@ -593,9 +619,10 @@ func (s *sqlite) LoadStatus(statusID uint) (*item.Status, error) {
 func (s *sqlite) LoadStatusID(title string) (uint, error) {
 	query := "SELECT project_status_id FROM project_status WHERE title = ?"
 	var statusID sql.NullInt64
-	if err := s.db.QueryRow(query, title).Scan(&statusID); err != nil {
+	err := s.db.QueryRow(query, title).Scan(&statusID)
+	if err != nil {
 		if err == sql.ErrNoRows {
-			return 0, fmt.Errorf("Status '%s' does not exist", title)
+			return 0, fmt.Errorf("status '%s' does not exist", title)
 		}
 		return 0, err
 	}
@@ -615,7 +642,8 @@ func (s *sqlite) LoadAllStatuses() ([]*item.Status, error) {
 
 	for statusRows.Next() {
 		var statusID sql.NullInt64
-		if err = statusRows.Scan(&statusID); err != nil {
+		err = statusRows.Scan(&statusID)
+		if err != nil {
 			return nil, err
 		}
 		status, err := s.LoadStatus(uint(statusID.Int64))

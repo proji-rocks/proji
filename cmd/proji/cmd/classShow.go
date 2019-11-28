@@ -28,11 +28,12 @@ var classShowCmd = &cobra.Command{
 		}
 
 		if len(args) < 1 {
-			return fmt.Errorf("Missing class label")
+			return fmt.Errorf("missing class label")
 		}
 
 		for _, name := range args {
-			if err := showClass(name, projiEnv.Svc); err != nil {
+			err := showClass(name, projiEnv.Svc)
+			if err != nil {
 				return err
 			}
 		}
@@ -55,7 +56,7 @@ func showClass(label string, svc storage.Service) error {
 		return nil
 	}
 	if class.IsDefault {
-		return fmt.Errorf("Default classes can not be shown")
+		return fmt.Errorf("default classes can not be shown")
 	}
 
 	showInfo(class.Name, class.Label)

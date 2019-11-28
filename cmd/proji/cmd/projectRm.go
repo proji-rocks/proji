@@ -25,7 +25,7 @@ var rmCmd = &cobra.Command{
 		}
 
 		if len(args) < 1 {
-			return fmt.Errorf("Missing project id")
+			return fmt.Errorf("missing project id")
 		}
 
 		for _, idStr := range args {
@@ -34,7 +34,8 @@ var rmCmd = &cobra.Command{
 				return err
 			}
 
-			if err := removeProject(id, projiEnv.Svc); err != nil {
+			err = removeProject(id, projiEnv.Svc)
+			if err != nil {
 				fmt.Printf("> Removing project '%d' failed: %v\n", id, err)
 				continue
 			}
@@ -51,7 +52,8 @@ func init() {
 
 func removeProject(projectID uint, svc storage.Service) error {
 	// Check if project exists
-	if _, err := svc.LoadProject(projectID); err != nil {
+	_, err := svc.LoadProject(projectID)
+	if err != nil {
 		return err
 	}
 	return svc.RemoveProject(projectID)

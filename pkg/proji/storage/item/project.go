@@ -30,12 +30,14 @@ func NewProject(projectID uint, name, installPath string, class *Class, status *
 
 // Create starts the creation of a project.
 func (proj *Project) Create(cwd, configPath string) error {
-	if err := proj.createProjectFolder(); err != nil {
+	err := proj.createProjectFolder()
+	if err != nil {
 		return err
 	}
 
 	// Chdir into the new project folder and defer chdir back to old cwd
-	if err := os.Chdir(proj.Name); err != nil {
+	err = os.Chdir(proj.Name)
+	if err != nil {
 		return err
 	}
 
@@ -45,16 +47,23 @@ func (proj *Project) Create(cwd, configPath string) error {
 	}
 	defer os.Chdir(cwd)
 
-	if err := proj.preRunScripts(configPath); err != nil {
+	err = proj.preRunScripts(configPath)
+	if err != nil {
 		return err
 	}
-	if err := proj.createSubFolders(); err != nil {
+
+	err = proj.createSubFolders()
+	if err != nil {
 		return err
 	}
-	if err := proj.createFiles(); err != nil {
+
+	err = proj.createFiles()
+	if err != nil {
 		return err
 	}
-	if err := proj.copyTemplates(configPath); err != nil {
+
+	err = proj.copyTemplates(configPath)
+	if err != nil {
 		return err
 	}
 	return proj.postRunScripts(configPath)
@@ -77,7 +86,8 @@ func (proj *Project) createSubFolders() error {
 
 		// Replace keyword with project name
 		folder.Destination = re.ReplaceAllString(folder.Destination, proj.Name)
-		if err := os.MkdirAll(folder.Destination, os.ModePerm); err != nil {
+		err := os.MkdirAll(folder.Destination, os.ModePerm)
+		if err != nil {
 			return err
 		}
 	}
@@ -95,7 +105,8 @@ func (proj *Project) createFiles() error {
 
 		// Replace keyword with project name
 		file.Destination = re.ReplaceAllString(file.Destination, proj.Name)
-		if _, err := os.OpenFile(file.Destination, os.O_RDONLY|os.O_CREATE, os.ModePerm); err != nil {
+		_, err := os.OpenFile(file.Destination, os.O_RDONLY|os.O_CREATE, os.ModePerm)
+		if err != nil {
 			return err
 		}
 	}
@@ -113,7 +124,8 @@ func (proj *Project) copyTemplates(configPath string) error {
 
 		// Replace keyword with project name
 		folder.Destination = re.ReplaceAllString(folder.Destination, proj.Name)
-		if err := copy.Copy(templatePath+folder.Template, folder.Destination); err != nil {
+		err := copy.Copy(templatePath+folder.Template, folder.Destination)
+		if err != nil {
 			return err
 		}
 	}
@@ -125,7 +137,8 @@ func (proj *Project) copyTemplates(configPath string) error {
 
 		// Replace keyword with project name
 		file.Destination = re.ReplaceAllString(file.Destination, proj.Name)
-		if err := copy.Copy(templatePath+file.Template, file.Destination); err != nil {
+		err := copy.Copy(templatePath+file.Template, file.Destination)
+		if err != nil {
 			return err
 		}
 	}
@@ -161,7 +174,8 @@ func (proj *Project) runScripts(scriptType, configPath string) error {
 		cmd.Stdout = os.Stdout
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
+		err := cmd.Run()
+		if err != nil {
 			return err
 		}
 	}

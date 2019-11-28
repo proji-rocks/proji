@@ -46,7 +46,7 @@ func NewClass(name, label string, isDefault bool) *Class {
 func (c *Class) ImportFromConfig(configName string) error {
 	// Validate that it's a toml file
 	if !strings.HasSuffix(configName, ".toml") {
-		return fmt.Errorf("Import file has to be of type 'toml'")
+		return fmt.Errorf("import file has to be of type 'toml'")
 	}
 
 	// Validate config is not empty
@@ -55,7 +55,7 @@ func (c *Class) ImportFromConfig(configName string) error {
 		return err
 	}
 	if conf.Size() == 0 {
-		return fmt.Errorf("Import file is empty")
+		return fmt.Errorf("import file is empty")
 	}
 
 	// Decode the file
@@ -65,10 +65,10 @@ func (c *Class) ImportFromConfig(configName string) error {
 	}
 
 	if len(c.Name) < 1 {
-		return fmt.Errorf("Name cannot be an empty string")
+		return fmt.Errorf("name cannot be an empty string")
 	}
 	if len(c.Label) < 1 {
-		return fmt.Errorf("Label cannot be an empty string")
+		return fmt.Errorf("label cannot be an empty string")
 	}
 
 	if c.isEmpty() {
@@ -82,7 +82,7 @@ func (c *Class) ImportFromConfig(configName string) error {
 func (c *Class) ImportFromDirectory(directory string, excludeDirs []string) error {
 	// Validate that the directory exists
 	if !helper.DoesPathExist(directory) {
-		return fmt.Errorf("Given directory does not exist")
+		return fmt.Errorf("given directory does not exist")
 	}
 
 	// Set class name from directory base name
