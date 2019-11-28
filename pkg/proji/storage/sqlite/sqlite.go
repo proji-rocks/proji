@@ -141,7 +141,7 @@ func (s *sqlite) SaveClass(class *item.Class) error {
 	}
 	s.tx = tx
 
-	err := s.saveFolders(class.ID, class.Folders)
+	err = s.saveFolders(class.ID, class.Folders)
 	if err != nil {
 		if e := s.cancelSave(class.ID); e != nil {
 			return e
@@ -149,7 +149,7 @@ func (s *sqlite) SaveClass(class *item.Class) error {
 		return err
 	}
 
-	err := s.saveFiles(class.ID, class.Files)
+	err = s.saveFiles(class.ID, class.Files)
 	if err != nil {
 		if e := s.cancelSave(class.ID); e != nil {
 			return e
@@ -157,7 +157,7 @@ func (s *sqlite) SaveClass(class *item.Class) error {
 		return err
 	}
 
-	err := s.saveScripts(class.ID, class.Scripts)
+	err = s.saveScripts(class.ID, class.Scripts)
 	if err != nil {
 		if e := s.cancelSave(class.ID); e != nil {
 			return e
