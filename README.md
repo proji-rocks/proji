@@ -37,7 +37,7 @@
 
 ## About <a name = "about"></a>
 
-Proji helps you start new projects quickly and easily. With a single command, it creates and configures complex project directories in seconds, which would take minutes to do manually. Proji creates directories and files for you that are either completely new or copied from a template. For example, why write a completely new ReadMe for each project when you can use a template that you only need to adapt to your project? Furthermore, after creating the project directory, proji can also execute scripts for you that initialize the tools that are relevant to your work and your project (e.g. git).
+Proji helps you start new projects quickly and easily. With a single command, it creates and configures complex project directories in seconds, which would take minutes to do manually. Proji creates directories and files for you that are either completely new or copied from a template. For example, why write a completely new ReadMe for each project when you can use a template that you only need to adapt to your project? Furthermore, proji can also execute scripts for you that initialize the tools that are relevant to your work and your project (e.g. git).
 
 Proji is not just for software developers, but for anyone who regularly creates new projects and wants to save time and effort. Developers, authors, artists or just for your general organization.... it doesn't matter, because you define what you need.
 
@@ -45,7 +45,7 @@ Proji increases your efficiency, simplifies your workflow and improves the struc
 
 ## Demo <a name = "demo"></a>
 
-Quick comparison between proji and a common way of project creation. In the demo we create a python project which consists of three folders and two files. We create a `virtualenv`, install three python packages in it and finally we initialize the project as a `git repo`, make the first commit and add a develop branch.
+Quick comparison between proji and a common way of project creation. In the demo we create a python project which consists of three folders and two files. We create a `virtualenv`, install three python packages, initialize the project as a `git repo` and finally make the first commit and add a develop branch.
 
 Common way:
 
@@ -63,7 +63,7 @@ Proji:
   </a>
 </p>
 
-As you can see **proji would have saved you about 1:15 minutes and 230 keystrokes**. And remember, this would have been only for one project and it would not have been not a very complex one either.
+As you can see **proji would have saved you about 1:15 minutes and 230 keystrokes**. Note that in this example only a very small project is created. The advantages of proji increase exponentially with increasing project complexity.
 
 ## Getting Started <a name = "getting_started"></a>
 
@@ -143,17 +143,15 @@ That would not be too bad if you only create a new project every few weeks or mo
 
 ### Setting up a Class <a name = "setting_up_a_class"></a>
 
-To solve this problem with proji, we first have to create a so-called class. A class in proji defines the structure and behavior for projects of a particular topic (python in this example). It serves as a template through which proji will create new projects for you in the future.
+To solve this problem with proji, we first have to create a so-called class. A class in proji defines the structure and behavior for projects of a particular topic (python in this example). It serves as a template through which proji will create new projects for you in the future. This class will determine which directories and files we always want to get created by proji and which scripts proji should execute, for example a script which automatically initializes git in the project, creates a develop branch and makes a first commit.
 
-In our case, we want to have the same basic structure for our python projects in the future. So we'll create a class for python. This class will determine which directories and files we always want to get created by proji and which scripts proji should execute after project generation, for example a script for git which automatically initializes the project, creates a develop branch and makes a first commit.
+Note that folders and files can either be created new and empty or be copied from a so-called template. In the config folder you can find the template folder (`~/.config/proji/templates/`) in which you can store folders and files that you want to use as templates. In our example we could put a python file into this folder. The file could contain a very basic python script something like a 'hello world' program. We can tell proji to always copy this file into our newly created python projects. The same goes for folders. The goal of the templates is to save you even more time.
 
-Note that folders and files can either be created new and empty or be copied from a so-called template. In the config folder you can find a template folder (`~/.config/proji/templates/`) in which you can store folders and files that you want to use as templates. In our example we could put a template python file into this folder. The file could contain a very basic python script something like a 'hello world' program. We can tell proji to always copy this file into our newly created python projects. The same goes for folders. The goal of the templates is to save you some more time.
-
-In addition, we can assign scripts to a proji class which will be executed in a desired order after the project directory has been created. Scripts must be saved under `~/.config/proji/scripts/` and can then be referenced by name in the class config.
+In addition, we can assign scripts to a proji class which will be executed in a desired and defined order. Scripts must be saved under `~/.config/proji/scripts/` and can then be referenced by name in the class config.
 
 #### Structure of a Class
 
--   **Name:** A name that describes the type/topic of the class (e.g. `python`)
+-   **Name:** A name that describes the topic of the class (e.g. `python`)
 -   **Label:** A label that serves as an abbreviation for easily calling the class (e.g. `py`)
 -   **Folders:** A list of folders to be created
 -   **Files:** A list of files to be created
@@ -165,7 +163,7 @@ There are four ways to create a new class:
 
 ##### 1. Config file
 
-Proji offers the possibility to export and import classes through config files. The easiest way to create a new class would be to export the proji sample config and then adapt it to the needs of the class you want to create. To do so execute the command `$ proji class export --example .`.
+Proji offers the possibility to export and import classes through config files. The easiest way to create a new class would be to export the proji sample config and then adapt it to your needs. To do so, execute the command `$ proji class export --example`.
 
 Proji creates the file [proji-class-example.toml](assets/examples/example-class-export.toml) in the current working directory. If you open this file in a text editor, you will find a richly annotated configuration of an example class. This config should then be adapted according to your needs.
 
@@ -175,7 +173,7 @@ Once the config has been edited and saved, it can be imported using the `$ proji
 
 Proji can import the structure of a local directory as a class. It will analyze the directory and create a class config based on all sub-directories and files. 
 
-To do so, first create the config with `$ proji class import --directory path/to/dir`. Then edit the resulting config as needed in your editor of choice. For example, remove folders and files that you do not want to add to your class, or add files, folders, and scripts that are missing. When you are done, import the configuration as already seen above with `$ proji class import --config proji-dir.toml`.
+To do so, first create the config with `$ proji class import --directory path/to/dir`. Then edit the resulting config as needed in your editor of choice. For example, remove folders and files that you do not want to add to your class, or add files, folders, and scripts that are missing. When you are done, import the configuration as seen above with `$ proji class import --config proji-dir.toml`.
 
 ##### 3. Remote repository
 
@@ -183,7 +181,7 @@ Similar behaviour as the `directory` example but instead of importing the struct
 
 As an example, let's create a class based on this repository. First, run the command `$ proji class import --remote-repo https://github.com/nikoksr/proji`. Similar to the `directory` flag this will export a class config based on the remote repository. You can then edit the config to your liking and needs and import it afterwards with `$ proji class import --config proji-proji.toml`.
 
-##### 4. Class add command
+##### 4. Class add command (not recommended)
 
 The third option is to use the `$ proji class add CLASS-NAME [CLASS-NAME...]` command to create one or more classes in an interactive CLI. Proji will query the necessary data for the new class from you and then create the new class based on that data.
 
@@ -195,16 +193,16 @@ After the class has been created or imported, we can use the command `$ proji cl
 
 Now that we have created our python class in proji, we can use it to easily create new projects. A class is created once and is then reused by proji over and over again, and although the process of creating a class might initially seem a bit complex, you will very soon start saving a lot of time and keystrokes and will improve the general structure of your projects.
 
-Assuming our class has been assigned the label `py`, we can create one or more projects with the command `$ proji create py my-py-project-1 my-py-project-2 my-py-project-3`.
+Assuming our class has been assigned the label `py`, we will create three projects with the command `$ proji create py my-py-project-1 my-py-project-2 my-py-project-3`.
 
 <p align="left">
   <a href="" rel="noopener">
  <img src="assets/gifs/create-three-projects.gif" alt="Create projects example"></a>
 </p>
 
-And voilà, proji has created three new project directories where you can start your work immediately. The project directories are all built identically, have the same subdirectories and files, and all ran the same scripts.
+And voila, proji has created three new project directories where you can start your work immediately. The project directories are all built identically, have the same subdirectories and files, and all ran the same scripts.
 
-Take a look at the [python class config](assets/examples/proji-python.toml) and the [git](assets/examples/init_git.sh) and [virtualenv](assets/examples/init_virtualenv.sh) scripts that were used in this example.
+Take a look at the [python class config](assets/examples/proji-python.toml), the [git](assets/examples/init_git.sh) and [virtualenv](assets/examples/init_virtualenv.sh) scripts that were used in this example.
 
 ## Advanced Usage <a name="advanced_usage"></a>
 
