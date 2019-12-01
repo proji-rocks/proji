@@ -87,11 +87,11 @@ Might work under Mac but it's not tested yet.
 
 ### Installation <a name = "installation"></a>
 
-**Note**: The `master` branch may be in an *unstable or even broken state* during development. Please use [releases][github-release] instead of the `master` branch in order to get stable binaries.
+**Note**: The `master` branch may be in an *unstable or even broken state* during development. Please use [releases](https://github.com/nikoksr/proji/releases) instead of the `master` branch in order to get stable binaries.
 
 #### Binary Distributions
 
-1.  Download the latest [release][github-release] for your system
+1.  Download the latest [release](https://github.com/nikoksr/proji/releases) for your system
 2.  Extract the tar with: `$ tar -xf proji-XXXX-XXX.tar.gz`
 3.  Run the installer: `$ ./install.sh`
 
