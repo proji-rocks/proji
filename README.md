@@ -87,6 +87,8 @@ Might work under Mac but it's not tested yet.
 
 ### Installation <a name = "installation"></a>
 
+**Note**: The `master` branch may be in an *unstable or even broken state* during development. Please use [releases](https://github.com/nikoksr/proji/releases) instead of the `master` branch in order to get stable binaries.
+
 #### Binary Distributions
 
 1.  Download the latest [release](https://github.com/nikoksr/proji/releases) for your system
