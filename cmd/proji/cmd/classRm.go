@@ -3,7 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/nikoksr/proji/pkg/proji/storage"
+	"github.com/nikoksr/proji/pkg/proji/storage/item"
+
 	"github.com/spf13/cobra"
 )
 
@@ -13,27 +14,45 @@ var classRmCmd = &cobra.Command{
 	Use:   "rm LABEL [LABEL...]",
 	Short: "Remove one or more classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
+
+		// Collect classes that will be removed
+		var classes []*item.Class
+
 		if removeAll {
-			err := removeAllClasses(projiEnv.Svc)
+			var err error
+			classes, err = projiEnv.Svc.LoadAllClasses()
 			if err != nil {
-				fmt.Printf("> Removing of all classes failed: %v\n", err)
 				return err
 			}
-			fmt.Println("> All classes were successfully removed")
-			return nil
+		} else {
+			if len(args) < 1 {
+				return fmt.Errorf("missing class label")
+			}
+
+			for _, label := range args {
+				classID, err := projiEnv.Svc.LoadClassIDByLabel(label)
+				if err != nil {
+					return err
+				}
+				class, err := projiEnv.Svc.LoadClass(classID)
+				if err != nil {
+					return err
+				}
+				classes = append(classes, class)
+			}
 		}
 
-		if len(args) < 1 {
-			return fmt.Errorf("missing class label")
-		}
-
-		for _, name := range args {
-			err := removeClass(name, projiEnv.Svc)
-			if err != nil {
-				fmt.Printf("> Removing '%s' failed: %v\n", name, err)
+		// Remove the classes
+		for _, class := range classes {
+			if class.IsDefault {
 				continue
 			}
-			fmt.Printf("> '%s' was successfully removed\n", name)
+			err := projiEnv.Svc.RemoveClass(class.ID)
+			if err != nil {
+				fmt.Printf("> Removing '%s' failed: %v\n", class.Label, err)
+				return err
+			}
+			fmt.Printf("> '%s' was successfully removed\n", class.Label)
 		}
 		return nil
 	},
@@ -42,39 +61,4 @@ var classRmCmd = &cobra.Command{
 func init() {
 	classCmd.AddCommand(classRmCmd)
 	classRmCmd.Flags().BoolVarP(&removeAll, "all", "a", false, "Remove all classes")
-}
-
-func removeClass(label string, svc storage.Service) error {
-	classID, err := svc.LoadClassIDByLabel(label)
-	if err != nil {
-		return err
-	}
-	class, err := svc.LoadClass(classID)
-	if err != nil {
-		return err
-	}
-
-	if class.IsDefault {
-		return fmt.Errorf("default classes can not be removed")
-	}
-
-	return svc.RemoveClass(classID)
-}
-
-func removeAllClasses(svc storage.Service) error {
-	classes, err := svc.LoadAllClasses()
-	if err != nil {
-		return err
-	}
-
-	for _, class := range classes {
-		if class.IsDefault {
-			continue
-		}
-		err = svc.RemoveClass(class.ID)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
