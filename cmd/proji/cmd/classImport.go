@@ -3,10 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/gosuri/uilive"
-
 	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
 	"github.com/spf13/cobra"
 )
@@ -28,23 +25,18 @@ var classImportCmd = &cobra.Command{
 		// them as intended with the '*'.
 		configs = append(configs, args...)
 		pathMap := map[string][]string{"files": configs, "dirs": directories, "urls": remoteRepos}
-		writer := uilive.New()
-		writer.Start()
 
 		// Import configs
 		for pathType, paths := range pathMap {
 			for _, path := range paths {
-				_, _ = fmt.Fprintf(writer.Newline(), "> Importing %s...\n", path)
-				msg, err := importClass(path, pathType, excludes, projiEnv.Svc)
+				result, err := importClass(path, pathType, excludes)
 				if err != nil {
-					_, _ = fmt.Fprintf(writer.Bypass(), "> Import of '%s' failed: %v\n", path, err)
-					continue
+					fmt.Printf("Error: %v\n", err)
+				} else {
+					fmt.Sprintln(result)
 				}
-				_, _ = fmt.Fprintln(writer.Bypass(), msg)
 			}
 		}
-
-		writer.Stop()
 		return nil
 	},
 }
