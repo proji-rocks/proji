@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
 	"github.com/spf13/cobra"
 )
@@ -22,14 +21,14 @@ var statusAddCmd = &cobra.Command{
 
 		for _, status := range args {
 			status = strings.ToLower(status)
-			comment, err := addStatus(status, projiEnv.Svc)
+			comment, err := addStatus(status)
 			if err != nil {
 				fmt.Printf("> Adding status %s failed: %v\n", status, err)
 				if err.Error() == "Status already exists" {
 					if !helper.WantTo("> Do you want to update its comment?") {
 						continue
 					}
-					err := replaceStatus(status, comment, projiEnv.Svc)
+					err := replaceStatus(status, comment)
 					if err != nil {
 						fmt.Printf("> Updating comment %s failed: %v\n", status, err)
 						continue
@@ -48,7 +47,7 @@ func init() {
 	statusCmd.AddCommand(statusAddCmd)
 }
 
-func addStatus(title string, svc storage.Service) (string, error) {
+func addStatus(title string) (string, error) {
 	// Create status and set status
 	var status item.Status
 	status.Title = title
@@ -61,13 +60,13 @@ func addStatus(title string, svc storage.Service) (string, error) {
 		return "", err
 	}
 	status.Comment = strings.Trim(comment, "\n")
-	return status.Comment, svc.SaveStatus(&status)
+	return status.Comment, projiEnv.Svc.SaveStatus(&status)
 }
 
-func replaceStatus(title, comment string, svc storage.Service) error {
-	id, err := svc.LoadStatusID(title)
+func replaceStatus(title, comment string) error {
+	id, err := projiEnv.Svc.LoadStatusID(title)
 	if err != nil {
 		return err
 	}
-	return svc.UpdateStatus(id, title, comment)
+	return projiEnv.Svc.UpdateStatus(id, title, comment)
 }

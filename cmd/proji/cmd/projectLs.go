@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/jedib0t/go-pretty/table"
-	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -12,7 +11,7 @@ var lsCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List projects",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return listProjects(projiEnv.Svc)
+		return listProjects()
 	},
 }
 
@@ -20,8 +19,8 @@ func init() {
 	rootCmd.AddCommand(lsCmd)
 }
 
-func listProjects(svc storage.Service) error {
-	projects, err := svc.LoadAllProjects()
+func listProjects() error {
+	projects, err := projiEnv.Svc.LoadAllProjects()
 	if err != nil {
 		return err
 	}

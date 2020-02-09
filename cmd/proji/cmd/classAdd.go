@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
 	"github.com/spf13/cobra"
 )
@@ -20,7 +19,7 @@ var classAddCmd = &cobra.Command{
 		}
 
 		for _, name := range args {
-			err := addClass(name, projiEnv.Svc)
+			err := addClass(name)
 			if err != nil {
 				fmt.Printf("> Adding class '%s' failed: %v\n", name, err)
 				continue
@@ -35,7 +34,7 @@ func init() {
 	classCmd.AddCommand(classAddCmd)
 }
 
-func addClass(name string, svc storage.Service) error {
+func addClass(name string) error {
 	reader := bufio.NewReader(os.Stdin)
 
 	label, err := getLabel(reader)
@@ -59,7 +58,7 @@ func addClass(name string, svc storage.Service) error {
 	class.Folders = folders
 	class.Files = files
 	class.Scripts = scripts
-	return svc.SaveClass(class)
+	return projiEnv.Svc.SaveClass(class)
 }
 
 func getLabel(reader *bufio.Reader) (string, error) {

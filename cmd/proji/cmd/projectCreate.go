@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
 	"github.com/spf13/cobra"
 )
@@ -46,7 +45,7 @@ var createCmd = &cobra.Command{
 		for _, name := range projects {
 			fmt.Printf("\n> Creating project %s\n", name)
 
-			err := createProject(name, cwd, projiEnv.ConfPath, class, status, projiEnv.Svc)
+			err := createProject(name, cwd, projiEnv.ConfPath, class, status)
 			if err != nil {
 				fmt.Printf(" -> Failed: %v\n", err)
 
@@ -54,7 +53,7 @@ var createCmd = &cobra.Command{
 					if !helper.WantTo("> Do you want to replace it?") {
 						continue
 					}
-					err := replaceProject(name, cwd, projiEnv.ConfPath, class, status, projiEnv.Svc)
+					err := replaceProject(name, cwd, projiEnv.ConfPath, class, status)
 					if err != nil {
 						fmt.Printf("> Replacing project %s failed: %v\n", name, err)
 						continue
@@ -73,11 +72,11 @@ func init() {
 	rootCmd.AddCommand(createCmd)
 }
 
-func createProject(name, cwd, configPath string, class *item.Class, status *item.Status, svc storage.Service) error {
+func createProject(name, cwd, configPath string, class *item.Class, status *item.Status) error {
 	proj := item.NewProject(0, name, cwd+"/"+name, class, status)
 
 	// Save it first to see if it already exists in the database
-	err := svc.SaveProject(proj)
+	err := projiEnv.Svc.SaveProject(proj)
 	if err != nil {
 		return err
 	}
@@ -89,16 +88,16 @@ func createProject(name, cwd, configPath string, class *item.Class, status *item
 	return nil
 }
 
-func replaceProject(name, cwd, configPath string, class *item.Class, status *item.Status, svc storage.Service) error {
-	id, err := svc.LoadProjectID(cwd + "/" + name)
+func replaceProject(name, cwd, configPath string, class *item.Class, status *item.Status) error {
+	id, err := projiEnv.Svc.LoadProjectID(cwd + "/" + name)
 	if err != nil {
 		return err
 	}
 
 	// Replace it
-	err = svc.RemoveProject(id)
+	err = projiEnv.Svc.RemoveProject(id)
 	if err != nil {
 		return err
 	}
-	return createProject(name, cwd, configPath, class, status, svc)
+	return createProject(name, cwd, configPath, class, status)
 }

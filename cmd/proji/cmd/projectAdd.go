@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
 	"github.com/spf13/cobra"
 )
@@ -30,7 +29,7 @@ var addCmd = &cobra.Command{
 		label := strings.ToLower(args[0])
 		status := strings.ToLower(args[2])
 
-		err = addProject(label, path, status, projiEnv.Svc)
+		err = addProject(label, path, status)
 		if err != nil {
 			return err
 		}
@@ -43,33 +42,33 @@ func init() {
 	rootCmd.AddCommand(addCmd)
 }
 
-func addProject(label, path, statusTitle string, svc storage.Service) error {
+func addProject(label, path, statusTitle string) error {
 	name := filepath.Base(path)
-	classID, err := svc.LoadClassIDByLabel(label)
+	classID, err := projiEnv.Svc.LoadClassIDByLabel(label)
 	if err != nil {
 		return err
 	}
 
-	statusID, err := svc.LoadStatusID(statusTitle)
+	statusID, err := projiEnv.Svc.LoadStatusID(statusTitle)
 	if err != nil {
 		return err
 	}
 
-	class, err := svc.LoadClass(classID)
+	class, err := projiEnv.Svc.LoadClass(classID)
 	if err != nil {
 		return err
 	}
 
 	var status *item.Status
-	status, err = svc.LoadStatus(statusID)
+	status, err = projiEnv.Svc.LoadStatus(statusID)
 	if err != nil {
 		// Load status unknown
-		status, err = svc.LoadStatus(5)
+		status, err = projiEnv.Svc.LoadStatus(5)
 		if err != nil {
 			return err
 		}
 	}
 
 	proj := item.NewProject(0, name, path, class, status)
-	return svc.SaveProject(proj)
+	return projiEnv.Svc.SaveProject(proj)
 }

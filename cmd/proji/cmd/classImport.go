@@ -57,7 +57,7 @@ func init() {
 	_ = classImportCmd.MarkFlagFilename("exclude")
 }
 
-func importClass(path, pathType string, excludes []string, svc storage.Service) (string, error) {
+func importClass(path, pathType string, excludes []string) (string, error) {
 	if helper.IsInSlice(excludes, path) {
 		return "", nil
 	}
@@ -72,14 +72,15 @@ func importClass(path, pathType string, excludes []string, svc storage.Service) 
 		if err != nil {
 			return "", err
 		}
-		err = svc.SaveClass(class)
+		err = projiEnv.Svc.SaveClass(class)
 		if err == nil {
 			msg = fmt.Sprintf("> Successfully imported class '%s' from '%s'", class.Name, path)
 		}
 		break
 	case "dirs":
+		fallthrough
 	case "urls":
-		if pathType == "dir" {
+		if pathType == "dirs" {
 			err = class.ImportFromDirectory(path, excludes)
 			if err != nil {
 				return "", err
@@ -90,6 +91,8 @@ func importClass(path, pathType string, excludes []string, svc storage.Service) 
 				return "", err
 			}
 		}
+		// Classes that are generated from directories and URLs should be exported to a config file first
+		// so that the user can fine tune them
 		confName, err = class.Export(".")
 		if err == nil {
 			msg = fmt.Sprintf("> '%s' was successfully exported to '%s'", path, confName)
