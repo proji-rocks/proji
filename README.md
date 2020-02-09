@@ -11,7 +11,7 @@
 
 * * *
 
-<p align="center">Proji is a simple and fast project creator and manager.</p><br />
+<p align="center">A fast and powerful cli project scaffolding tool.</p><br />
 
 ## Table Of Contents
 

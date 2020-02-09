@@ -21,7 +21,7 @@ var projiEnv *env
 
 var rootCmd = &cobra.Command{
 	Use:   "proji",
-	Short: "A lean and mean project creator and manager.",
+	Short: "A fast and powerful cli project scaffolding tool.",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		svc, err := initStorageService()
 		if err != nil {
