@@ -8,7 +8,6 @@ import (
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
 
 	"github.com/jedib0t/go-pretty/table"
-	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -19,7 +18,7 @@ var classShowCmd = &cobra.Command{
 	Short: "Show details about one or more classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if showAll {
-			err := showAllClasses(projiEnv.Svc)
+			err := showAllClasses()
 			if err != nil {
 				fmt.Printf("> Showing of all classes failed: %v\n", err)
 				return err
@@ -32,7 +31,7 @@ var classShowCmd = &cobra.Command{
 		}
 
 		for _, name := range args {
-			err := showClass(name, projiEnv.Svc)
+			err := showClass(name)
 			if err != nil {
 				return err
 			}
@@ -46,12 +45,12 @@ func init() {
 	classShowCmd.Flags().BoolVarP(&showAll, "all", "a", false, "Show all classes")
 }
 
-func showClass(label string, svc storage.Service) error {
-	classID, err := svc.LoadClassIDByLabel(label)
+func showClass(label string) error {
+	classID, err := projiEnv.Svc.LoadClassIDByLabel(label)
 	if err != nil {
 		return err
 	}
-	class, err := svc.LoadClass(classID)
+	class, err := projiEnv.Svc.LoadClass(classID)
 	if err != nil {
 		return nil
 	}
@@ -66,8 +65,8 @@ func showClass(label string, svc storage.Service) error {
 	return nil
 }
 
-func showAllClasses(svc storage.Service) error {
-	classes, err := svc.LoadAllClasses()
+func showAllClasses() error {
+	classes, err := projiEnv.Svc.LoadAllClasses()
 	if err != nil {
 		return err
 	}

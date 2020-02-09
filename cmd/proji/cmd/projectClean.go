@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -10,7 +9,7 @@ var cleanCmd = &cobra.Command{
 	Use:   "clean",
 	Short: "Clean up projects",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return cleanProjects(projiEnv.Svc)
+		return cleanProjects()
 	},
 }
 
@@ -18,8 +17,8 @@ func init() {
 	rootCmd.AddCommand(cleanCmd)
 }
 
-func cleanProjects(svc storage.Service) error {
-	projects, err := svc.LoadAllProjects()
+func cleanProjects() error {
+	projects, err := projiEnv.Svc.LoadAllProjects()
 	if err != nil {
 		return err
 	}
@@ -40,11 +39,10 @@ func cleanProjects(svc storage.Service) error {
 		// Overall health
 		overallGood := pathGood && statusGood
 
-		// If no dry run and overall healh is bad, than clean project
 		if !overallGood {
 			if !pathGood {
 				// Remove the project
-				err := svc.RemoveProject(project.ID)
+				err := projiEnv.Svc.RemoveProject(project.ID)
 				if err != nil {
 					return err
 				}
@@ -52,7 +50,7 @@ func cleanProjects(svc storage.Service) error {
 			}
 			if !statusGood {
 				// Update projects status to unknown (ID 5 in storage)
-				err = svc.UpdateProjectStatus(project.ID, 5)
+				err = projiEnv.Svc.UpdateProjectStatus(project.ID, 5)
 				if err != nil {
 					return err
 				}

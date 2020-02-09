@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -23,7 +22,7 @@ var projectSetStatusCmd = &cobra.Command{
 			return err
 		}
 
-		err = setStatus(projectID, status, projiEnv.Svc)
+		err = setStatus(projectID, status)
 		if err != nil {
 			fmt.Printf("> Setting status '%s' for project %d failed: %v\n", status, projectID, err)
 			return err
@@ -37,16 +36,16 @@ func init() {
 	projectSetCmd.AddCommand(projectSetStatusCmd)
 }
 
-func setStatus(projectID uint, statusTitle string, svc storage.Service) error {
+func setStatus(projectID uint, statusTitle string) error {
 	// Load and validate status
-	statusID, err := svc.LoadStatusID(statusTitle)
+	statusID, err := projiEnv.Svc.LoadStatusID(statusTitle)
 	if err != nil {
 		return err
 	}
 	// Validate project
-	_, err = svc.LoadProject(projectID)
+	_, err = projiEnv.Svc.LoadProject(projectID)
 	if err != nil {
 		return err
 	}
-	return svc.UpdateProjectStatus(projectID, statusID)
+	return projiEnv.Svc.UpdateProjectStatus(projectID, statusID)
 }

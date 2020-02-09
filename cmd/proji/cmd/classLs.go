@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/jedib0t/go-pretty/table"
-	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +12,7 @@ var classLsCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return listClasses(projiEnv.Svc)
+		return listClasses()
 	},
 }
 
@@ -21,8 +20,8 @@ func init() {
 	classCmd.AddCommand(classLsCmd)
 }
 
-func listClasses(svc storage.Service) error {
-	classes, err := svc.LoadAllClasses()
+func listClasses() error {
+	classes, err := projiEnv.Svc.LoadAllClasses()
 	if err != nil {
 		return err
 	}

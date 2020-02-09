@@ -3,8 +3,9 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/nikoksr/proji/pkg/proji/storage/item"
+
 	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -14,26 +15,45 @@ var statusRmCmd = &cobra.Command{
 	Use:   "rm ID [ID...]",
 	Short: "Remove one or more statuses",
 	RunE: func(cmd *cobra.Command, args []string) error {
+
+		// Collect statuses that will be removed
+		var statuses []*item.Status
+
 		if rmAllStatuses {
-			err := removeAllStatuses(projiEnv.Svc)
+			var err error
+			statuses, err = projiEnv.Svc.LoadAllStatuses()
 			if err != nil {
-				fmt.Printf("> Removing of all statuses failed: %v\n", err)
 				return err
 			}
-			fmt.Println("> All statuses were successfully removed")
-			return nil
-		}
-
-		if len(args) < 1 {
-			return fmt.Errorf("missing status-ID")
-		}
-
-		for _, status := range args {
-			err := removeStatus(status, projiEnv.Svc)
-			if err != nil {
-				fmt.Printf("> Removing status %s failed: %v\n", status, err)
+		} else {
+			if len(args) < 1 {
+				return fmt.Errorf("missing status-id")
 			}
-			fmt.Printf("> Status '%s' was successfully removed\n", status)
+
+			for _, idStr := range args {
+				id, err := helper.StrToUInt(idStr)
+				if err != nil {
+					return err
+				}
+				status, err := projiEnv.Svc.LoadStatus(id)
+				if err != nil {
+					return err
+				}
+				statuses = append(statuses, status)
+			}
+		}
+
+		// Remove the statuses
+		for _, status := range statuses {
+			if status.IsDefault {
+				continue
+			}
+			err := projiEnv.Svc.RemoveStatus(status.ID)
+			if err != nil {
+				fmt.Printf("> Removing status '%d' failed: %v\n", status.ID, err)
+				return err
+			}
+			fmt.Printf("> Status '%d' was successfully removed\n", status.ID)
 		}
 		return nil
 	},
@@ -42,39 +62,4 @@ var statusRmCmd = &cobra.Command{
 func init() {
 	statusCmd.AddCommand(statusRmCmd)
 	statusRmCmd.Flags().BoolVarP(&rmAllStatuses, "all", "a", false, "Remove all statuses")
-}
-
-func removeStatus(id string, svc storage.Service) error {
-	statusID, err := helper.StrToUInt(id)
-	if err != nil {
-		return err
-	}
-
-	status, err := svc.LoadStatus(statusID)
-	if err != nil {
-		return err
-	}
-
-	if status.IsDefault {
-		return fmt.Errorf("default statuses can not be removed")
-	}
-	return svc.RemoveStatus(statusID)
-}
-
-func removeAllStatuses(svc storage.Service) error {
-	statuses, err := svc.LoadAllStatuses()
-	if err != nil {
-		return err
-	}
-
-	for _, status := range statuses {
-		if status.IsDefault {
-			continue
-		}
-		err = svc.RemoveStatus(status.ID)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }

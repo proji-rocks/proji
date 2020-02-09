@@ -5,7 +5,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/nikoksr/proji/pkg/proji/storage"
+	"github.com/nikoksr/proji/pkg/proji/storage/item"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -34,29 +35,44 @@ var classExportCmd = &cobra.Command{
 			return nil
 		}
 
-		// Export all classes
+		// Collect classes that will be exported
+		var classes []*item.Class
+
 		if exportAll {
-			err := exportAllClasses(destination, projiEnv.Svc)
+			var err error
+			classes, err = projiEnv.Svc.LoadAllClasses()
 			if err != nil {
-				fmt.Printf("> Export of all classes failed: %v\n", err)
 				return err
 			}
-			fmt.Println("> All classes were successfully exported")
-			return nil
+		} else {
+			if len(args) < 1 {
+				return fmt.Errorf("missing class label")
+			}
+
+			for _, label := range args {
+				classID, err := projiEnv.Svc.LoadClassIDByLabel(label)
+				if err != nil {
+					return err
+				}
+				class, err := projiEnv.Svc.LoadClass(classID)
+				if err != nil {
+					return err
+				}
+				classes = append(classes, class)
+			}
 		}
 
-		// Regular export
-		if len(args) < 1 {
-			return fmt.Errorf("missing class label")
-		}
-
-		for _, label := range args {
-			file, err := exportClass(label, destination, projiEnv.Svc)
-			if err != nil {
-				fmt.Printf("> Export of '%s' to file %s failed: %v\n", label, file, err)
+		// Export the classes
+		for _, class := range classes {
+			if class.IsDefault {
 				continue
 			}
-			fmt.Printf("> '%s' was successfully exported to file %s\n", label, file)
+			fileOut, err := class.Export(destination)
+			if err != nil {
+				fmt.Printf("> Export of '%s' to file %s failed: %v\n", class.Label, fileOut, err)
+				return err
+			}
+			fmt.Printf("> '%s' was successfully exported to file %s\n", class.Label, fileOut)
 		}
 		return nil
 	},
@@ -69,39 +85,6 @@ func init() {
 
 	classExportCmd.Flags().StringVarP(&destination, "destination", "d", ".", "Destination for the export")
 	_ = classExportCmd.MarkFlagDirname("destination")
-}
-
-func exportClass(label, destination string, svc storage.Service) (string, error) {
-	classID, err := svc.LoadClassIDByLabel(label)
-	if err != nil {
-		return "", err
-	}
-	class, err := svc.LoadClass(classID)
-	if err != nil {
-		return "", err
-	}
-	if class.IsDefault {
-		return "", fmt.Errorf("default classes can not be exported")
-	}
-	return class.Export(destination)
-}
-
-func exportAllClasses(destination string, svc storage.Service) error {
-	classes, err := svc.LoadAllClasses()
-	if err != nil {
-		return err
-	}
-
-	for _, class := range classes {
-		if class.IsDefault {
-			continue
-		}
-		_, err = class.Export(destination)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func exportExample(destination, confPath string) (string, error) {
