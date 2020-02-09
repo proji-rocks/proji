@@ -1,7 +1,5 @@
 <div align="center">
-<img width=300px height=300px src="assets/images/proji-logo.svg" alt="proji logo">
-
-<h2 align="center">proji</h2>
+<img width=300px height=300px src="assets/images/proji-logo-title.svg" alt="proji logo">
 
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/nikoksr/proji?sort=semver)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
