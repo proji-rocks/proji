@@ -18,7 +18,7 @@ var classImportCmd = &cobra.Command{
 	Short: "Import one or more classes",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if len(configs) < 1 && len(directories) < 1 && len(remoteRepos) < 1 {
-			return fmt.Errorf("no flag was passed. You have to pass the '--config', '--directory' or '--remote-repo'go flag at least once")
+			return fmt.Errorf("no flag was passed. You have to pass the '--config', '--directory' or '--remote-repo' flag at least once")
 		}
 		return nil
 	},
