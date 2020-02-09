@@ -100,10 +100,11 @@ func (c *Class) ImportFromDirectory(directory string, excludeDirs []string) erro
 			return nil
 		}
 		// Extract relative path
-		relPath, err := filepath.Rel(base, path)
+		relPath, err := filepath.Rel(directory, path)
 		if err != nil {
 			return err
 		}
+
 		// Add file or folder to class
 		if info.IsDir() {
 			c.Folders = append(c.Folders, &Folder{Destination: relPath, Template: ""})
@@ -116,10 +117,14 @@ func (c *Class) ImportFromDirectory(directory string, excludeDirs []string) erro
 		return nil
 	})
 
+	if err != nil {
+		return err
+	}
+
 	if c.isEmpty() {
 		return fmt.Errorf("no relevant data was found. Directory might be empty")
 	}
-	return err
+	return nil
 }
 
 // ImportFromURL imports a class from a given URL. The URL should point to a remote repo of one of the following code
