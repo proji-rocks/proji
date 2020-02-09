@@ -9,7 +9,6 @@ require (
 	github.com/antchfx/htmlquery v1.2.0 // indirect
 	github.com/antchfx/xmlquery v1.2.1 // indirect
 	github.com/antchfx/xpath v1.1.2 // indirect
-	github.com/briandowns/spinner v1.8.0
 	github.com/go-openapi/strfmt v0.19.3 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gocolly/colly v1.2.0
@@ -18,7 +17,6 @@ require (
 	github.com/gosuri/uilive v0.0.3
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/kennygrant/sanitize v1.2.4 // indirect
-	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mattn/go-isatty v0.0.10 // indirect
 	github.com/mattn/go-runewidth v0.0.6 // indirect
 	github.com/mattn/go-sqlite3 v1.13.0
