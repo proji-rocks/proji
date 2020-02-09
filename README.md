@@ -19,8 +19,7 @@
 
 -   [About](#about)
 -   [Demo](#demo)
--   [Getting Started](#getting_started)
-    -   [Dependencies](#dependencies)
+-   [Getting Started](#getting_started)    
     -   [Installation](#installation)
     -   [Running the Tests](#running_the_tests)
     -   [Tab Completion](#tab_completion)
@@ -70,20 +69,6 @@ As you can see **proji would have saved you about 1:15 minutes and 230 keystroke
 Proji is currently only supported under linux and a work in progress. You can either download a pre-compiled binary from the latest [release](https://github.com/nikoksr/proji/releases) or install it from source.
 
 Might work under Mac but it's not tested yet.
-
-### Dependencies <a name = "dependencies"></a>
-
--   [go](https://golang.org/) - Main language
--   [sqlite3](https://www.sqlite.org/index.html) - Database
--   [mattn/go-sqlite3](https://github.com/mattn/go-sqlite3) - Go Sqlite3 Driver
--   [spf13/cobra](https://github.com/spf13/cobra) - CLI commands
--   [spf13/viper](https://github.com/spf13/viper) - Manage config file
--   [BurntSushi/toml](https://github.com/BurntSushi/toml) - Go toml parser
--   [toml-lang/toml](https://github.com/toml-lang/toml) - Config Language
--   [jedib0t/go-pretty](https://github.com/jedib0t/go-pretty) - CLI Styling
--   [stretchr/testify](https://github.com/stretchr/testify) - Test Framework
--   [gocolly/colly](https://github.com/gocolly/colly) - Web Scraping
--   [briandowns/spinner](https://github.com/briandowns/spinner) - Terminal Spinner
 
 ### Installation <a name = "installation"></a>
 
@@ -145,7 +130,7 @@ That would not be too bad if you only create a new project every few weeks or mo
 
 ### Setting up a Class <a name = "setting_up_a_class"></a>
 
-To solve this problem with proji, we first have to create a so-called class. A class in proji defines the structure and behavior for projects of a particular topic (python in this example). It serves as a template through which proji will create new projects for you in the future. This class will determine which directories and files we always want to get created by proji and which scripts proji should execute, for example a script which automatically initializes git in the project, creates a develop branch and makes a first commit.
+To solve this problem with proji, we first have to create a so-called class. A class in proji defines the structure and behavior for projects of a particular topic (python in this example). It serves as a template through which proji will create new projects for you in the future. This class will determine which directories and files we always want to get created by proji and which scripts proji should execute. For example a script which automatically initializes git in the project, creates a develop branch and makes a first commit.
 
 Note that folders and files can either be created new and empty or be copied from a so-called template. In the config folder you can find the template folder (`~/.config/proji/templates/`) in which you can store folders and files that you want to use as templates. In our example we could put a python file into this folder. The file could contain a very basic python script something like a 'hello world' program. We can tell proji to always copy this file into our newly created python projects. The same goes for folders. The goal of the templates is to save you even more time.
 
@@ -189,11 +174,13 @@ The third option is to use the `$ proji class add CLASS-NAME [CLASS-NAME...]` co
 
 The advantage of the config file is that incorrect information can easily be corrected. For example, if you entered a script that does not exist or whose name was simply misspelled, you can easily change the name in the configuration file. This is not possible in the CLI menu. If the entry is incorrect, the creation process must be restarted.
 
+<hr>
+
 After the class has been created or imported, we can use the command `$ proji class ls` to display a list of our available classes. The command `$ proji class show LABEL [LABEL...]` allows us to display a detailed view of one or more classes.
 
 ### Creating our first projects <a name = "creating_our_first_projects"></a>
 
-Now that we have created our python class in proji, we can use it to easily create new projects. A class is created once and is then reused by proji over and over again, and although the process of creating a class might initially seem a bit complex, you will very soon start saving a lot of time and keystrokes and will improve the general structure of your projects.
+Now that we have created our python class in proji, we can use it to easily create new projects. A class is created once and is then reused by proji over and over again, and although the process of creating a class might initially seem a bit complex, you will very soon start saving a lot of time and keystrokes and will improve the general consistency of your projects structures.
 
 Assuming our class has been assigned the label `py`, we will create three projects with the command `$ proji create py my-py-project-1 my-py-project-2 my-py-project-3`.
 
