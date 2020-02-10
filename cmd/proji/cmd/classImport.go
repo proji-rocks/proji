@@ -5,6 +5,7 @@ import (
 
 	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
+
 	"github.com/spf13/cobra"
 )
 
@@ -33,7 +34,7 @@ var classImportCmd = &cobra.Command{
 				if err != nil {
 					fmt.Printf("Error: %v\n", err)
 				} else {
-					fmt.Sprintln(result)
+					fmt.Println(result)
 				}
 			}
 		}
@@ -76,7 +77,6 @@ func importClass(path, pathType string, excludes []string) (string, error) {
 		if err == nil {
 			msg = fmt.Sprintf("> Successfully imported class '%s' from '%s'", class.Name, path)
 		}
-		break
 	case "dirs":
 		fallthrough
 	case "urls":
@@ -86,7 +86,7 @@ func importClass(path, pathType string, excludes []string) (string, error) {
 				return "", err
 			}
 		} else {
-			err = class.ImportFromURL(path, excludes)
+			err = class.ImportFromURL(path)
 			if err != nil {
 				return "", err
 			}
@@ -97,7 +97,8 @@ func importClass(path, pathType string, excludes []string) (string, error) {
 		if err == nil {
 			msg = fmt.Sprintf("> '%s' was successfully exported to '%s'", path, confName)
 		}
-		break
+	default:
+		err = fmt.Errorf("path type %s is not supported", pathType)
 	}
 	return msg, err
 }
