@@ -3,6 +3,7 @@ package github
 import (
 	"fmt"
 	"io/ioutil"
+	"regexp"
 
 	"github.com/nikoksr/proji/pkg/proji/repo"
 
@@ -19,8 +20,27 @@ type github struct {
 }
 
 // New creates a new github repo object
-func New(userName, repoName string) (repo.Importer, error) {
-	g := &github{apiBaseURI: "https://api.github.com/repos/", userName: userName, repoName: repoName, repoSHA: ""}
+func New(repoURLPath string) (repo.Importer, error) {
+	// Parse URL
+	// Examples:
+	//  - https://github.com/[nikoksr]/[proji]                -> extracts user and repo name; no branch name
+	//  - https://github.com/[nikoksr]/[proji]/tree/[master]  -> extracts user, repo and branch name
+	r := regexp.MustCompile(`/(?P<User>[^/]+)/(?P<Repo>[^/]+)(/tree/(?P<Branch>[^/]+))?`)
+	specs := r.FindStringSubmatch(repoURLPath)
+	userName := specs[1]
+	repoName := specs[2]
+	branchName := specs[4]
+
+	if userName == "" || repoName == "" {
+		return nil, fmt.Errorf("could not extract user and/or repository name. Please check the URL")
+	}
+
+	// Default to master if no branch was defined
+	if branchName == "" {
+		branchName = "master"
+	}
+
+	g := &github{apiBaseURI: "https://api.github.com/repos/", userName: userName, repoName: repoName, branchName: branchName, repoSHA: ""}
 	return g, g.setRepoSHA()
 }
 

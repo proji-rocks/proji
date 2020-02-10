@@ -1,7 +1,9 @@
 package gitlab
 
 import (
+	"fmt"
 	"io/ioutil"
+	"regexp"
 
 	"github.com/nikoksr/proji/pkg/proji/repo"
 	"github.com/tidwall/gjson"
@@ -16,8 +18,27 @@ type gitlab struct {
 }
 
 // New creates a new gitlab repo object
-func New(userName, repoName string) repo.Importer {
-	return &gitlab{apiBaseURI: "https://gitlab.com/api/v4/projects/", userName: userName, repoName: repoName}
+func New(repoURLPath string) (repo.Importer, error) {
+	// Parse URL
+	// Examples:
+	//  - https://gitlab.com/[inkscape]/[inkscape]                  -> extracts user and repo name; no branch name
+	//  - https://gitlab.com/[inkscape]/[inkscape]/-/tree/[master]  -> extracts user, repo and branch name
+	r := regexp.MustCompile(`/(?P<User>[^/]+)/(?P<Repo>[^/]+)(/-/tree/(?P<Branch>[^/]+))?`)
+	specs := r.FindStringSubmatch(repoURLPath)
+	userName := specs[1]
+	repoName := specs[2]
+	branchName := specs[4]
+
+	if userName == "" || repoName == "" {
+		return nil, fmt.Errorf("could not extract user and/or repository name. Please check the URL")
+	}
+
+	// Default to master if no branch was defined
+	if branchName == "" {
+		branchName = "master"
+	}
+
+	return &gitlab{apiBaseURI: "https://gitlab.com/api/v4/projects/", userName: userName, repoName: repoName, branchName: branchName}, nil
 }
 
 // GetUserName returns the name of the repo owner
