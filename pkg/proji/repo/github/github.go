@@ -51,9 +51,14 @@ func (g *github) GetTreePathsAndTypes() ([]gjson.Result, []gjson.Result, error) 
 	if err != nil {
 		return nil, nil, err
 	}
+	body, _ := ioutil.ReadAll(response.Body)
+
+	// Check if response was truncated
+	if gjson.Get(string(body), "truncated").Bool() == true {
+		return nil, nil, fmt.Errorf("the response was truncated by Github, which means that the number of items in the tree array exceeded the maximum limit.\n\nClone the repo manually with git and use 'proji class import --directory /path/to/repo' to import the local instance of that repo")
+	}
 
 	// Parse the tree
-	body, _ := ioutil.ReadAll(response.Body)
 	treeResponse := gjson.GetMany(string(body), "tree.#.path", "tree.#.type")
 	defer response.Body.Close()
 	paths := treeResponse[0].Array()
