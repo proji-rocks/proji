@@ -160,20 +160,16 @@ func (c *Class) ImportFromURL(URL string) error {
 
 // getRepoTree gets the tree of the given repository and applies it to the class
 func (c *Class) getRepoTree(url *url.URL) error {
-	// Parse user and repo name
-	specs := strings.Split(url.EscapedPath(), "/")[1:3]
-	userName := specs[0]
-	repoName := specs[1]
-
 	var r repo.Importer
 	var err error
+	escapedURLPath := url.EscapedPath()
 
 	// Handle different platforms
 	switch url.Hostname() {
 	case "github.com":
-		r, err = github.New(userName, repoName)
+		r, err = github.New(escapedURLPath)
 	case "gitlab.com":
-		r = gitlab.New(userName, repoName)
+		r, err = gitlab.New(escapedURLPath)
 	default:
 		return fmt.Errorf("platform not supported yet")
 	}
@@ -188,6 +184,10 @@ func (c *Class) getRepoTree(url *url.URL) error {
 		return err
 	}
 	c.Folders, c.Files = convertPathsTypesToFoldersFiles(paths, types)
+
+	// Set class name and label
+	c.Name = r.GetRepoName()
+	c.Label = pickLabel(c.Name)
 	return nil
 }
 
