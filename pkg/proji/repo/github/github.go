@@ -56,7 +56,7 @@ func (g *github) GetBranchName() string { return g.branchName }
 // setRepoSHA sets the repoSHA attribute equal to the SHA-1 of the last commit in the current branch
 func (g *github) setRepoSHA() error {
 	// Send request for SHA-1 of branch
-	shaReq := g.apiBaseURI + g.userName + "/" + g.repoName + "/branches/master"
+	shaReq := g.apiBaseURI + g.userName + "/" + g.repoName + "/branches/" + g.branchName
 	response, err := repo.GetRequest(shaReq)
 	if err != nil {
 		return err

@@ -55,7 +55,7 @@ func (g *gitlab) GetTreePathsAndTypes() ([]gjson.Result, []gjson.Result, error) 
 	nextPage := "1"
 	paths := make([]gjson.Result, 0)
 	types := make([]gjson.Result, 0)
-	treeReq := g.apiBaseURI + g.userName + "%2F" + g.repoName + "/repository/tree/?recursive=true&per_page=100&page="
+	treeReq := g.apiBaseURI + g.userName + "%2F" + g.repoName + "/repository/tree/?ref=" + g.branchName + "&recursive=true&per_page=100&page="
 
 	for nextPage != "" {
 		// Request repo tree
