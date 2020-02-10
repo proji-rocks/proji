@@ -14,6 +14,7 @@ type github struct {
 	apiBaseURI string
 	userName   string
 	repoName   string
+	branchName string
 	repoSHA    string
 }
 
@@ -22,6 +23,15 @@ func New(userName, repoName string) (repo.Importer, error) {
 	g := &github{apiBaseURI: "https://api.github.com/repos/", userName: userName, repoName: repoName, repoSHA: ""}
 	return g, g.setRepoSHA()
 }
+
+// GetUserName returns the name of the repo owner
+func (g *github) GetUserName() string { return g.userName }
+
+// GetRepoName returns the name of the repo
+func (g *github) GetRepoName() string { return g.repoName }
+
+// GetBranchName returns the branch name
+func (g *github) GetBranchName() string { return g.branchName }
 
 // setRepoSHA sets the repoSHA attribute equal to the SHA-1 of the last commit in the current branch
 func (g *github) setRepoSHA() error {

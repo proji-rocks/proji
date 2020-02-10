@@ -12,12 +12,22 @@ type gitlab struct {
 	apiBaseURI string
 	userName   string
 	repoName   string
+	branchName string
 }
 
 // New creates a new gitlab repo object
 func New(userName, repoName string) repo.Importer {
 	return &gitlab{apiBaseURI: "https://gitlab.com/api/v4/projects/", userName: userName, repoName: repoName}
 }
+
+// GetUserName returns the name of the repo owner
+func (g *gitlab) GetUserName() string { return g.userName }
+
+// GetRepoName returns the name of the repo
+func (g *gitlab) GetRepoName() string { return g.repoName }
+
+// GetBranchName returns the branch name
+func (g *gitlab) GetBranchName() string { return g.branchName }
 
 // GetTreePathsAndTypes gets the paths and types of the repo tree
 func (g *gitlab) GetTreePathsAndTypes() ([]gjson.Result, []gjson.Result, error) {

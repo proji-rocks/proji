@@ -9,6 +9,9 @@ import (
 
 // Importer describes the behaviour of repo objects (github, gitlab)
 type Importer interface {
+	GetUserName() string                                           // Returns the name of the repo owner
+	GetRepoName() string                                           // Returns the name of the repo
+	GetBranchName() string                                         // Returns the branch name
 	GetTreePathsAndTypes() ([]gjson.Result, []gjson.Result, error) // Get the paths and types of the repo tree
 }
 
