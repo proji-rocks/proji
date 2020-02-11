@@ -18,6 +18,7 @@ var classImportCmd = &cobra.Command{
 		if len(configs) < 1 && len(directories) < 1 && len(remoteRepos) < 1 {
 			return fmt.Errorf("no flag was passed. You have to pass the '--config', '--directory' or '--remote-repo' flag at least once")
 		}
+		excludes = append(excludes, projiEnv.Excludes...)
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
