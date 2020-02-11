@@ -7,13 +7,15 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
-	"sort"
 	"strings"
-	"time"
 	"unicode"
 
-	"github.com/gocolly/colly"
+	"github.com/tidwall/gjson"
+
 	"github.com/nikoksr/proji/pkg/helper"
+	"github.com/nikoksr/proji/pkg/proji/repo"
+	"github.com/nikoksr/proji/pkg/proji/repo/github"
+	"github.com/nikoksr/proji/pkg/proji/repo/gitlab"
 
 	"github.com/BurntSushi/toml"
 )
@@ -90,10 +92,6 @@ func (c *Class) ImportFromDirectory(directory string, excludeDirs []string) erro
 	c.Name = base
 	c.Label = pickLabel(c.Name)
 
-	// This map of directories that should be skipped might be moved to the main config
-	// file so that it's editable and extensible.
-	excludeDirs = append(excludeDirs, []string{".git", ".env"}...)
-
 	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
 		// Skip base directory
 		if directory == path {
@@ -107,10 +105,10 @@ func (c *Class) ImportFromDirectory(directory string, excludeDirs []string) erro
 
 		// Add file or folder to class
 		if info.IsDir() {
-			c.Folders = append(c.Folders, &Folder{Destination: relPath, Template: ""})
 			if helper.IsInSlice(excludeDirs, info.Name()) {
 				return filepath.SkipDir
 			}
+			c.Folders = append(c.Folders, &Folder{Destination: relPath, Template: ""})
 		} else {
 			c.Files = append(c.Files, &File{Destination: relPath, Template: ""})
 		}
@@ -128,9 +126,9 @@ func (c *Class) ImportFromDirectory(directory string, excludeDirs []string) erro
 }
 
 // ImportFromURL imports a class from a given URL. The URL should point to a remote repo of one of the following code
-// platforms: github, gitlab, bitbucket. Proji will copy the structure and content of the repo and create a class
+// platforms: github, gitlab. Proji will copy the structure and content of the repo and create a class
 // based on it.
-func (c *Class) ImportFromURL(URL string, excludes []string) error {
+func (c *Class) ImportFromURL(URL string) error {
 	// Trim trailing '.git'
 	if strings.HasSuffix(URL, ".git") {
 		URL = URL[:len(URL)-len(".git")]
@@ -144,20 +142,70 @@ func (c *Class) ImportFromURL(URL string, excludes []string) error {
 
 	// Set class name from base name
 	// E.g. https://github.com/nikoksr/proji -> proji is the base name
-	base := path.Base(u.Path)
-	c.Name = base
+	c.Name = path.Base(u.Path)
 	c.Label = pickLabel(c.Name)
 
-	// List of directories and files that should be skipped.
-	excludes = append(excludes, []string{".git", ".env"}...)
+	// Get repo tree (folder and file structure of remote repo)
+	err = c.getRepoTree(u)
+	if err != nil {
+		return err
+	}
 
-	repoStructure := crawlRepo(URL, excludes)
-	c.Folders, c.Files = cleanUpURLList(repoStructure, URL)
-
+	// Check if any data was loaded
 	if c.isEmpty() {
-		return fmt.Errorf("no relevant data was found. Website might be unsupported")
+		return fmt.Errorf("no relevant data was found. Platform might be unsupported")
 	}
 	return nil
+}
+
+// getRepoTree gets the tree of the given repository and applies it to the class
+func (c *Class) getRepoTree(url *url.URL) error {
+	var r repo.Importer
+	var err error
+	escapedURLPath := url.EscapedPath()
+
+	// Handle different platforms
+	switch url.Hostname() {
+	case "github.com":
+		r, err = github.New(escapedURLPath)
+	case "gitlab.com":
+		r, err = gitlab.New(escapedURLPath)
+	default:
+		return fmt.Errorf("platform not supported yet")
+	}
+
+	if err != nil {
+		return err
+	}
+
+	// Get paths and types
+	paths, types, err := r.GetTreePathsAndTypes()
+	if err != nil {
+		return err
+	}
+	c.Folders, c.Files = convertPathsTypesToFoldersFiles(paths, types)
+
+	// Set class name and label
+	c.Name = r.GetRepoName()
+	c.Label = pickLabel(c.Name)
+	return nil
+}
+
+// convertPathsTypesToFoldersFiles converts the git types blob and tree to proji types folder and file
+func convertPathsTypesToFoldersFiles(paths, types []gjson.Result) ([]*Folder, []*File) {
+	// Splitting in folders and files
+	folders := make([]*Folder, 0)
+	files := make([]*File, 0)
+	for idx, p := range paths {
+		dest := p.String()
+
+		if types[idx].String() == "tree" {
+			folders = append(folders, &Folder{Destination: dest})
+		} else {
+			files = append(files, &File{Destination: dest})
+		}
+	}
+	return folders, files
 }
 
 // Export exports a given class to a toml config file
@@ -181,6 +229,7 @@ func (c *Class) Export(destination string) (string, error) {
 	return confName, toml.NewEncoder(conf).Encode(configTxt)
 }
 
+// isEmpty checks if the class holds no data
 func (c *Class) isEmpty() bool {
 	if len(c.Folders) == 0 && len(c.Files) == 0 && len(c.Scripts) == 0 {
 		return true
@@ -188,6 +237,7 @@ func (c *Class) isEmpty() bool {
 	return false
 }
 
+// pickLabel dynamically picks a label based on the class name
 func pickLabel(className string) string {
 	nameLen := len(className)
 	if nameLen < 2 {
@@ -239,67 +289,4 @@ func pickLabel(className string) string {
 	// Pick first, mid and last byte in string
 	label = string(className[0]) + string(className[nameLen/2]) + string(className[nameLen-1])
 	return strings.ToLower(label)
-}
-
-func crawlRepo(URL string, excludes []string) []string {
-	// Parse excludes to regex slice
-	excRegex := make([]*regexp.Regexp, 0)
-	for _, exc := range excludes {
-		excRegex = append(excRegex, regexp.MustCompile(URL+"/(?:blob|tree)/master/"+exc))
-	}
-
-	// Will hold the repo structure - files and folders.
-	repo := make([]string, 0)
-
-	var c = colly.NewCollector(
-		colly.URLFilters(regexp.MustCompile(URL+"/(?:blob|tree)/master/.*")),
-		colly.DisallowedURLFilters(excRegex...),
-		colly.Async(true),
-	)
-
-	_ = c.Limit(&colly.LimitRule{
-		Parallelism: 2,
-		Delay:       1 * time.Second,
-		RandomDelay: 5 * time.Second,
-	})
-
-	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
-		_ = c.Visit(e.Request.AbsoluteURL(e.Attr("href")))
-	})
-
-	c.OnRequest(func(r *colly.Request) {
-		repo = append(repo, r.URL.String())
-	})
-
-	_ = c.Visit(URL + "/blob/master/")
-	_ = c.Visit(URL + "/tree/master/")
-	c.Wait()
-	return repo
-}
-
-func cleanUpURLList(repoStructure []string, baseURL string) ([]*Folder, []*File) {
-	// Elements 0 and 1 are the base URLs
-	// Cut out the two base URLs
-	repoStructure = repoStructure[2:]
-
-	// Pre-sort
-	sort.Strings(repoStructure)
-
-	// Make paths relative
-	baseTree := baseURL + "/tree/master/"
-	lenBaseTree := len(baseTree)
-	baseBlob := baseURL + "/blob/master/"
-	lenBaseBlob := len(baseBlob)
-
-	folders := make([]*Folder, 0)
-	files := make([]*File, 0)
-
-	for _, URL := range repoStructure {
-		if strings.HasPrefix(URL, baseTree) {
-			folders = append(folders, &Folder{URL[lenBaseTree:], ""})
-		} else {
-			files = append(files, &File{URL[lenBaseBlob:], ""})
-		}
-	}
-	return folders, files
 }

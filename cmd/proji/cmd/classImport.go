@@ -5,6 +5,7 @@ import (
 
 	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
+
 	"github.com/spf13/cobra"
 )
 
@@ -17,6 +18,7 @@ var classImportCmd = &cobra.Command{
 		if len(configs) < 1 && len(directories) < 1 && len(remoteRepos) < 1 {
 			return fmt.Errorf("no flag was passed. You have to pass the '--config', '--directory' or '--remote-repo' flag at least once")
 		}
+		excludes = append(excludes, projiEnv.Excludes...)
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -33,7 +35,7 @@ var classImportCmd = &cobra.Command{
 				if err != nil {
 					fmt.Printf("Error: %v\n", err)
 				} else {
-					fmt.Sprintln(result)
+					fmt.Println(result)
 				}
 			}
 		}
@@ -53,7 +55,7 @@ func init() {
 	classImportCmd.Flags().StringSliceVar(&configs, "config", []string{}, "import a class from a config file")
 	_ = classImportCmd.MarkFlagFilename("config")
 
-	classImportCmd.Flags().StringSliceVar(&excludes, "exclude", []string{}, "files/folders to exclude from import")
+	classImportCmd.Flags().StringSliceVar(&excludes, "exclude", []string{}, "folder to exclude from local directory import")
 	_ = classImportCmd.MarkFlagFilename("exclude")
 }
 
@@ -76,7 +78,6 @@ func importClass(path, pathType string, excludes []string) (string, error) {
 		if err == nil {
 			msg = fmt.Sprintf("> Successfully imported class '%s' from '%s'", class.Name, path)
 		}
-		break
 	case "dirs":
 		fallthrough
 	case "urls":
@@ -86,7 +87,7 @@ func importClass(path, pathType string, excludes []string) (string, error) {
 				return "", err
 			}
 		} else {
-			err = class.ImportFromURL(path, excludes)
+			err = class.ImportFromURL(path)
 			if err != nil {
 				return "", err
 			}
@@ -97,7 +98,8 @@ func importClass(path, pathType string, excludes []string) (string, error) {
 		if err == nil {
 			msg = fmt.Sprintf("> '%s' was successfully exported to '%s'", path, confName)
 		}
-		break
+	default:
+		err = fmt.Errorf("path type %s is not supported", pathType)
 	}
 	return msg, err
 }

@@ -5,3 +5,6 @@ path = "examples/proji-class.toml"
 
 [sqlite3]
 path = "db/proji.sqlite3"
+
+[import]
+excludeFolders = [".git", ".env"]
