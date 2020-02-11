@@ -80,11 +80,7 @@ func initConfig() {
 }
 
 func initStorageService() (storage.Service, error) {
-	dbPath, ok := viper.Get("sqlite3.path").(string)
-	if !ok {
-		return nil, fmt.Errorf("could not read sqlite path from config file")
-	}
-
+	dbPath := viper.GetString("sqlite3.path")
 	svc, err := sqlite.New(projiEnv.ConfPath + dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("could not connect to sqlite db: %v", err)
