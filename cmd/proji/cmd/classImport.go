@@ -54,7 +54,7 @@ func init() {
 	classImportCmd.Flags().StringSliceVar(&configs, "config", []string{}, "import a class from a config file")
 	_ = classImportCmd.MarkFlagFilename("config")
 
-	classImportCmd.Flags().StringSliceVar(&excludes, "exclude", []string{}, "files/folders to exclude from import")
+	classImportCmd.Flags().StringSliceVar(&excludes, "exclude", []string{}, "folder to exclude from local directory import")
 	_ = classImportCmd.MarkFlagFilename("exclude")
 }
 
