@@ -62,6 +62,18 @@ Proji:
 
 As you can see **proji would have saved you about 1:15 minutes and 230 keystrokes**. Note that in this example only a very small project is created. The advantages of proji increase exponentially with increasing project complexity.
 
+<hr>
+
+Import a remote repository:
+
+<p align="center">
+  <a href="" rel="noopener">
+    <img src="assets/gifs/proji-demo-import-remote.gif" alt="Import a remote repository">
+  </a>
+</p>
+
+You can easily import the structure of your favorite projects from [Github](https://github.com) and [Gitlab](https://gitlab.com) as proji classes.
+
 ## Getting Started <a name = "getting_started"></a>
 
 Proji is currently only supported under linux and a work in progress. You can either download a pre-compiled binary from the latest [release](https://github.com/nikoksr/proji/releases) or install it from source.
