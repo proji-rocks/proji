@@ -15,6 +15,7 @@ import (
 type env struct {
 	Svc      storage.Service
 	ConfPath string
+	Excludes []string
 }
 
 var projiEnv *env
@@ -23,14 +24,16 @@ var rootCmd = &cobra.Command{
 	Use:   "proji",
 	Short: "A fast and powerful cli project scaffolding tool.",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		svc, err := initStorageService()
-		if err != nil {
-			return err
-		}
 		if projiEnv == nil {
 			return fmt.Errorf("env struct is not defined")
 		}
-		projiEnv.Svc = svc
+		var err error
+		projiEnv.Svc, err = initStorageService()
+		if err != nil {
+			return err
+		}
+
+		projiEnv.Excludes = viper.GetStringSlice("import.excludeFolders")
 		return nil
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
