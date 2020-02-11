@@ -105,10 +105,10 @@ func (c *Class) ImportFromDirectory(directory string, excludeDirs []string) erro
 
 		// Add file or folder to class
 		if info.IsDir() {
-			c.Folders = append(c.Folders, &Folder{Destination: relPath, Template: ""})
 			if helper.IsInSlice(excludeDirs, info.Name()) {
 				return filepath.SkipDir
 			}
+			c.Folders = append(c.Folders, &Folder{Destination: relPath, Template: ""})
 		} else {
 			c.Files = append(c.Files, &File{Destination: relPath, Template: ""})
 		}
