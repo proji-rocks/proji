@@ -44,7 +44,7 @@ Proji increases your efficiency, simplifies your workflow and improves the struc
 
 Quick comparison between proji and a common way of project creation. In the demo we create a python project which consists of three folders and two files. We create a `virtualenv`, install three python packages, initialize the project as a `git repo` and finally make the first commit and add a develop branch.
 
-Common way:
+##### Common way:
 
 <p align="center">
   <a href="" rel="noopener">
@@ -52,7 +52,7 @@ Common way:
   </a>
 </p>
 
-Proji:
+##### Proji:
 
 <p align="center">
   <a href="" rel="noopener">
@@ -64,7 +64,7 @@ As you can see **proji would have saved you about 1:15 minutes and 230 keystroke
 
 <hr>
 
-Import a remote repository:
+##### Import a remote repository:<a name = "import_remote_repo"></a>
 
 <p align="center">
   <a href="" rel="noopener">
