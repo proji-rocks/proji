@@ -255,7 +255,9 @@ Contributions to the project are highly appreciated. Take a look at the [code of
 
 ## Credits <a name = "credits"></a>
 
--   Logo by Alex Potterson (alexeyrdoxi@gmail.com)
+-   Logo by [Alex Potterson](mailto:alexeyrdoxi@gmail.com)
+
+-   AUR Maintainer [Scrumplex](https://scrumplex.net/)
 
 ## License <a name = "license"></a>
 
