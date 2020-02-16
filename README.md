@@ -90,16 +90,22 @@ Might work under Mac but it's not tested yet.
 2.  Extract the tar with: `$ tar -xf proji-XXXX-XXX.tar.gz`
 3.  Run the installer: `$ ./install.sh`
 
-#### Install From Source
+#### Install from Source
 
 1.  `$ go get -u github.com/nikoksr/proji`
-2.  `$ go get -v -t -d ./...`
-3.  `$ go install ./cmd/proji/` or `go build -o proji ./cmd/proji`
+2.  `$ cd $GOPATH/src/github.com/nikoksr/proji`
+3.  `$ go install ./cmd/proji/`
 4.  `$ ./install.sh`
 
-Validate the success of your installation by executing `$ proji`. The help text for proji should be printed to the cli.
+#### Install from AUR
 
-### Running The Tests <a name = "running_the_tests"></a>
+Use your favorite AUR helper: `$ yay -S proji`
+
+<hr>
+
+Validate the success of your installation by executing `$ proji version`.
+
+### Running the Tests <a name = "running_the_tests"></a>
 
 -   `$ go vet ./...`
 -   `$ go test -v ./...`
