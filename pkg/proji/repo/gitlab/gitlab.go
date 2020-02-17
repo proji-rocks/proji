@@ -23,7 +23,7 @@ func New(repoURLPath string) (repo.Importer, error) {
 	// Examples:
 	//  - https://gitlab.com/[inkscape]/[inkscape]                  -> extracts user and repo name; no branch name
 	//  - https://gitlab.com/[inkscape]/[inkscape]/-/tree/[master]  -> extracts user, repo and branch name
-	r := regexp.MustCompile(`/(?P<User>[^/]+)/(?P<Repo>[^/]+)(/-/tree/(?P<Branch>[^/]+))?`)
+	r := regexp.MustCompile(`gitlab.com/(?P<User>[^/]+)/(?P<Repo>[^/]+)(/-/tree/(?P<Branch>[^/]+))?`)
 	specs := r.FindStringSubmatch(repoURLPath)
 
 	if specs == nil || len(specs) < 5 {
