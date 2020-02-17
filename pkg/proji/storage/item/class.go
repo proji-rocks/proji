@@ -162,14 +162,14 @@ func (c *Class) ImportFromURL(URL string) error {
 func (c *Class) getRepoTree(url *url.URL) error {
 	var r repo.Importer
 	var err error
-	escapedURLPath := url.EscapedPath()
+	escapedURL := url.Hostname() + url.EscapedPath()
 
 	// Handle different platforms
 	switch url.Hostname() {
 	case "github.com":
-		r, err = github.New(escapedURLPath)
+		r, err = github.New(escapedURL)
 	case "gitlab.com":
-		r, err = gitlab.New(escapedURLPath)
+		r, err = gitlab.New(escapedURL)
 	default:
 		return fmt.Errorf("platform not supported yet")
 	}
