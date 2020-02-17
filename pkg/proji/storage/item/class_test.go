@@ -150,6 +150,103 @@ func TestClassImportFromDirectory(t *testing.T) {
 	}
 }
 
+func TestClassImportFromURL(t *testing.T) {
+	tests := []struct {
+		URL   string
+		class *Class
+		err   error
+	}{
+		{
+			URL: "https://github.com/nikoksr/proji_test",
+			class: &Class{
+				Name:      "proji_test",
+				Label:     "pt",
+				IsDefault: false,
+				Folders: []*Folder{
+					{Destination: ".vscode", Template: ""},
+					{Destination: "include", Template: ""},
+					{Destination: "src", Template: ""},
+					{Destination: "test", Template: ""},
+				},
+				Files: []*File{
+					{Destination: ".vscode/c_cpp_properties.json", Template: ""},
+					{Destination: ".vscode/launch.json", Template: ""},
+					{Destination: ".vscode/tasks.json", Template: ""},
+					{Destination: "CMakeLists.txt", Template: ""},
+					{Destination: "README.md", Template: ""},
+					{Destination: "include/helper.hpp", Template: ""},
+					{Destination: "src/helper.cpp", Template: ""},
+					{Destination: "src/main.cpp", Template: ""},
+					{Destination: "test/testHelper.cpp", Template: ""},
+				},
+				Scripts: []*Script{},
+			},
+			err: nil,
+		},
+		{
+			URL: "https://github.com/nikoksr/proji_test/tree/develop",
+			class: &Class{
+				Name:      "proji_test",
+				Label:     "pt",
+				IsDefault: false,
+				Folders: []*Folder{
+					{Destination: ".vscode", Template: ""},
+					{Destination: "include", Template: ""},
+					{Destination: "src", Template: ""},
+					{Destination: "test", Template: ""},
+				},
+				Files: []*File{
+					{Destination: ".vscode/c_cpp_properties.json", Template: ""},
+					{Destination: ".vscode/launch.json", Template: ""},
+					{Destination: ".vscode/tasks.json", Template: ""},
+					{Destination: "CMakeLists.txt", Template: ""},
+					{Destination: "README.md", Template: ""},
+					{Destination: "include/helper.hpp", Template: ""},
+					{Destination: "notes.txt", Template: ""},
+					{Destination: "src/helper.cpp", Template: ""},
+					{Destination: "src/main.cpp", Template: ""},
+					{Destination: "test/testHelper.cpp", Template: ""},
+				},
+				Scripts: []*Script{},
+			},
+			err: nil,
+		},
+		{
+			URL: "https://gitlab.com/nikoksr/proji_test_repo",
+			class: &Class{
+				Name:      "proji_test_repo",
+				Label:     "ptr",
+				IsDefault: false,
+				Folders: []*Folder{
+					{Destination: ".vscode", Template: ""},
+					{Destination: "include", Template: ""},
+					{Destination: "src", Template: ""},
+					{Destination: "test", Template: ""},
+				},
+				Files: []*File{
+					{Destination: ".vscode/c_cpp_properties.json", Template: ""},
+					{Destination: ".vscode/launch.json", Template: ""},
+					{Destination: ".vscode/tasks.json", Template: ""},
+					{Destination: "CMakeLists.txt", Template: ""},
+					{Destination: "README.md", Template: ""},
+					{Destination: "include/helper.hpp", Template: ""},
+					{Destination: "src/helper.cpp", Template: ""},
+					{Destination: "src/main.cpp", Template: ""},
+					{Destination: "test/TestHelper.cpp", Template: ""},
+				},
+				Scripts: []*Script{},
+			},
+			err: nil,
+		},
+	}
+
+	for _, test := range tests {
+		c := NewClass("", "", false)
+		assert.NoError(t, c.ImportFromURL(test.URL))
+		assert.Equal(t, test.class, c)
+	}
+}
+
 func TestClassExport(t *testing.T) {
 	tests := []struct {
 		class      *Class
