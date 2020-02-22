@@ -13,9 +13,10 @@ import (
 
 // Env represents central resources and information the app uses.
 type env struct {
-	Svc      storage.Service
-	ConfPath string
-	Excludes []string
+	Svc                storage.Service
+	UserConfigPath     string
+	FallbackConfigPath string
+	Excludes           []string
 }
 
 var projiEnv *env
@@ -65,10 +66,10 @@ func initConfig() {
 		os.Exit(1)
 	}
 	if projiEnv == nil {
-		projiEnv = &env{ConfPath: "", Svc: nil}
+		projiEnv = &env{Svc: nil, UserConfigPath: "", FallbackConfigPath: "", Excludes: make([]string, 0)}
 	}
-	projiEnv.ConfPath = home + "/.config/proji/"
-	viper.AddConfigPath(projiEnv.ConfPath)
+	projiEnv.UserConfigPath = home + "/.config/proji/"
+	viper.AddConfigPath(projiEnv.UserConfigPath)
 	viper.SetConfigName("config")
 	viper.AutomaticEnv()
 
@@ -81,7 +82,7 @@ func initConfig() {
 
 func initStorageService() (storage.Service, error) {
 	dbPath := viper.GetString("sqlite3.path")
-	svc, err := sqlite.New(projiEnv.ConfPath + dbPath)
+	svc, err := sqlite.New(projiEnv.UserConfigPath + dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("could not connect to sqlite db: %v", err)
 	}

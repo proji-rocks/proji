@@ -45,7 +45,7 @@ var createCmd = &cobra.Command{
 		for _, name := range projects {
 			fmt.Printf("\n> Creating project %s\n", name)
 
-			err := createProject(name, cwd, projiEnv.ConfPath, class, status)
+			err := createProject(name, cwd, projiEnv.UserConfigPath, class, status)
 			if err != nil {
 				fmt.Printf(" -> Failed: %v\n", err)
 
@@ -53,7 +53,7 @@ var createCmd = &cobra.Command{
 					if !helper.WantTo("> Do you want to replace it?") {
 						continue
 					}
-					err := replaceProject(name, cwd, projiEnv.ConfPath, class, status)
+					err := replaceProject(name, cwd, projiEnv.UserConfigPath, class, status)
 					if err != nil {
 						fmt.Printf("> Replacing project %s failed: %v\n", name, err)
 						continue
