@@ -14,7 +14,7 @@ var initCmd = &cobra.Command{
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
-		projiEnv.UserConfigPath, err = config.InitConfig(projiEnv.UserConfigPath)
+		projiEnv.UserConfigPath, err = config.InitConfig(projiEnv.UserConfigPath, projiEnv.Version)
 		if err != nil {
 			// TODO: Improve error message. Manual config setup is possible.
 			log.Fatalf("Error: could not set up config folder. %v\n", err)

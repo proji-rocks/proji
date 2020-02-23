@@ -18,6 +18,7 @@ type env struct {
 	Svc            storage.Service
 	UserConfigPath string
 	Excludes       []string
+	Version        string
 }
 
 var projiEnv *env
@@ -49,7 +50,7 @@ func Execute() {
 
 func init() {
 	if projiEnv == nil {
-		projiEnv = &env{Svc: nil, UserConfigPath: "", Excludes: make([]string, 0)}
+		projiEnv = &env{Svc: nil, UserConfigPath: "", Excludes: make([]string, 0), Version: "0.18.1"}
 	}
 
 	var err error
