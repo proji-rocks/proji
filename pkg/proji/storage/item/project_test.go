@@ -2,6 +2,7 @@ package item
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/mitchellh/go-homedir"
@@ -29,7 +30,7 @@ func TestProjectCreate(t *testing.T) {
 	if err != nil {
 		t.FailNow()
 	}
-	configPath := homeDir + "/.config/proji/"
+	configPath := filepath.Join(homeDir, "/.config/proji/")
 
 	tests := []struct {
 		cwd        string
@@ -78,12 +79,12 @@ func TestProjectCreate(t *testing.T) {
 
 		// Subfolders should exist
 		for _, folder := range test.proj.Class.Folders {
-			assert.DirExists(t, test.proj.Name+"/"+folder.Destination)
+			assert.DirExists(t, filepath.Join(test.proj.Name, "/", folder.Destination))
 		}
 
 		// Project files should exist
 		for _, file := range test.proj.Class.Files {
-			assert.FileExists(t, test.proj.Name+"/"+file.Destination)
+			assert.FileExists(t, filepath.Join(test.proj.Name, "/", file.Destination))
 		}
 
 		// Compare old cwd to current cwd. Should be equal
@@ -93,6 +94,6 @@ func TestProjectCreate(t *testing.T) {
 		}
 		assert.True(t, originalCwd == currentCwd)
 
-		_ = os.RemoveAll(originalCwd + "/" + test.proj.Name)
+		_ = os.RemoveAll(filepath.Join(originalCwd, "/", test.proj.Name))
 	}
 }

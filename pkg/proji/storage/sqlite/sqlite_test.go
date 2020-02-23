@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
@@ -128,8 +129,8 @@ func TestProject(t *testing.T) {
 
 	projectName := "test-proj1"
 	basePath := "/tmp/"
-	projectPath := basePath + projectName
-	proj := item.NewProject(0, projectName, projectPath+projectName, class, status)
+	projectPath := filepath.Join(basePath, projectName)
+	proj := item.NewProject(0, projectName, filepath.Join(projectPath, projectName), class, status)
 
 	// Test SaveProject
 	err = svc.SaveProject(proj)
@@ -167,7 +168,7 @@ func TestProject(t *testing.T) {
 	projectsInMem = append(projectsInMem, loadedProj)
 
 	// Add another project and try to load both of them
-	proj2 := item.NewProject(0, "test-proj2", basePath+"test-proj2", class, status)
+	proj2 := item.NewProject(0, "test-proj2", filepath.Join(basePath, "test-proj2"), class, status)
 	err = svc.SaveProject(proj2)
 	assert.NoError(t, err)
 

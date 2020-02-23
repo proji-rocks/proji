@@ -3,6 +3,7 @@ package item
 import (
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 
 	"github.com/otiai10/copy"
@@ -115,7 +116,7 @@ func (proj *Project) createFiles() error {
 
 func (proj *Project) copyTemplates(configPath string) error {
 	re := regexp.MustCompile(`__PROJECT_NAME__`)
-	templatePath := configPath + "templates/"
+	templatePath := filepath.Join(configPath, "/templates/")
 
 	for _, folder := range proj.Class.Folders {
 		if len(folder.Template) < 1 {
@@ -124,7 +125,7 @@ func (proj *Project) copyTemplates(configPath string) error {
 
 		// Replace keyword with project name
 		folder.Destination = re.ReplaceAllString(folder.Destination, proj.Name)
-		err := copy.Copy(templatePath+folder.Template, folder.Destination)
+		err := copy.Copy(filepath.Join(templatePath, "/", folder.Template), folder.Destination)
 		if err != nil {
 			return err
 		}
@@ -137,7 +138,7 @@ func (proj *Project) copyTemplates(configPath string) error {
 
 		// Replace keyword with project name
 		file.Destination = re.ReplaceAllString(file.Destination, proj.Name)
-		err := copy.Copy(templatePath+file.Template, file.Destination)
+		err := copy.Copy(filepath.Join(templatePath, "/", file.Template), file.Destination)
 		if err != nil {
 			return err
 		}
@@ -159,7 +160,7 @@ func (proj *Project) runScripts(scriptType, configPath string) error {
 			continue
 		}
 
-		scriptPath := configPath + "scripts/" + script.Name
+		scriptPath := filepath.Join(configPath, "/scripts/", script.Name)
 
 		if script.RunAsSudo {
 			scriptPath = "sudo " + scriptPath

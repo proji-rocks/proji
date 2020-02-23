@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
@@ -73,7 +74,7 @@ func init() {
 }
 
 func createProject(name, cwd, configPath string, class *item.Class, status *item.Status) error {
-	proj := item.NewProject(0, name, cwd+"/"+name, class, status)
+	proj := item.NewProject(0, name, filepath.Join(cwd, name), class, status)
 
 	// Save it first to see if it already exists in the database
 	err := projiEnv.Svc.SaveProject(proj)
@@ -89,7 +90,7 @@ func createProject(name, cwd, configPath string, class *item.Class, status *item
 }
 
 func replaceProject(name, cwd, configPath string, class *item.Class, status *item.Status) error {
-	id, err := projiEnv.Svc.LoadProjectID(cwd + "/" + name)
+	id, err := projiEnv.Svc.LoadProjectID(filepath.Join(cwd, "/", name))
 	if err != nil {
 		return err
 	}
