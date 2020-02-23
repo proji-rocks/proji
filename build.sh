@@ -1,18 +1,40 @@
 #!/usr/bin/env bash
 
-package="./cmd/proji/"
-package_split=(${package//\// })
-package_name="${package_split[-1]}"
-output_path="bin/"
-platforms=("linux/amd64" "linux/386")
+PACKAGE="./cmd/proji/"
+PACKAGE_SPLIT_NAME=(${PACKAGE//\// })
+PACKAGE_NAME="${PACKAGE_SPLIT_NAME[-1]}"
+OUTPUT_PATH="bin/"
+PLATFORMS=("linux/amd64" "windows/amd64")
+# PLATFORMS=("linux/amd64" "windows/amd64" "darwin/amd64") compiling binary for darwin fails
 
-for platform in "${platforms[@]}"; do
-    platform_split=(${platform//\// })
-    GOOS="${platform_split[0]}"
-    GOARCH="${platform_split[1]}"
-    output_name="${output_path}${GOOS}/${GOARCH}/${package_name}"
+echo "Cross-platform binaries for proji"
+echo
 
-    env CGO_ENABLED=1 GOOS="$GOOS" GOARCH="$GOARCH" go build -ldflags "-s -w" -o "$output_name" "$package"
+for PLATFORM in "${PLATFORMS[@]}"; do
+    PLATFORM_SPLIT_NAME=(${PLATFORM//\// })
+    GOOS="${PLATFORM_SPLIT_NAME[0]}"
+    GOARCH="${PLATFORM_SPLIT_NAME[1]}"
+    BIN_PATH="${OUTPUT_PATH}${GOOS}/${GOARCH}/${PACKAGE_NAME}"
+
+    echo " > Building ${BIN_PATH}..."
+    CMD=""
+
+    if [ $GOOS = "linux" ]; then
+        # Linux build
+        CMD="CGO_ENABLED=1 GOOS=${GOOS} GOARCH=${GOARCH} go build -ldflags '-s -w' -o ${BIN_PATH} ${PACKAGE}"
+    elif [ $GOOS = "windows" ]; then
+        # Windows build
+        BIN_PATH+='.exe'
+        CMD="CGO_ENABLED=1 GOOS=${GOOS} GOARCH=${GOARCH} CC=x86_64-w64-mingw32-gcc go build -ldflags '-s -w' -o ${BIN_PATH} ${PACKAGE}"
+    elif [ $GOOS = "darwin" ]; then
+        # Mac build
+        CMD="CGO_ENABLED=1 GOOS=${GOOS} GOARCH=${GOARCH} CC=clang  go build -ldflags '-s -w' -o ${BIN_PATH} ${PACKAGE}"
+    else
+        echo "Error: OS not support!"
+        exit 1
+    fi
+
+    eval ${CMD}
     if [ $? -ne 0 ]; then
         echo "An error has occurred! Aborting the script execution..."
         exit 1
