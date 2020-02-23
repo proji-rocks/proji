@@ -53,7 +53,7 @@ func TestProjectCreate(t *testing.T) {
 						{Destination: "README.md", Template: "README.md"},
 						{Destination: "exampleFolder/test.txt", Template: ""},
 					},
-					Scripts: []*Script{},
+					Scripts: make([]*Script, 0),
 				},
 				Status: &Status{
 					ID:      1,
