@@ -11,7 +11,7 @@ import (
 )
 
 func TestClass(t *testing.T) {
-	dbPath := "/tmp/proji.sqlite3"
+	dbPath := filepath.Join(os.TempDir(), "/proji.sqlite3")
 	svc, err := New(dbPath)
 	defer os.Remove(dbPath)
 	assert.NoError(t, err)
@@ -110,7 +110,7 @@ func TestClass(t *testing.T) {
 }
 
 func TestProject(t *testing.T) {
-	dbPath := "/tmp/proji.sqlite3"
+	dbPath := filepath.Join(os.TempDir(), "/proji.sqlite3")
 	svc, err := New(dbPath)
 	defer os.Remove(dbPath)
 	assert.NoError(t, err)
@@ -128,7 +128,7 @@ func TestProject(t *testing.T) {
 	assert.NoError(t, err)
 
 	projectName := "test-proj1"
-	basePath := "/tmp/"
+	basePath := os.TempDir()
 	projectPath := filepath.Join(basePath, projectName)
 	proj := item.NewProject(0, projectName, filepath.Join(projectPath, projectName), class, status)
 
@@ -192,7 +192,7 @@ func TestProject(t *testing.T) {
 }
 
 func TestStatus(t *testing.T) {
-	dbPath := "/tmp/proji.sqlite3"
+	dbPath := filepath.Join(os.TempDir(), "/proji.sqlite3")
 	svc, err := New(dbPath)
 	defer os.Remove(dbPath)
 	assert.NoError(t, err)

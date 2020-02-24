@@ -9,25 +9,9 @@ import (
 )
 
 func TestGetBaseConfigPath(t *testing.T) {
-	tests := []struct {
-		name    string
-		want    string
-		wantErr bool
-	}{
-		{name: "", want: "", wantErr: false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetBaseConfigPath()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetBaseConfigPath() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("GetBaseConfigPath() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	bcp, err := GetBaseConfigPath()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, bcp)
 }
 
 func TestInitConfig(t *testing.T) {
@@ -138,7 +122,7 @@ func Test_downloadFile(t *testing.T) {
 		{
 			name: "Download existing file - v1",
 			args: args{
-				src: "https://raw.githubusercontent.com/nikoksr/proji_test/master/CMakeLists.txt",
+				src: "https://raw.githubusercontent.com/nikoksr/proji-test/master/CMakeLists.txt",
 				dst: filepath.Join(tmpDir, "/CMakeLists.txt"),
 			},
 			wantErr: false,
@@ -146,7 +130,7 @@ func Test_downloadFile(t *testing.T) {
 		{
 			name: "Download existing file - v2",
 			args: args{
-				src: "https://raw.githubusercontent.com/nikoksr/proji_test/master/.vscode/tasks.json",
+				src: "https://raw.githubusercontent.com/nikoksr/proji-test/master/.vscode/tasks.json",
 				dst: filepath.Join(tmpDir, "/tasks.json"),
 			},
 			wantErr: false,
@@ -162,7 +146,7 @@ func Test_downloadFile(t *testing.T) {
 		{
 			name: "Download from invalid URL",
 			args: args{
-				src: "raw.githubusercontent.com/nikoksr/proji_test/master/.vscode/tasks.json",
+				src: "raw.githubusercontent.com/nikoksr/proji-test/master/.vscode/tasks.json",
 				dst: filepath.Join(tmpDir, "/tasks.json"),
 			},
 			wantErr: true,
@@ -170,7 +154,7 @@ func Test_downloadFile(t *testing.T) {
 		{
 			name: "Download file to invalid location",
 			args: args{
-				src: "https://raw.githubusercontent.com/nikoksr/proji_test/master/CMakeLists.txt",
+				src: "https://raw.githubusercontent.com/nikoksr/proji-test/master/CMakeLists.txt",
 				dst: filepath.Join(tmpDir, "/this/path/does/not/exist/CMakeLists.txt"),
 			},
 			wantErr: true,
@@ -207,7 +191,7 @@ func Test_downloadFileIfNotExists(t *testing.T) {
 		{
 			name: "Download a file that doesn't exist locally - v1",
 			args: args{
-				src: "https://raw.githubusercontent.com/nikoksr/proji_test/master/CMakeLists.txt",
+				src: "https://raw.githubusercontent.com/nikoksr/proji-test/master/CMakeLists.txt",
 				dst: filepath.Join(tmpDir, "/CMakeLists.txt"),
 			},
 			wantErr: false,
@@ -215,7 +199,7 @@ func Test_downloadFileIfNotExists(t *testing.T) {
 		{
 			name: "Download a file that doesn't exist locally - v2",
 			args: args{
-				src: "https://raw.githubusercontent.com/nikoksr/proji_test/master/.vscode/tasks.json",
+				src: "https://raw.githubusercontent.com/nikoksr/proji-test/master/.vscode/tasks.json",
 				dst: filepath.Join(tmpDir, "/tasks.json"),
 			},
 			wantErr: false,
@@ -223,7 +207,7 @@ func Test_downloadFileIfNotExists(t *testing.T) {
 		{
 			name: "Download a file that already exists locally",
 			args: args{
-				src: "https://raw.githubusercontent.com/nikoksr/proji_test/master/CMakeLists.txt",
+				src: "https://raw.githubusercontent.com/nikoksr/proji-test/master/CMakeLists.txt",
 				dst: filepath.Join(tmpDir, "/CMakeLists.txt"),
 			},
 			wantErr: false,
@@ -239,7 +223,7 @@ func Test_downloadFileIfNotExists(t *testing.T) {
 		{
 			name: "Download from invalid URL",
 			args: args{
-				src: "raw.githubusercontent.com/nikoksr/proji_test/master/.vscode/tasks.json",
+				src: "raw.githubusercontent.com/nikoksr/proji-test/master/.vscode/tasks.json",
 				dst: filepath.Join(tmpDir, "/tasks.json"),
 			},
 			wantErr: false,
@@ -247,7 +231,7 @@ func Test_downloadFileIfNotExists(t *testing.T) {
 		{
 			name: "Download file to invalid location",
 			args: args{
-				src: "https://raw.githubusercontent.com/nikoksr/proji_test/master/CMakeLists.txt",
+				src: "https://raw.githubusercontent.com/nikoksr/proji-test/master/CMakeLists.txt",
 				dst: filepath.Join(tmpDir, "/this/path/does/not/exist/CMakeLists.txt"),
 			},
 			wantErr: true,

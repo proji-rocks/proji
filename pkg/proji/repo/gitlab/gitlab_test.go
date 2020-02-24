@@ -1,9 +1,9 @@
 package gitlab
 
 import (
-	"os"
 	"testing"
 
+	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/repo"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
@@ -12,35 +12,28 @@ import (
 const glAPIBase = "https://gitlab.com/api/v4/projects/"
 
 var goodURLs = []string{
-	"gitlab.com/nikoksr/proji_test_repo",
-	"gitlab.com/nikoksr/proji_test_repo/-/tree/develop",
+	"gitlab.com/nikoksr/proji-test",
+	"gitlab.com/nikoksr/proji-test/-/tree/develop",
 }
 
 var goodRepoObjects = []repo.Importer{
 	&gitlab{
 		apiBaseURI: glAPIBase,
 		userName:   "nikoksr",
-		repoName:   "proji_test_repo",
+		repoName:   "proji-test",
 		branchName: "master",
 	},
 	&gitlab{
 		apiBaseURI: glAPIBase,
 		userName:   "nikoksr",
-		repoName:   "proji_test_repo",
+		repoName:   "proji-test",
 		branchName: "develop",
 	},
 }
 
-func skipNetworkBasedTests(t *testing.T) {
-	env := os.Getenv("PROJI_SKIP_NETWORK_TESTS")
-	if env == "1" {
-		t.Skip("Skipping network based tests")
-	}
-}
-
 // TestNew tests the creation of a new github object based on given github URLs.
 func TestNew(t *testing.T) {
-	skipNetworkBasedTests(t)
+	helper.SkipNetworkBasedTests(t)
 
 	// These should work
 	for i, URL := range goodURLs {
@@ -69,7 +62,7 @@ func TestNew(t *testing.T) {
 // TestGetTreePathsAndTypes tests the github method TestGetTreePathsAndTypes which tries
 // to request and receive the folders paths and types of a github repo tree.
 func TestGetTreePathsAndTypes(t *testing.T) {
-	skipNetworkBasedTests(t)
+	helper.SkipNetworkBasedTests(t)
 
 	var goodRepoPathsResults = [][]gjson.Result{
 		{
@@ -160,7 +153,7 @@ func TestGetTreePathsAndTypes(t *testing.T) {
 		&gitlab{
 			apiBaseURI: glAPIBase,
 			userName:   "nikoksr",
-			repoName:   "proji_test_repo",
+			repoName:   "proji-test",
 			branchName: "does_not_exist",
 		},
 	}
@@ -170,5 +163,104 @@ func TestGetTreePathsAndTypes(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, paths)
 		assert.Nil(t, types)
+	}
+}
+
+func TestGetBranchName(t *testing.T) {
+	tests := []struct {
+		name string
+		g    *gitlab
+		want string
+	}{
+		{
+			name: "",
+			g: &gitlab{
+				apiBaseURI: glAPIBase,
+				userName:   "nikoksr",
+				repoName:   "proji-test",
+				branchName: "master",
+			},
+			want: "master",
+		},
+		{
+			name: "",
+			g: &gitlab{
+				apiBaseURI: glAPIBase,
+				userName:   "nikoksr",
+				repoName:   "proji-test",
+				branchName: "develop",
+			},
+			want: "develop",
+		},
+	}
+	for _, test := range tests {
+		branch := test.g.GetBranchName()
+		assert.Equal(t, test.want, branch, "%s\n", test.name)
+	}
+}
+
+func TestGetRepoName(t *testing.T) {
+	tests := []struct {
+		name string
+		g    *gitlab
+		want string
+	}{
+		{
+			name: "",
+			g: &gitlab{
+				apiBaseURI: glAPIBase,
+				userName:   "nikoksr",
+				repoName:   "proji-test",
+				branchName: "master",
+			},
+			want: "proji-test",
+		},
+		{
+			name: "",
+			g: &gitlab{
+				apiBaseURI: glAPIBase,
+				userName:   "inkscape",
+				repoName:   "inkscape",
+				branchName: "develop",
+			},
+			want: "inkscape",
+		},
+	}
+	for _, test := range tests {
+		repo := test.g.GetRepoName()
+		assert.Equal(t, test.want, repo, "%s\n", test.name)
+	}
+}
+
+func TestGetUserName(t *testing.T) {
+	tests := []struct {
+		name string
+		g    *gitlab
+		want string
+	}{
+		{
+			name: "",
+			g: &gitlab{
+				apiBaseURI: glAPIBase,
+				userName:   "nikoksr",
+				repoName:   "proji-test",
+				branchName: "master",
+			},
+			want: "nikoksr",
+		},
+		{
+			name: "",
+			g: &gitlab{
+				apiBaseURI: glAPIBase,
+				userName:   "inkscape",
+				repoName:   "inkscape",
+				branchName: "master",
+			},
+			want: "inkscape",
+		},
+	}
+	for _, test := range tests {
+		user := test.g.GetUserName()
+		assert.Equal(t, test.want, user, "%s\n", test.name)
 	}
 }

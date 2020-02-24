@@ -5,7 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mitchellh/go-homedir"
+	"github.com/nikoksr/proji/pkg/config"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,11 +27,22 @@ func TestNewProject(t *testing.T) {
 }
 
 func TestProjectCreate(t *testing.T) {
-	homeDir, err := homedir.Dir()
+	originalCwd, err := os.Getwd()
 	if err != nil {
-		t.FailNow()
+		t.Error(err)
 	}
-	configPath := filepath.Join(homeDir, "/.config/proji/")
+
+	configPath, err := config.GetBaseConfigPath()
+	if err != nil {
+		t.Error(err)
+	}
+
+	tmpDir := os.TempDir()
+	err = os.Chdir(tmpDir)
+	if err != nil {
+		t.Error(err)
+	}
+	defer os.Chdir(originalCwd)
 
 	tests := []struct {
 		cwd        string
@@ -50,7 +62,7 @@ func TestProjectCreate(t *testing.T) {
 						{Destination: "foo/bar/", Template: ""},
 					},
 					Files: []*File{
-						{Destination: "README.md", Template: "README.md"},
+						{Destination: "README.md", Template: ""},
 						{Destination: "exampleFolder/test.txt", Template: ""},
 					},
 					Scripts: make([]*Script, 0),
@@ -66,12 +78,7 @@ func TestProjectCreate(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		originalCwd, err := os.Getwd()
-		if err != nil {
-			t.FailNow()
-		}
-
-		err = test.proj.Create(originalCwd, configPath)
+		err = test.proj.Create(tmpDir, configPath)
 		assert.IsType(t, test.err, err)
 
 		// Project folder should exist
@@ -79,12 +86,12 @@ func TestProjectCreate(t *testing.T) {
 
 		// Subfolders should exist
 		for _, folder := range test.proj.Class.Folders {
-			assert.DirExists(t, filepath.Join(test.proj.Name, "/", folder.Destination))
+			assert.DirExists(t, filepath.Join(test.proj.Name, folder.Destination))
 		}
 
 		// Project files should exist
 		for _, file := range test.proj.Class.Files {
-			assert.FileExists(t, filepath.Join(test.proj.Name, "/", file.Destination))
+			assert.FileExists(t, filepath.Join(test.proj.Name, file.Destination))
 		}
 
 		// Compare old cwd to current cwd. Should be equal
@@ -92,8 +99,8 @@ func TestProjectCreate(t *testing.T) {
 		if err != nil {
 			t.FailNow()
 		}
-		assert.True(t, originalCwd == currentCwd)
+		assert.True(t, tmpDir == currentCwd)
 
-		_ = os.RemoveAll(filepath.Join(originalCwd, "/", test.proj.Name))
+		_ = os.RemoveAll(filepath.Join(tmpDir, test.proj.Name))
 	}
 }

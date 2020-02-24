@@ -1,11 +1,11 @@
 package github
 
 import (
-	"os"
 	"testing"
 
 	"github.com/tidwall/gjson"
 
+	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/repo"
 
 	"github.com/stretchr/testify/assert"
@@ -14,37 +14,30 @@ import (
 const ghAPIBase = "https://api.github.com/repos/"
 
 var goodURLs = []string{
-	"github.com/nikoksr/proji_test",
-	"github.com/nikoksr/proji_test/tree/develop",
+	"github.com/nikoksr/proji-test",
+	"github.com/nikoksr/proji-test/tree/develop",
 }
 
 var goodRepoObjects = []repo.Importer{
 	&github{
 		apiBaseURI: ghAPIBase,
 		userName:   "nikoksr",
-		repoName:   "proji_test",
+		repoName:   "proji-test",
 		branchName: "master",
 		repoSHA:    "b4fc28f09ac57e314d27e9b9133b1ebc03bec2f1",
 	},
 	&github{
 		apiBaseURI: ghAPIBase,
 		userName:   "nikoksr",
-		repoName:   "proji_test",
+		repoName:   "proji-test",
 		branchName: "develop",
 		repoSHA:    "f07d0b57cd6b468b331be03699f15faf4f9dd910",
 	},
 }
 
-func skipNetworkBasedTests(t *testing.T) {
-	env := os.Getenv("PROJI_SKIP_NETWORK_TESTS")
-	if env == "1" {
-		t.Skip("Skipping network based tests")
-	}
-}
-
 // TestNew tests the creation of a new github object based on given github URLs.
 func TestNew(t *testing.T) {
-	skipNetworkBasedTests(t)
+	helper.SkipNetworkBasedTests(t)
 
 	// These should work
 	for i, URL := range goodURLs {
@@ -70,7 +63,7 @@ func TestNew(t *testing.T) {
 // TestGetTreePathsAndTypes tests the github method TestGetTreePathsAndTypes which tries
 // to request and receive the folders paths and types of a github repo tree.
 func TestGetTreePathsAndTypes(t *testing.T) {
-	skipNetworkBasedTests(t)
+	helper.SkipNetworkBasedTests(t)
 
 	var goodRepoPathsResults = [][]gjson.Result{
 		{
@@ -162,7 +155,7 @@ func TestGetTreePathsAndTypes(t *testing.T) {
 		&github{
 			apiBaseURI: ghAPIBase,
 			userName:   "nikoksr",
-			repoName:   "proji_test",
+			repoName:   "proji-test",
 			branchName: "does_not_exist",
 			repoSHA:    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 		},
@@ -173,5 +166,150 @@ func TestGetTreePathsAndTypes(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, paths)
 		assert.Nil(t, types)
+	}
+}
+
+func Test_setRepoSHA(t *testing.T) {
+	tests := []struct {
+		name    string
+		g       *github
+		wantErr bool
+		want    string
+	}{
+		{
+			name: "Valid repo SHA",
+			g: &github{
+				apiBaseURI: ghAPIBase,
+				userName:   "nikoksr",
+				repoName:   "proji-test",
+				branchName: "master",
+				repoSHA:    "",
+			},
+			wantErr: false,
+			want:    "b4fc28f09ac57e314d27e9b9133b1ebc03bec2f1",
+		},
+		{
+			name: "Invalid repo",
+			g: &github{
+				apiBaseURI: ghAPIBase,
+				userName:   "nikoksr",
+				repoName:   "proji_private",
+				branchName: "master",
+				repoSHA:    "",
+			},
+			wantErr: true,
+			want:    "",
+		},
+	}
+
+	for _, test := range tests {
+		err := test.g.setRepoSHA()
+		assert.Equal(t, test.wantErr, err != nil)
+		assert.Equal(t, test.want, test.g.repoSHA)
+	}
+}
+
+func TestGetBranchName(t *testing.T) {
+	tests := []struct {
+		name string
+		g    *github
+		want string
+	}{
+		{
+			name: "",
+			g: &github{
+				apiBaseURI: ghAPIBase,
+				userName:   "nikoksr",
+				repoName:   "proji",
+				branchName: "master",
+				repoSHA:    "",
+			},
+			want: "master",
+		},
+		{
+			name: "",
+			g: &github{
+				apiBaseURI: ghAPIBase,
+				userName:   "nikoksr",
+				repoName:   "proji",
+				branchName: "develop",
+				repoSHA:    "",
+			},
+			want: "develop",
+		},
+	}
+	for _, test := range tests {
+		branch := test.g.GetBranchName()
+		assert.Equal(t, test.want, branch, "%s\n", test.name)
+	}
+}
+
+func TestGetRepoName(t *testing.T) {
+	tests := []struct {
+		name string
+		g    *github
+		want string
+	}{
+		{
+			name: "",
+			g: &github{
+				apiBaseURI: ghAPIBase,
+				userName:   "nikoksr",
+				repoName:   "proji",
+				branchName: "master",
+				repoSHA:    "",
+			},
+			want: "proji",
+		},
+		{
+			name: "",
+			g: &github{
+				apiBaseURI: ghAPIBase,
+				userName:   "nikoksr",
+				repoName:   "prinfo",
+				branchName: "develop",
+				repoSHA:    "",
+			},
+			want: "prinfo",
+		},
+	}
+	for _, test := range tests {
+		repo := test.g.GetRepoName()
+		assert.Equal(t, test.want, repo, "%s\n", test.name)
+	}
+}
+
+func TestGetUserName(t *testing.T) {
+	tests := []struct {
+		name string
+		g    *github
+		want string
+	}{
+		{
+			name: "",
+			g: &github{
+				apiBaseURI: ghAPIBase,
+				userName:   "nikoksr",
+				repoName:   "proji",
+				branchName: "master",
+				repoSHA:    "",
+			},
+			want: "nikoksr",
+		},
+		{
+			name: "",
+			g: &github{
+				apiBaseURI: ghAPIBase,
+				userName:   "golang",
+				repoName:   "go",
+				branchName: "master",
+				repoSHA:    "",
+			},
+			want: "golang",
+		},
+	}
+	for _, test := range tests {
+		user := test.g.GetUserName()
+		assert.Equal(t, test.want, user, "%s\n", test.name)
 	}
 }
