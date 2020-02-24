@@ -14,22 +14,22 @@ import (
 const ghAPIBase = "https://api.github.com/repos/"
 
 var goodURLs = []string{
-	"github.com/nikoksr/proji_test",
-	"github.com/nikoksr/proji_test/tree/develop",
+	"github.com/nikoksr/proji-test",
+	"github.com/nikoksr/proji-test/tree/develop",
 }
 
 var goodRepoObjects = []repo.Importer{
 	&github{
 		apiBaseURI: ghAPIBase,
 		userName:   "nikoksr",
-		repoName:   "proji_test",
+		repoName:   "proji-test",
 		branchName: "master",
 		repoSHA:    "b4fc28f09ac57e314d27e9b9133b1ebc03bec2f1",
 	},
 	&github{
 		apiBaseURI: ghAPIBase,
 		userName:   "nikoksr",
-		repoName:   "proji_test",
+		repoName:   "proji-test",
 		branchName: "develop",
 		repoSHA:    "f07d0b57cd6b468b331be03699f15faf4f9dd910",
 	},
@@ -155,7 +155,7 @@ func TestGetTreePathsAndTypes(t *testing.T) {
 		&github{
 			apiBaseURI: ghAPIBase,
 			userName:   "nikoksr",
-			repoName:   "proji_test",
+			repoName:   "proji-test",
 			branchName: "does_not_exist",
 			repoSHA:    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 		},
@@ -181,7 +181,7 @@ func Test_setRepoSHA(t *testing.T) {
 			g: &github{
 				apiBaseURI: ghAPIBase,
 				userName:   "nikoksr",
-				repoName:   "proji_test",
+				repoName:   "proji-test",
 				branchName: "master",
 				repoSHA:    "",
 			},

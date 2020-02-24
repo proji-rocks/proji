@@ -3,7 +3,10 @@ package item
 import (
 	"errors"
 	"os"
+	"path/filepath"
 	"testing"
+
+	"github.com/nikoksr/proji/pkg/helper"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -29,7 +32,8 @@ func TestClassImportFromConfig(t *testing.T) {
 		err        error
 	}{
 		{
-			configName: "../../../../assets/examples/example-class-export.toml", class: &Class{
+			configName: "../../../../assets/examples/example-class-export.toml",
+			class: &Class{
 				Name:      "my-example",
 				Label:     "mex",
 				IsDefault: false,
@@ -84,27 +88,28 @@ func TestClassImportFromConfig(t *testing.T) {
 }
 
 func TestClassImportFromDirectory(t *testing.T) {
+	tmpDir := os.TempDir()
+
 	tests := []struct {
-		baseName string
+		basePath string
 		folders  []*Folder
 		files    []*File
 		class    *Class
 		err      error
 	}{
 		{
-			baseName: "new-project",
+			basePath: filepath.Join(tmpDir, "/proji/new-project"),
 			folders: []*Folder{
-				{Destination: "new-project", Template: ""},
-				{Destination: "new-project/test", Template: ""},
-				{Destination: "new-project/cmd", Template: ""},
-				{Destination: "new-project/cmd/base", Template: ""},
-				{Destination: "new-project/docs", Template: ""},
+				{Destination: "test", Template: ""},
+				{Destination: "cmd", Template: ""},
+				{Destination: "cmd/base", Template: ""},
+				{Destination: "docs", Template: ""},
 			},
 			files: []*File{
-				{Destination: "new-project/test.txt", Template: ""},
-				{Destination: "new-project/README.md", Template: ""},
-				{Destination: "new-project/cmd/main.go", Template: ""},
-				{Destination: "new-project/test/main_test.go", Template: ""},
+				{Destination: "test.txt", Template: ""},
+				{Destination: "README.md", Template: ""},
+				{Destination: "cmd/main.go", Template: ""},
+				{Destination: "test/main_test.go", Template: ""},
 			},
 			class: &Class{
 				Name:      "new-project",
@@ -130,36 +135,38 @@ func TestClassImportFromDirectory(t *testing.T) {
 
 	for _, test := range tests {
 		for _, dir := range test.folders {
-			assert.NoError(t, os.Mkdir(dir.Destination, 0755))
+			assert.NoError(t, os.MkdirAll(filepath.Join(test.basePath, dir.Destination), os.ModePerm))
 		}
 		for _, file := range test.files {
-			_, err := os.Create(file.Destination)
+			_, err := os.Create(filepath.Join(test.basePath, file.Destination))
 			assert.NoError(t, err)
 		}
 
 		c := NewClass("", "", false)
-		assert.NoError(t, c.ImportFromDirectory(test.baseName, make([]string, 0)))
-		conf, err := c.Export(".")
+		assert.NoError(t, c.ImportFromDirectory(test.basePath, make([]string, 0)))
+		conf, err := c.Export(tmpDir)
 		assert.NoError(t, err)
 		assert.NoError(t, c.ImportFromConfig(conf))
 		assert.Equal(t, test.class, c)
 
 		// Clean up
 		_ = os.Remove(conf)
-		_ = os.RemoveAll(test.baseName)
+		_ = os.RemoveAll(test.basePath)
 	}
 }
 
 func TestClassImportFromURL(t *testing.T) {
+	helper.SkipNetworkBasedTests(t)
+
 	tests := []struct {
 		URL   string
 		class *Class
 		err   error
 	}{
 		{
-			URL: "https://github.com/nikoksr/proji_test",
+			URL: "https://github.com/nikoksr/proji-test",
 			class: &Class{
-				Name:      "proji_test",
+				Name:      "proji-test",
 				Label:     "pt",
 				IsDefault: false,
 				Folders: []*Folder{
@@ -184,9 +191,9 @@ func TestClassImportFromURL(t *testing.T) {
 			err: nil,
 		},
 		{
-			URL: "https://github.com/nikoksr/proji_test/tree/develop",
+			URL: "https://github.com/nikoksr/proji-test/tree/develop",
 			class: &Class{
-				Name:      "proji_test",
+				Name:      "proji-test",
 				Label:     "pt",
 				IsDefault: false,
 				Folders: []*Folder{
@@ -212,10 +219,10 @@ func TestClassImportFromURL(t *testing.T) {
 			err: nil,
 		},
 		{
-			URL: "https://gitlab.com/nikoksr/proji_test_repo",
+			URL: "https://gitlab.com/nikoksr/proji-test",
 			class: &Class{
-				Name:      "proji_test_repo",
-				Label:     "ptr",
+				Name:      "proji-test",
+				Label:     "pt",
 				IsDefault: false,
 				Folders: []*Folder{
 					{Destination: ".vscode", Template: ""},
@@ -248,9 +255,11 @@ func TestClassImportFromURL(t *testing.T) {
 }
 
 func TestClassExport(t *testing.T) {
+	tmpDir := os.TempDir()
+
 	tests := []struct {
 		class      *Class
-		configName string
+		configPath string
 		err        error
 	}{
 		{
@@ -268,17 +277,17 @@ func TestClassExport(t *testing.T) {
 				},
 				Scripts: make([]*Script, 0),
 			},
-			configName: "./proji-example.toml",
+			configPath: filepath.Join(tmpDir, "/proji-example.toml"),
 			err:        nil,
 		},
 	}
 
 	for _, test := range tests {
-		configName, err := test.class.Export(".")
+		configPath, err := test.class.Export(tmpDir)
 		assert.IsType(t, test.err, err)
-		assert.Equal(t, test.configName, configName)
-		assert.FileExists(t, test.configName, "Cannot find the exported config file.")
-		_ = os.Remove(configName)
+		assert.Equal(t, test.configPath, configPath)
+		assert.FileExists(t, configPath, "Cannot find the exported config file.")
+		_ = os.Remove(configPath)
 	}
 }
 

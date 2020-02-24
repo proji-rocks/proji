@@ -12,21 +12,21 @@ import (
 const glAPIBase = "https://gitlab.com/api/v4/projects/"
 
 var goodURLs = []string{
-	"gitlab.com/nikoksr/proji_test_repo",
-	"gitlab.com/nikoksr/proji_test_repo/-/tree/develop",
+	"gitlab.com/nikoksr/proji-test",
+	"gitlab.com/nikoksr/proji-test/-/tree/develop",
 }
 
 var goodRepoObjects = []repo.Importer{
 	&gitlab{
 		apiBaseURI: glAPIBase,
 		userName:   "nikoksr",
-		repoName:   "proji_test_repo",
+		repoName:   "proji-test",
 		branchName: "master",
 	},
 	&gitlab{
 		apiBaseURI: glAPIBase,
 		userName:   "nikoksr",
-		repoName:   "proji_test_repo",
+		repoName:   "proji-test",
 		branchName: "develop",
 	},
 }
@@ -153,7 +153,7 @@ func TestGetTreePathsAndTypes(t *testing.T) {
 		&gitlab{
 			apiBaseURI: glAPIBase,
 			userName:   "nikoksr",
-			repoName:   "proji_test_repo",
+			repoName:   "proji-test",
 			branchName: "does_not_exist",
 		},
 	}
@@ -177,7 +177,7 @@ func TestGetBranchName(t *testing.T) {
 			g: &gitlab{
 				apiBaseURI: glAPIBase,
 				userName:   "nikoksr",
-				repoName:   "proji_test_repo",
+				repoName:   "proji-test",
 				branchName: "master",
 			},
 			want: "master",
@@ -187,7 +187,7 @@ func TestGetBranchName(t *testing.T) {
 			g: &gitlab{
 				apiBaseURI: glAPIBase,
 				userName:   "nikoksr",
-				repoName:   "proji_test_repo",
+				repoName:   "proji-test",
 				branchName: "develop",
 			},
 			want: "develop",
@@ -210,10 +210,10 @@ func TestGetRepoName(t *testing.T) {
 			g: &gitlab{
 				apiBaseURI: glAPIBase,
 				userName:   "nikoksr",
-				repoName:   "proji_test_repo",
+				repoName:   "proji-test",
 				branchName: "master",
 			},
-			want: "proji_test_repo",
+			want: "proji-test",
 		},
 		{
 			name: "",
@@ -243,7 +243,7 @@ func TestGetUserName(t *testing.T) {
 			g: &gitlab{
 				apiBaseURI: glAPIBase,
 				userName:   "nikoksr",
-				repoName:   "proji_test_repo",
+				repoName:   "proji-test",
 				branchName: "master",
 			},
 			want: "nikoksr",
