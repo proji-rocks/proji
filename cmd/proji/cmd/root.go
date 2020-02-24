@@ -63,7 +63,7 @@ func init() {
 	viper.SetConfigName("config")
 	viper.AutomaticEnv()
 
-	if os.Args[1] != "init" {
+	if len(os.Args) > 1 && os.Args[1] != "init" && os.Args[1] != "version" && os.Args[1] != "help" {
 		cobra.OnInitialize(initConfig, initStorageService)
 	}
 }
