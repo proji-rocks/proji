@@ -1,11 +1,11 @@
 package github
 
 import (
-	"os"
 	"testing"
 
 	"github.com/tidwall/gjson"
 
+	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/repo"
 
 	"github.com/stretchr/testify/assert"
@@ -35,16 +35,9 @@ var goodRepoObjects = []repo.Importer{
 	},
 }
 
-func skipNetworkBasedTests(t *testing.T) {
-	env := os.Getenv("PROJI_SKIP_NETWORK_TESTS")
-	if env == "1" {
-		t.Skip("Skipping network based tests")
-	}
-}
-
 // TestNew tests the creation of a new github object based on given github URLs.
 func TestNew(t *testing.T) {
-	skipNetworkBasedTests(t)
+	helper.SkipNetworkBasedTests(t)
 
 	// These should work
 	for i, URL := range goodURLs {
@@ -70,7 +63,7 @@ func TestNew(t *testing.T) {
 // TestGetTreePathsAndTypes tests the github method TestGetTreePathsAndTypes which tries
 // to request and receive the folders paths and types of a github repo tree.
 func TestGetTreePathsAndTypes(t *testing.T) {
-	skipNetworkBasedTests(t)
+	helper.SkipNetworkBasedTests(t)
 
 	var goodRepoPathsResults = [][]gjson.Result{
 		{
