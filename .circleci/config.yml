@@ -9,23 +9,16 @@ jobs:
       - checkout
 
       - run:
-          name: Setup config directory
-          command: |
-            mkdir -p ~/.config/proji/db
-            mkdir -p ~/.config/proji/examples
-            mkdir -p ~/.config/proji/scripts
-            mkdir -p ~/.config/proji/templates
-            cp assets/examples/example-config.toml ~/.config/proji/config.toml
-            cp assets/examples/example-class-export.toml ~/.config/proji/examples/proji-class.toml
-            echo "# This is a template readme" > ~/.config/proji/templates/README.md
-
-      - run:
           name: Install sqlite
           command: sudo apt install -y sqlite3 || true
 
       - run:
-          name: Install go dependencies
-          command: go get -v -t -d ./...
+          name: Install proji
+          command: go install ./cmd/proji
+
+      - run:
+          name: Initialize proji
+          command: proji init
 
       - run:
           name: Run go vet
@@ -33,7 +26,7 @@ jobs:
 
       - run:
           name: Run go test
-          command: go test -v ./...
+          command: go test -v ./pkg/...
 
       - store_test_results:
           path: test-results-proji
