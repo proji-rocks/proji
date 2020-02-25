@@ -25,7 +25,7 @@ var projiEnv *env
 
 var rootCmd = &cobra.Command{
 	Use:   "proji",
-	Short: "A fast and powerful cli project scaffolding tool.",
+	Short: "A powerful cross-platform CLI project templating tool.",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		if projiEnv == nil {
 			log.Fatalf("Error: env struct is not defined.\n")
