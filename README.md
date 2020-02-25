@@ -65,7 +65,7 @@ Proji is **cross-platform** and runs on Linux, MacOS and Windows.
 
 ### Installation <a id="installation"></a>
 
-**Note**: The `master` branch may be in an *unstable or even broken state* during development. Please use [releases](https://github.com/nikoksr/proji/releases) instead of the `master` branch in order to get stable binaries.
+> **Note:** The `master` branch may be in an *unstable or even broken state* during development. Please use [releases](https://github.com/nikoksr/proji/releases) instead of the `master` branch in order to get stable binaries.
 
 #### Binary Distributions
 
@@ -73,7 +73,7 @@ Proji is **cross-platform** and runs on Linux, MacOS and Windows.
 2.  Extract the archive (e.g. on linux: `$ tar -xf proji-XXXX-XXX.tar.gz`)
 3.  Init the config folder once with: `$ proji init`
 
-**Note:** A Windows Installer will come soon. 
+> **Note:** A Windows Installer will come soon. 
 
 #### Install from Source
 
@@ -95,6 +95,8 @@ Validate the success of your installation by executing `$ proji version`.
 
 -   `$ go vet ./...`
 -   `$ go test -v ./...`
+
+> **Note:** Export the environment variable PROJI_SKIP_NETWORK_TESTS=1 if you want to skip internet-dependent tests.
 
 ### Tab Completion <a id="tab_completion"></a>
 
