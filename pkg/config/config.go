@@ -76,13 +76,16 @@ func InitConfig(path, version string) (string, error) {
 	close(errors)
 
 	for err = range errors {
-		if err != nil && version != fallbackVersion {
-			// Try with fallback version. This may help regular users but is manly for circleCI, which
-			// fails when new versions are pushed. When a new version is pushed the corresponding github tag
-			// doesn't exist, proji init fails.
-			return InitConfig(path, fallbackVersion)
+		if err != nil {
+			if version == fallbackVersion {
+				return cf.path, err
+			} else {
+				// Try with fallback version. This may help regular users but is manly for circleCI, which
+				// fails when new versions are pushed. When a new version is pushed the corresponding github tag
+				// doesn't exist, proji init fails.
+				return InitConfig(cf.path, fallbackVersion)
+			}
 		}
-		return "", err
 	}
 
 	return cf.path, nil

@@ -28,22 +28,22 @@ func TestInitConfig(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "All Valid",
+			name: "All Valid 1",
+			args: args{
+				path:    tmpDir,
+				version: "0.19.0",
+			},
+			want:    tmpDir,
+			wantErr: false,
+		},
+		{
+			name: "All Valid 2",
 			args: args{
 				path:    tmpDir,
 				version: "0.18.1",
 			},
 			want:    tmpDir,
 			wantErr: false,
-		},
-		{
-			name: "Invalid Version",
-			args: args{
-				path:    tmpDir,
-				version: "__NotAVersionNumber!!",
-			},
-			want:    "",
-			wantErr: true,
 		},
 	}
 
