@@ -84,8 +84,8 @@ Proji is **cross-platform** and runs on Linux, MacOS and Windows.
 
 #### Install from AUR
 
-1. Install with your favorite AUR helper: `$ yay -S proji`
-2. Init the config folder once with: `$ proji init`
+1.  Install with your favorite AUR helper: `$ yay -S proji`
+2.  Init the config folder once with: `$ proji init`
 
 <h1></h1>
 

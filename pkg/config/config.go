@@ -21,6 +21,8 @@ type configFolder struct {
 	subFolders []string
 }
 
+// InitConfig is the main function for projis config initialization. It determines the OS' preferred config location, creates
+// proji's config folders and downloads the required configs from GitHub to the local config folder.
 func InitConfig(path, version string) (string, error) {
 	// Representation of default config folder
 	cf := &configFolder{
