@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.13-alpine
+      - image: cimg/go:1.13
 
     working_directory: /go/src/github.com/nikoksr/proji
 
@@ -39,7 +39,7 @@ jobs:
 
   release:
     docker:
-      - image: circleci/golang:1.13-alpine
+      - image: cimg/go:1.13
     steps:
       - checkout
 
