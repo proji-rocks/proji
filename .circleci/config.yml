@@ -38,17 +38,14 @@ jobs:
           destination: trp
 
   release:
-    docker:
-      - image: circleci/golang:1.13
+    machine: true
+      steps:
+          - checkout
+            - run:
+            name: Deploy releases
+            command: docker run -e DOCKER_USERNAME=$DOCKER_USERNAME -e DOCKER_PASSWORD=$DOCKER_PASSWORD -e GITHUB_TOKEN=$GITHUB_TOKEN --rm --privileged -v /go/src/github.com/nikoksr/proji:/go/src/github.com/nikoksr/proji -w /go/src/github.com/nikoksr/proji mailchain/goreleaser-xcgo --rm-dist
 
-    working_directory: /go/src/github.com/nikoksr/proji
 
-    steps:
-      - checkout
-
-      - run:
-          name: Deploy releases
-          command: docker run -e DOCKER_USERNAME=$DOCKER_USERNAME -e DOCKER_PASSWORD=$DOCKER_PASSWORD -e GITHUB_TOKEN=$GITHUB_TOKEN --rm --privileged -v /go/src/github.com/nikoksr/proji:/go/src/github.com/nikoksr/proji -w /go/src/github.com/nikoksr/proji mailchain/goreleaser-xcgo --rm-dist
 
 workflows:
   version: 2
