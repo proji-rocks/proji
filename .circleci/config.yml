@@ -39,22 +39,16 @@ jobs:
 
   release:
     docker:
-      - image: cimg/go:1.13
+      - image: mailchain/goreleaser-xcgo
 
-    working_directory: /home/circleci/go/src/github.com/nikoksr/proji
+    working_directory: /go/src/github.com/nikoksr/proji
 
     steps:
       - checkout
 
-      - setup_remote_docker
-
-      - run:
-          name: Install Docker client
-          command: sudo apt install -y docker-cli || true
-
       - run:
           name: Deploy releases
-          command: docker run --rm --privileged -v /home/circleci/go/src/github.com/nikoksr/proji:/go/src/github.com/nikoksr/proji -v /var/run/docker.sock:/var/run/docker.sock -w /go/src/github.com/nikoksr/proji mailchain/goreleaser-xcgo goreleaser --rm-dist
+          command: goreleaser-xcgo --rm-dist
 
 workflows:
   version: 2
