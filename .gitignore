@@ -4,9 +4,11 @@
 templates/
 vendor/
 bin/
+dist/
 
 # File Extensions
 *.sqlite
+*.sqlite3
 *.db
 
 # Files
