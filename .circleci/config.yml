@@ -1,4 +1,4 @@
-version: 2.1
+version: 2
 
 jobs:
   build:
@@ -54,7 +54,7 @@ workflows:
   version: 2
   wf-build:
     jobs:
-      build
+      - build
   wf-release:
     jobs:
       - build:
