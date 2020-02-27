@@ -48,7 +48,7 @@ jobs:
 
       - run:
           name: Deploy releases
-          command: goreleaser-xcgo --rm-dist
+          command: goreleaser --rm-dist
 
 workflows:
   version: 2
