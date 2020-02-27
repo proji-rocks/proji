@@ -40,6 +40,9 @@ jobs:
   release:
     docker:
       - image: cimg/go:1.13
+
+    working_directory: ~/go/src/github.com/nikoksr/proji
+
     steps:
       - checkout
 
