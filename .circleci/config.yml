@@ -47,7 +47,7 @@ jobs:
 
       - run:
           name: Install Docker client
-          command: apk add docker-cli
+          command: sudo apt install -y docker-cli || true
 
       - run:
           name: Deploy releases
