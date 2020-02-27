@@ -220,7 +220,7 @@ func (c *Class) Export(destination string) (string, error) {
 	}
 
 	// Export data to toml
-	confName := destination + "/proji-" + c.Name + ".toml"
+	confName := filepath.Join(destination, "/proji-"+c.Name+".toml")
 	conf, err := os.Create(confName)
 	if err != nil {
 		return confName, err

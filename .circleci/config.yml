@@ -1,31 +1,26 @@
-version: 2
+version: 2.1
+
 jobs:
   build:
     docker:
       - image: circleci/golang:1.13
 
     working_directory: /go/src/github.com/nikoksr/proji
+
     steps:
       - checkout
-
-      - run:
-          name: Setup config directory
-          command: |
-            mkdir -p ~/.config/proji/db
-            mkdir -p ~/.config/proji/examples
-            mkdir -p ~/.config/proji/scripts
-            mkdir -p ~/.config/proji/templates
-            cp assets/examples/example-config.toml ~/.config/proji/config.toml
-            cp assets/examples/example-class-export.toml ~/.config/proji/examples/proji-class.toml
-            echo "# This is a template readme" > ~/.config/proji/templates/README.md
 
       - run:
           name: Install sqlite
           command: sudo apt install -y sqlite3 || true
 
       - run:
-          name: Install go dependencies
-          command: go get -v -t -d ./...
+          name: Install proji
+          command: go install ./cmd/proji
+
+      - run:
+          name: Initialize proji
+          command: proji init
 
       - run:
           name: Run go vet
@@ -33,7 +28,7 @@ jobs:
 
       - run:
           name: Run go test
-          command: go test -v ./...
+          command: go test -v ./pkg/...
 
       - store_test_results:
           path: test-results-proji
@@ -41,3 +36,30 @@ jobs:
       - store_artifacts:
           path: test-results-proji
           destination: trp
+
+  release:
+    docker:
+      - image: circleci/golang:1.13
+
+    working_directory: /go/src/github.com/nikoksr/proji
+
+    steps:
+      - checkout
+
+      - run:
+          name: Deploy releases
+          command: docker run -e DOCKER_USERNAME=$DOCKER_USERNAME -e DOCKER_PASSWORD=$DOCKER_PASSWORD -e GITHUB_TOKEN=$GITHUB_TOKEN --rm --privileged -v /go/src/github.com/nikoksr/proji:/go/src/github.com/nikoksr/proji -v /var/run/docker.sock:/var/run/docker.sock -w /go/src/github.com/nikoksr/proji mailchain/goreleaser-xcgo --rm-dist
+
+workflows:
+  version: 2
+  main:
+    jobs:
+      - build
+      - release:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.*)*/

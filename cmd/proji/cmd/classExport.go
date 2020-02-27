@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
 
@@ -26,7 +27,7 @@ var classExportCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Export an example class
 		if example {
-			file, err := exportExample(destination, projiEnv.ConfPath)
+			file, err := exportExample(destination, projiEnv.UserConfigPath)
 			if err != nil {
 				fmt.Printf("> Export of example class failed: %v\n", err)
 				return err
@@ -93,7 +94,7 @@ func exportExample(destination, confPath string) (string, error) {
 		return "", fmt.Errorf("could not read path of example config file")
 	}
 
-	examplePath = confPath + examplePath
+	examplePath = filepath.Join(confPath, examplePath)
 	sourceFileStat, err := os.Stat(examplePath)
 	if err != nil {
 		return "", err
@@ -109,7 +110,7 @@ func exportExample(destination, confPath string) (string, error) {
 	}
 	defer src.Close()
 
-	dstPath := destination + "/proji-class-example.toml"
+	dstPath := filepath.Join(destination, "/proji-class-example.toml")
 	dst, err := os.Create(dstPath)
 	if err != nil {
 		return "", err

@@ -1,10 +1,12 @@
 package cmd
 
 import (
-	"fmt"
+	"log"
 	"os"
+	"path/filepath"
 
-	"github.com/mitchellh/go-homedir"
+	"github.com/nikoksr/proji/pkg/config"
+
 	"github.com/nikoksr/proji/pkg/proji/storage"
 	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
 	"github.com/spf13/cobra"
@@ -13,28 +15,21 @@ import (
 
 // Env represents central resources and information the app uses.
 type env struct {
-	Svc      storage.Service
-	ConfPath string
-	Excludes []string
+	Svc            storage.Service
+	UserConfigPath string
+	Excludes       []string
+	Version        string
 }
 
 var projiEnv *env
 
 var rootCmd = &cobra.Command{
 	Use:   "proji",
-	Short: "A fast and powerful cli project scaffolding tool.",
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+	Short: "A powerful cross-platform CLI project templating tool.",
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		if projiEnv == nil {
-			return fmt.Errorf("env struct is not defined")
+			log.Fatalf("Error: env struct is not defined.\n")
 		}
-		var err error
-		projiEnv.Svc, err = initStorageService()
-		if err != nil {
-			return err
-		}
-
-		projiEnv.Excludes = viper.GetStringSlice("import.excludeFolders")
-		return nil
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
 		if projiEnv.Svc != nil {
@@ -49,41 +44,43 @@ var rootCmd = &cobra.Command{
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
-}
-
-func initConfig() {
-	home, err := homedir.Dir()
-	if err != nil {
-		fmt.Printf("Could not set config path: %v", err)
-		os.Exit(1)
-	}
 	if projiEnv == nil {
-		projiEnv = &env{ConfPath: "", Svc: nil}
+		projiEnv = &env{Svc: nil, UserConfigPath: "", Excludes: make([]string, 0), Version: "0.18.1"}
 	}
-	projiEnv.ConfPath = home + "/.config/proji/"
-	viper.AddConfigPath(projiEnv.ConfPath)
+
+	var err error
+	projiEnv.UserConfigPath, err = config.GetBaseConfigPath()
+	if err != nil {
+		log.Fatalf("Error: %v\n", err)
+	}
+
+	viper.AddConfigPath(projiEnv.UserConfigPath)
 	viper.SetConfigName("config")
 	viper.AutomaticEnv()
 
-	err = viper.ReadInConfig()
-	if err != nil {
-		fmt.Printf("Could not read config file %s", viper.ConfigFileUsed())
-		os.Exit(1)
+	if len(os.Args) > 1 && os.Args[1] != "init" && os.Args[1] != "version" && os.Args[1] != "help" {
+		cobra.OnInitialize(initConfig, initStorageService)
 	}
 }
 
-func initStorageService() (storage.Service, error) {
-	dbPath := viper.GetString("sqlite3.path")
-	svc, err := sqlite.New(projiEnv.ConfPath + dbPath)
+func initConfig() {
+	err := viper.ReadInConfig()
 	if err != nil {
-		return nil, fmt.Errorf("could not connect to sqlite db: %v", err)
+		log.Fatalf("Error: %v\n\nTry and execute: proji init\n", err)
 	}
-	return svc, nil
+	projiEnv.Excludes = viper.GetStringSlice("import.excludeFolders")
+}
+
+func initStorageService() {
+	dbPath := viper.GetString("sqlite3.path")
+	var err error
+	projiEnv.Svc, err = sqlite.New(filepath.Join(projiEnv.UserConfigPath, dbPath))
+	if err != nil {
+		log.Fatalf("Error: could not connect to sqlite db. %v\n%s\n", err, projiEnv.UserConfigPath)
+	}
 }

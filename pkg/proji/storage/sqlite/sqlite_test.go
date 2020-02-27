@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
@@ -10,7 +11,7 @@ import (
 )
 
 func TestClass(t *testing.T) {
-	dbPath := "/tmp/proji.sqlite3"
+	dbPath := filepath.Join(os.TempDir(), "/proji.sqlite3")
 	svc, err := New(dbPath)
 	defer os.Remove(dbPath)
 	assert.NoError(t, err)
@@ -109,7 +110,7 @@ func TestClass(t *testing.T) {
 }
 
 func TestProject(t *testing.T) {
-	dbPath := "/tmp/proji.sqlite3"
+	dbPath := filepath.Join(os.TempDir(), "/proji.sqlite3")
 	svc, err := New(dbPath)
 	defer os.Remove(dbPath)
 	assert.NoError(t, err)
@@ -127,9 +128,9 @@ func TestProject(t *testing.T) {
 	assert.NoError(t, err)
 
 	projectName := "test-proj1"
-	basePath := "/tmp/"
-	projectPath := basePath + projectName
-	proj := item.NewProject(0, projectName, projectPath+projectName, class, status)
+	basePath := os.TempDir()
+	projectPath := filepath.Join(basePath, projectName)
+	proj := item.NewProject(0, projectName, filepath.Join(projectPath, projectName), class, status)
 
 	// Test SaveProject
 	err = svc.SaveProject(proj)
@@ -167,7 +168,7 @@ func TestProject(t *testing.T) {
 	projectsInMem = append(projectsInMem, loadedProj)
 
 	// Add another project and try to load both of them
-	proj2 := item.NewProject(0, "test-proj2", basePath+"test-proj2", class, status)
+	proj2 := item.NewProject(0, "test-proj2", filepath.Join(basePath, "test-proj2"), class, status)
 	err = svc.SaveProject(proj2)
 	assert.NoError(t, err)
 
@@ -191,7 +192,7 @@ func TestProject(t *testing.T) {
 }
 
 func TestStatus(t *testing.T) {
-	dbPath := "/tmp/proji.sqlite3"
+	dbPath := filepath.Join(os.TempDir(), "/proji.sqlite3")
 	svc, err := New(dbPath)
 	defer os.Remove(dbPath)
 	assert.NoError(t, err)

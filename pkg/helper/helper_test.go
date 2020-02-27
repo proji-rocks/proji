@@ -42,3 +42,44 @@ func TestStrToUInt(t *testing.T) {
 		assert.Equal(t, test.expNum, actNum)
 	}
 }
+
+func TestIsInSlice(t *testing.T) {
+	type args struct {
+		slice []string
+		val   string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "",
+			args: args{
+				slice: []string{"test1", "test2", "test3", "test4", "test5"},
+				val:   "test5",
+			},
+			want: true,
+		},
+		{
+			name: "",
+			args: args{
+				slice: []string{"test1", "test2", "test3", "test4", "test5"},
+				val:   "test000",
+			},
+			want: false,
+		},
+		{
+			name: "",
+			args: args{
+				slice: make([]string, 0),
+				val:   "test",
+			},
+			want: false,
+		},
+	}
+	for _, test := range tests {
+		got := IsInSlice(test.args.slice, test.args.val)
+		assert.Equal(t, test.want, got)
+	}
+}

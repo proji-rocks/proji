@@ -1,38 +1,31 @@
 <div align="center">
-<img width=300px height=300px src="assets/images/proji-logo-title.svg" alt="proji logo">
+<img 
+    width=300px 
+    src="assets/images/proji-logo-title.svg" 
+    alt="proji logo"
+/>
 
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/nikoksr/proji?sort=semver)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/643b7cce9fd2491e9fde38de6e1c58ad)](https://www.codacy.com/manual/nikoksr/proji?utm_source=github.com&utm_medium=referral&utm_content=nikoksr/proji&utm_campaign=Badge_Grade)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nikoksr/proji)](https://goreportcard.com/report/github.com/nikoksr/proji)
-[![CircleCI](https://circleci.com/gh/nikoksr/proji/tree/master.svg?style=svg&circle-token=437a39b49c4fbc9656f7aed86aea369d584ecb87)](https://circleci.com/gh/nikoksr/proji/tree/master)
+[![CircleCI](https://circleci.com/gh/nikoksr/proji/tree/master.svg?style=shield&circle-token=<YOUR_STATUS_API_TOKEN>)](https://circleci.com/gh/nikoksr/proji/tree/master)
+![Platforms](https://img.shields.io/badge/platforms-Windows%2C%20macOS%20and%20Linux-blue)
+[![AUR version](https://img.shields.io/aur/version/proji)](https://aur.archlinux.org/packages/proji/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
 
+<p align="center">
+  <a href="#demo">Demo</a>
+  ·
+  <a href="#installation">Installation</a>
+  ·
+  <a href="#basic_usage">Basic Usage</a>
+</p>
 </div>
 
-* * *
+<h1></h1>
+<p align="center">A powerful cross-platform CLI project templating tool.</p><br />
 
-<p align="center">A fast and powerful cli project scaffolding tool.</p><br />
-
-## Table Of Contents
-
--   [About](#about)
--   [Demo](#demo)
--   [Getting Started](#getting_started)    
-    -   [Installation](#installation)
-    -   [Running the Tests](#running_the_tests)
-    -   [Tab Completion](#tab_completion)
--   [Basic Usage](#basic_usage)
-    -   [Setting up a Class](#setting_up_a_class)
-    -   [Creating our first projects](#creating_our_first_projects)
--   [Advanced Usage](#advanced_usage)
-    -   [Class](#au_class)
-    -   [Project](#au_project)
-    -   [Status](#au_status)
--   [Contribute](#contribute)
--   [Credits](#credits)
--   [License](#license)
-
-## About <a name = "about"></a>
+## About <a id="about"></a>
 
 Proji helps you start new projects quickly and easily. With a single command, it creates and configures complex project directories in seconds, which would take minutes to do manually. Proji creates directories and files for you that are either completely new or copied from a template. For example, why write a completely new ReadMe for each project when you can use a template that you only need to adapt to your project? Furthermore, proji can also execute scripts for you that initialize the tools that are relevant to your work and your project (e.g. git).
 
@@ -40,79 +33,74 @@ Proji is not just for software developers, but for anyone who regularly creates 
 
 Proji increases your efficiency, simplifies your workflow and improves the structure of your project directories.
 
-## Demo <a name = "demo"></a>
+## Demo <a id="demo"></a>
 
 Quick comparison between proji and a common way of project creation. In the demo we create a python project which consists of three folders and two files. We create a `virtualenv`, install three python packages, initialize the project as a `git repo` and finally make the first commit and add a develop branch.
 
-##### Common way:
-
-<p align="center">
-  <a href="" rel="noopener">
-    <img src="assets/gifs/regular-project-demo.gif" alt="Create a go example project">
-  </a>
+<p><strong>Proji:</strong></p>
+<p align="center">      
+    <img src="assets/gifs/proji-project-demo.gif" alt="Create a go project" width="800px">  
+</p>
+<p><strong>Common Way:</strong></p>
+<p align="center">    
+    <img src="assets/gifs/regular-project-demo.gif" alt="Create a go example project" width="800px">
 </p>
 
-##### Proji:
+<br />
 
-<p align="center">
-  <a href="" rel="noopener">
-    <img src="assets/gifs/proji-project-demo.gif" alt="Create a go project">
-  </a>
-</p>
+As you can see proji would have saved you about **1:15 minutes and 230 keystrokes**. Note that in this example only a very small project is created. The advantages of proji increase exponentially with increasing project complexity.
 
-As you can see **proji would have saved you about 1:15 minutes and 230 keystrokes**. Note that in this example only a very small project is created. The advantages of proji increase exponentially with increasing project complexity.
-
-<hr>
-
-##### Import a remote repository:<a name = "import_remote_repo"></a>
-
-<p align="center">
-  <a href="" rel="noopener">
-    <img src="assets/gifs/proji-demo-import-remote.gif" alt="Import a remote repository">
-  </a>
+<h1></h1>
+<br />
+<p><strong>Import a remote repository:<a id="import_remote_repo"></a></strong></p>
+<p align="center">    
+    <img src="assets/gifs/proji-demo-import-remote.gif" alt="Import a remote repository" width="800px">  
 </p>
 
 You can easily import the structure of your favorite projects from [Github](https://github.com) and [Gitlab](https://gitlab.com) as proji classes.
 
-## Getting Started <a name = "getting_started"></a>
+## Getting Started <a id="getting_started"></a>
 
-Proji is currently only supported under linux and a work in progress. You can either download a pre-compiled binary from the latest [release](https://github.com/nikoksr/proji/releases) or install it from source.
+Proji is **cross-platform** and runs on Linux, MacOS and Windows.
 
-Might work under Mac but it's not tested yet.
+### Installation <a id="installation"></a>
 
-### Installation <a name = "installation"></a>
-
-**Note**: The `master` branch may be in an *unstable or even broken state* during development. Please use [releases](https://github.com/nikoksr/proji/releases) instead of the `master` branch in order to get stable binaries.
+> **Note:** The `master` branch may be in an *unstable or even broken state* during development. Please use [releases](https://github.com/nikoksr/proji/releases) instead of the `master` branch in order to get stable binaries.
 
 #### Binary Distributions
 
 1.  Download the latest [release](https://github.com/nikoksr/proji/releases) for your system
-2.  Extract the tar with: `$ tar -xf proji-XXXX-XXX.tar.gz`
-3.  Run the installer: `$ ./install.sh`
+2.  Extract the archive (e.g. on linux: `$ tar -xf proji-XXXX-XXX.tar.gz`)
+3.  Init the config folder once with: `$ proji init`
+
+> **Note:** A Windows Installer will come soon. 
 
 #### Install from Source
 
 1.  `$ go get -u github.com/nikoksr/proji`
 2.  `$ cd $GOPATH/src/github.com/nikoksr/proji`
 3.  `$ go install ./cmd/proji/`
-4.  `$ ./install.sh`
+4.  `$ proji init`
 
 #### Install from AUR
 
-Use your favorite AUR helper: `$ yay -S proji`
+1.  Install with your favorite AUR helper: `$ yay -S proji`
+2.  Init the config folder once with: `$ proji init`
 
-<hr>
+<h1></h1>
 
 Validate the success of your installation by executing `$ proji version`.
 
-### Running the Tests <a name = "running_the_tests"></a>
+### Running the Tests <a id="running_the_tests"></a>
 
 -   `$ go vet ./...`
 -   `$ go test -v ./...`
 
-### Tab Completion <a name = "tab_completion"></a>
+> **Note:** Export the environment variable PROJI_SKIP_NETWORK_TESTS=1 if you want to skip internet-dependent tests.
 
-Proji does support tab completion but at the moment you have to set it up yourself. The following instructions were inspired by [kubernetes completion](https://kubernetes.io/docs/tasks/tools/install-kubectl/#enabling-shell-autocompletion).
+### Tab Completion <a id="tab_completion"></a>
+
+Proji does support tab completion under bash and zsh but at the moment you have to set it up yourself. The following instructions were inspired by [kubernetes completion](https://kubernetes.io/docs/tasks/tools/install-kubectl/#enabling-shell-autocompletion).
 
 #### Bash
 
@@ -138,13 +126,13 @@ This command will create a zsh completion file in your current users default zsh
 
     ./proji completion zsh > "${fpath[1]}/_proji"
 
-## Basic Usage <a name="basic_usage"></a>
+## Basic Usage <a id="basic_usage"></a>
 
 Suppose I create python projects on a regular basis and want to have the same directory structure for each of these projects. I would therefore have to execute every command necessary to create the appropriate directories and files and would then have to run tools like git and virtualenv to fully get my usual development environment up and running.
 
 That would not be too bad if you only create a new project every few weeks or months. However, if you want to create new projects more regularly, be it to test something quickly, learn something new, or quickly create an environment to reproduce and potentially solve a problem found on stackoverflow, then this process quickly becomes very tiring.
 
-### Setting up a Class <a name = "setting_up_a_class"></a>
+### Setting up a Class <a id="setting_up_a_class"></a>
 
 To solve this problem with proji, we first have to create a so-called class. A class in proji defines the structure and behavior for projects of a particular topic (python in this example). It serves as a template through which proji will create new projects for you in the future. This class will determine which directories and files we always want to get created by proji and which scripts proji should execute. For example a script which automatically initializes git in the project, creates a develop branch and makes a first commit.
 
@@ -190,30 +178,31 @@ The third option is to use the `$ proji class add CLASS-NAME [CLASS-NAME...]` co
 
 The advantage of the config file is that incorrect information can easily be corrected. For example, if you entered a script that does not exist or whose name was simply misspelled, you can easily change the name in the configuration file. This is not possible in the CLI menu. If the entry is incorrect, the creation process must be restarted.
 
-<hr>
+<h1></h1>
 
 After the class has been created or imported, we can use the command `$ proji class ls` to display a list of our available classes. The command `$ proji class show LABEL [LABEL...]` allows us to display a detailed view of one or more classes.
 
-### Creating our first projects <a name = "creating_our_first_projects"></a>
+### Creating our first projects <a id="creating_our_first_projects"></a>
 
 Now that we have created our python class in proji, we can use it to easily create new projects. A class is created once and is then reused by proji over and over again, and although the process of creating a class might initially seem a bit complex, you will very soon start saving a lot of time and keystrokes and will improve the general consistency of your projects structures.
 
 Assuming our class has been assigned the label `py`, we will create three projects with the command `$ proji create py my-py-project-1 my-py-project-2 my-py-project-3`.
 
-<p align="left">
-  <a href="" rel="noopener">
- <img src="assets/gifs/create-three-projects.gif" alt="Create projects example"></a>
+<br />
+<p align="center">
+ <img src="assets/gifs/create-three-projects.gif" alt="Create projects example" width="600px" />
 </p>
+<br />
 
 And voila, proji has created three new project directories where you can start your work immediately. The project directories are all built identically, have the same subdirectories and files, and all ran the same scripts.
 
 Take a look at the [python class config](assets/examples/proji-python.toml), the [git](assets/examples/init_git.sh) and [virtualenv](assets/examples/init_virtualenv.sh) scripts that were used in this example.
 
-## Advanced Usage <a name="advanced_usage"></a>
+## Advanced Usage <a id="advanced_usage"></a>
 
 Help for all commands is also available with `$ proji help`.
 
-### Class <a name = "au_class"></a>
+### Class <a id="au_class"></a>
 
 -   Add a class: `$ proji class add NAME`
 
@@ -231,7 +220,7 @@ Help for all commands is also available with `$ proji help`.
 
 -   Show details of one or more classes: `$ proji class show LABEL [LABEL...]`
 
-### Project <a name = "au_project"></a>
+### Project <a id="au_project"></a>
 
 -   Create one or more projects: `$ proji create LABEL NAME [NAME...]`
 
@@ -247,7 +236,7 @@ Help for all commands is also available with `$ proji help`.
 
 -   Clean up project database: `$ proji clean`
 
-### Status <a name = "au_status"></a>
+### Status <a id="au_status"></a>
 
 -   Add one or more statuses: `$ proji status add STATUS [STATUS...]`
 
@@ -255,16 +244,16 @@ Help for all commands is also available with `$ proji help`.
 
 -   List all statuses: `$ proji status ls`
 
-## Contribute <a name = "contribute"></a>
+## Contribute <a id="contribute"></a>
 
 Contributions to the project are highly appreciated. Take a look at the [code of conduct](./CODE_OF_CONDUCT.md) and at the [contribution instructions](./CONTRIBUTING.md) and you should be good to go.
 
-## Credits <a name = "credits"></a>
+## Credits <a id="credits"></a>
 
 -   Logo by [Alex Potterson](mailto:alexeyrdoxi@gmail.com)
 
 -   AUR Maintainer [Scrumplex](https://scrumplex.net/)
 
-## License <a name = "license"></a>
+## License <a id="license"></a>
 
 Proji is released under the MIT license. See [LICENSE](LICENSE)

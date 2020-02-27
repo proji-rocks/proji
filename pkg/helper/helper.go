@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"testing"
 )
 
 // DoesPathExist checks if a given path exists in the filesystem.
@@ -28,7 +29,6 @@ func StrToUInt(num string) (uint, error) {
 
 // WantTo waits for a valid user input to confirm if he wants to do whatever was asked for.
 func WantTo(question string) bool {
-	// Ask to replace project
 	var input string
 	for {
 		fmt.Print(question + " [y/N] ")
@@ -37,8 +37,7 @@ func WantTo(question string) bool {
 			input = strings.ToLower(input)
 			if input == "n" || input == "\n" {
 				return false
-			}
-			if input == "y" {
+			} else if input == "y" {
 				return true
 			}
 		}
@@ -53,4 +52,12 @@ func IsInSlice(slice []string, val string) bool {
 		}
 	}
 	return false
+}
+
+// SkipNetworkBasedTests skips network/internet dependent tests when the env variable PROJI_SKIP_NETWORK_TESTS is set to 1
+func SkipNetworkBasedTests(t *testing.T) {
+	env := os.Getenv("PROJI_SKIP_NETWORK_TESTS")
+	if env == "1" {
+		t.Skip("Skipping network based tests")
+	}
 }

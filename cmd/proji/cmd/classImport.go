@@ -46,16 +46,16 @@ var classImportCmd = &cobra.Command{
 func init() {
 	classCmd.AddCommand(classImportCmd)
 
-	classImportCmd.Flags().StringSliceVar(&remoteRepos, "remote-repo", []string{}, "create an importable config based on a remote repository")
+	classImportCmd.Flags().StringSliceVar(&remoteRepos, "remote-repo", make([]string, 0), "create an importable config based on a remote repository")
 	_ = classImportCmd.MarkFlagDirname("remote-repo")
 
-	classImportCmd.Flags().StringSliceVar(&directories, "directory", []string{}, "create an importable config based on a local directory")
+	classImportCmd.Flags().StringSliceVar(&directories, "directory", make([]string, 0), "create an importable config based on a local directory")
 	_ = classImportCmd.MarkFlagDirname("directory")
 
-	classImportCmd.Flags().StringSliceVar(&configs, "config", []string{}, "import a class from a config file")
+	classImportCmd.Flags().StringSliceVar(&configs, "config", make([]string, 0), "import a class from a config file")
 	_ = classImportCmd.MarkFlagFilename("config")
 
-	classImportCmd.Flags().StringSliceVar(&excludes, "exclude", []string{}, "folder to exclude from local directory import")
+	classImportCmd.Flags().StringSliceVar(&excludes, "exclude", make([]string, 0), "folder to exclude from local directory import")
 	_ = classImportCmd.MarkFlagFilename("exclude")
 }
 
