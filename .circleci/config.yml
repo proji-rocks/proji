@@ -52,9 +52,17 @@ jobs:
 
 workflows:
   version: 2
-  main:
+  wf-build:
     jobs:
-      - build
+      build
+  wf-release:
+    jobs:
+      - build:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.*)*/
       - release:
           requires:
             - build
