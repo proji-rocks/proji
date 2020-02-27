@@ -1,0 +1,73 @@
+env:
+  - GO111MODULE=on
+before:
+  hooks:
+    - go mod download
+builds:
+  - id: proji-darwin-amd64
+    ldflags: -s -w -X github.com/proji/proji.Version={{.Version}} -X github.com/proji/proji.BuildDate={{.Date}} -X github.com/proji/proji.CommitHash={{ .ShortCommit }}
+    binary: proji
+    env:
+      - CGO_ENABLED=1
+      - CC=o64-clang
+      - CXX=o64-clang++
+    main: ./cmd/proji/main.go
+    goos:
+      - darwin
+    goarch:
+      - amd64
+  - id: proji-linux-amd64
+    ldflags: -s -w -X github.com/proji/proji.Version={{.Version}} -X github.com/proji/proji.BuildDate={{.Date}} -X github.com/proji/proji.CommitHash={{ .ShortCommit }}
+    binary: proji
+    env:
+      - CGO_ENABLED=1
+    main: ./cmd/proji/main.go
+    goos:
+      - linux
+    goarch:
+      - amd64
+  - id: proji-windows-amd64
+    ldflags: -s -w -X github.com/proji/proji.Version={{.Version}} -X github.com/proji/proji.BuildDate={{.Date}} -X github.com/proji/proji.CommitHash={{ .ShortCommit }}
+    binary: proji
+    env:
+      - CGO_ENABLED=1
+      - CC=x86_64-w64-mingw32-gcc
+      - CXX=x86_64-w64-mingw32-g++
+    main: ./cmd/proji/main.go
+    goos:
+      - windows
+    goarch:
+      - amd64
+archives:
+  - format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: "{{.ProjectName}}-{{.Os}}-{{.Arch}}"
+    replacements:
+      amd64: 64bit
+      386: 32bit
+      arm: ARM
+      arm64: ARM64
+      darwin: macOS
+      linux: Linux
+      windows: Windows
+      openbsd: OpenBSD
+      netbsd: NetBSD
+      freebsd: FreeBSD
+      dragonfly: DragonFlyBSD
+    files:
+      - LICENSE
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - 'README'
+      - Merge pull request
+      - Merge branch
