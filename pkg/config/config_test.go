@@ -101,8 +101,7 @@ func Test_createFolderIfNotExists(t *testing.T) {
 		}
 	}
 
-	err := os.RemoveAll(tmpDir)
-	assert.NoError(t, err)
+	_ = os.RemoveAll(tmpDir)
 }
 
 func Test_downloadFile(t *testing.T) {
@@ -170,8 +169,7 @@ func Test_downloadFile(t *testing.T) {
 		}
 	}
 
-	err = os.RemoveAll(tmpDir)
-	assert.NoError(t, err)
+	_ = os.RemoveAll(tmpDir)
 }
 
 func Test_downloadFileIfNotExists(t *testing.T) {
@@ -247,6 +245,5 @@ func Test_downloadFileIfNotExists(t *testing.T) {
 		}
 	}
 
-	err = os.RemoveAll(tmpDir)
-	assert.NoError(t, err)
+	_ = os.RemoveAll(tmpDir)
 }
