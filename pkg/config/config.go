@@ -24,6 +24,8 @@ type configFolder struct {
 // InitConfig is the main function for projis config initialization. It determines the OS' preferred config location, creates
 // proji's config folders and downloads the required configs from GitHub to the local config folder.
 func InitConfig(path, version string) (string, error) {
+	fallbackVersion := "0.18.1"
+
 	// Representation of default config folder
 	cf := &configFolder{
 		path: "",
@@ -74,9 +76,13 @@ func InitConfig(path, version string) (string, error) {
 	close(errors)
 
 	for err = range errors {
-		if err != nil {
-			return "", err
+		if err != nil && version != fallbackVersion {
+			// Try with fallback version. This may help regular users but is manly for circleCI, which
+			// fails when new versions are pushed. When a new version is pushed the corresponding github tag
+			// doesn't exist, proji init fails.
+			return InitConfig(path, fallbackVersion)
 		}
+		return "", err
 	}
 
 	return cf.path, nil
