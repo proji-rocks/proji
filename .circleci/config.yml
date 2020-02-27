@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.13
+      - image: circleci/golang:1.13-alpine
 
     working_directory: /go/src/github.com/nikoksr/proji
 
@@ -38,13 +38,21 @@ jobs:
           destination: trp
 
   release:
-    machine: true
+    docker:
+      - image: circleci/golang:1.13-alpine
     steps:
-        - checkout
-        - run:
+      - checkout
+
+      - setup_remote_docker:
+          docker_layer_caching: true
+
+      - run:
+          name: Install Docker client
+          command: apk add docker-cli
+
+      - run:
           name: Deploy releases
           command: docker run -e DOCKER_USERNAME=$DOCKER_USERNAME -e DOCKER_PASSWORD=$DOCKER_PASSWORD -e GITHUB_TOKEN=$GITHUB_TOKEN --rm --privileged -v /go/src/github.com/nikoksr/proji:/go/src/github.com/nikoksr/proji -w /go/src/github.com/nikoksr/proji mailchain/goreleaser-xcgo --rm-dist
-
 
 
 workflows:
