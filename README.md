@@ -5,7 +5,7 @@
     alt="proji logo"
 />
 
-![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/nikoksr/proji?sort=semver)
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/nikoksr/proji?sort=semver)](https://github.com/nikoksr/proji/releases/latest)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/643b7cce9fd2491e9fde38de6e1c58ad)](https://www.codacy.com/manual/nikoksr/proji?utm_source=github.com&utm_medium=referral&utm_content=nikoksr/proji&utm_campaign=Badge_Grade)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nikoksr/proji)](https://goreportcard.com/report/github.com/nikoksr/proji)
 [![CircleCI](https://circleci.com/gh/nikoksr/proji/tree/master.svg?style=shield&circle-token=<YOUR_STATUS_API_TOKEN>)](https://circleci.com/gh/nikoksr/proji/tree/master)
@@ -22,16 +22,28 @@
 </p>
 </div>
 
-<h1></h1>
-<p align="center">A powerful cross-platform CLI project templating tool.</p><br />
+<p align="center">A powerful cross-platform CLI project templating tool.</p>
 
-## About <a id="about"></a>
+<br />
 
-Proji helps you start new projects quickly and easily. With a single command, it creates and configures complex project directories in seconds, which would take minutes to do manually. Proji creates directories and files for you that are either completely new or copied from a template. For example, why write a completely new ReadMe for each project when you can use a template that you only need to adapt to your project? Furthermore, proji can also execute scripts for you that initialize the tools that are relevant to your work and your project (e.g. git).
+<p align="center">    
+    <img src="assets/gifs/proji-quick-demo.gif" alt="Quick proji demo" width="550">
+</p>
 
-Proji is not just for software developers, but for anyone who regularly creates new projects and wants to save time and effort. Developers, authors, artists or just for your general organization.... it doesn't matter, because you define what you need.
+<br />
 
-Proji increases your efficiency, simplifies your workflow and improves the structure of your project directories.
+## Key Features
+
+-   Creates project directories of any size **in seconds**
+-   Project templates are based on **individual config files**
+-   Structure of **GitHub/GitLab repos can be imported** to project configs
+-   Structure of **directories can be imported** to project configs
+-   Infinitely extendable through integration of **custom shell scripts**
+-   Supports **custom template files**
+-   **Shareable** project configs
+-   Projects are **not bound to any language or framework**
+-   Boosts your **productivity** and simplifies your **workflow**
+-   Works on **Windows**, **macOS** and **Linux**
 
 ## Demo <a id="demo"></a>
 
@@ -42,7 +54,7 @@ Quick comparison between proji and a common way of project creation. In the demo
     <img src="assets/gifs/proji-project-demo.gif" alt="Create a go project" width="800px">  
 </p>
 <p><strong>Common Way:</strong></p>
-<p align="center">    
+<p align="center">
     <img src="assets/gifs/regular-project-demo.gif" alt="Create a go example project" width="800px">
 </p>
 
@@ -57,7 +69,7 @@ As you can see proji would have saved you about **1:15 minutes and 230 keystroke
     <img src="assets/gifs/proji-demo-import-remote.gif" alt="Import a remote repository" width="800px">  
 </p>
 
-You can easily import the structure of your favorite projects from [Github](https://github.com) and [Gitlab](https://gitlab.com) as proji classes.
+You can easily import the structure of your favorite projects from [GitHub](https://github.com) and [GitLab](https://gitlab.com) as proji classes.
 
 ## Getting Started <a id="getting_started"></a>
 
@@ -65,38 +77,51 @@ Proji is **cross-platform** and runs on Linux, MacOS and Windows.
 
 ### Installation <a id="installation"></a>
 
+> **Important:** After the installation process has successfully completed, you must run 'proji init' once.
+> This initializes proji's main configuration folder and is mandatory.
+
+#### Binary <a id="install_bin"></a>
+
+Install the correct binary for your operating system and architecture in `./bin` with a single command:
+
+    curl -sfL https://git.io/proji | sh
+
+#### Package <a id="install_pkg"></a>
+
+##### Arch Linux (AUR) <a id="install_pkg_arch"></a>
+
+    yay -S proji
+
+##### MacOS <a id="install_pkg_mac"></a>
+
+    brew install nikoksr/taps/proji
+
+##### Windows <a id="install_pkg_win"></a>
+
+    scoop bucket add nikoksr https://github.com/nikoksr/scoop-bucket
+
+    scoop install proji
+
+#### From Source <a id="install_from_source"></a>
+
 > **Note:** The `master` branch may be in an *unstable or even broken state* during development. Please use [releases](https://github.com/nikoksr/proji/releases) instead of the `master` branch in order to get stable binaries.
 
-#### Binary Distributions
-
-1.  Download the latest [release](https://github.com/nikoksr/proji/releases) for your system
-2.  Extract the archive (e.g. on linux: `$ tar -xf proji-XXXX-XXX.tar.gz`)
-3.  Init the config folder once with: `$ proji init`
-
-> **Note:** A Windows Installer will come soon. 
-
-#### Install from Source
-
-1.  `$ go get -u github.com/nikoksr/proji`
-2.  `$ cd $GOPATH/src/github.com/nikoksr/proji`
-3.  `$ go install ./cmd/proji/`
-4.  `$ proji init`
-
-#### Install from AUR
-
-1.  Install with your favorite AUR helper: `$ yay -S proji`
-2.  Init the config folder once with: `$ proji init`
+    go get -u github.com/nikoksr/proji
+    
+    cd $GOPATH/src/github.com/nikoksr/proji
+    
+    go install ./cmd/proji
 
 <h1></h1>
 
-Validate the success of your installation by executing `$ proji version`.
+Validate the success of your installation by executing `proji version`.
 
 ### Running the Tests <a id="running_the_tests"></a>
 
--   `$ go vet ./...`
--   `$ go test -v ./...`
+    go vet ./...
+    go test -v ./...
 
-> **Note:** Export the environment variable PROJI_SKIP_NETWORK_TESTS=1 if you want to skip internet-dependent tests.
+> **Note:** Export the environment variable `PROJI_SKIP_NETWORK_TESTS=1` if you want to skip internet-dependent tests.
 
 ### Tab Completion <a id="tab_completion"></a>
 
@@ -109,7 +134,7 @@ For tab-completion under bash you first need to install and enable [bash_complet
 You now need to ensure that the proji completion script gets sourced in all your shell sessions.
 
     # Create the completion file
-    ./proji completion bash > ~/.config/proji/completion.bash.inc
+    proji completion bash > $HOME/.config/proji/completion.bash.inc
 
     # Make your bash_profile source it
     printf "
@@ -124,7 +149,7 @@ You now need to ensure that the proji completion script gets sourced in all your
 
 This command will create a zsh completion file in your current users default zsh completion folder:
 
-    ./proji completion zsh > "${fpath[1]}/_proji"
+    proji completion zsh > "${fpath[1]}/_proji"
 
 ## Basic Usage <a id="basic_usage"></a>
 
@@ -154,39 +179,39 @@ There are four ways to create a new class:
 
 ##### 1. Config file
 
-Proji offers the possibility to export and import classes through config files. The easiest way to create a new class would be to export the proji sample config and then adapt it to your needs. To do so, execute the command `$ proji class export --example`.
+Proji offers the possibility to export and import classes through config files. The easiest way to create a new class would be to export the proji sample config and then adapt it to your needs. To do so, execute the command `proji class export --example`.
 
 Proji creates the file [proji-class-example.toml](assets/examples/example-class-export.toml) in the current working directory. If you open this file in a text editor, you will find a richly annotated configuration of an example class. This config should then be adapted according to your needs.
 
-Once the config has been edited and saved, it can be imported using the `$ proji class import --config proji-class-example.toml` (or whatever you named the file) command. Proji then creates a new class based on the imported config.
+Once the config has been edited and saved, it can be imported using the `proji class import --config proji-class-example.toml` (or whatever you named the file) command. Proji then creates a new class based on the imported config.
 
 ##### 2. Local directory
 
 Proji can import the structure of a local directory as a class. It will analyze the directory and create a class config based on all sub-directories and files. 
 
-To do so, first create the config with `$ proji class import --directory path/to/dir`. Then edit the resulting config as needed in your editor of choice. For example, remove folders and files that you do not want to add to your class, or add files, folders, and scripts that are missing. When you are done, import the configuration as seen above with `$ proji class import --config proji-dir.toml`.
+To do so, first create the config with `proji class import --directory path/to/dir`. Then edit the resulting config as needed in your editor of choice. For example, remove folders and files that you do not want to add to your class, or add files, folders, and scripts that are missing. When you are done, import the configuration as seen above with `proji class import --config proji-dir.toml`.
 
 ##### 3. Remote repository
 
 Similar behaviour as the `directory` example but instead of importing the structure of a local directory you can import the structure of a remote repository. Currently tested and supported code hosting platforms are [github](https://github.com/) and [gitlab](https://gitlab.com).
 
-As an example, let's create a class based on this repository. First, run the command `$ proji class import --remote-repo https://github.com/nikoksr/proji`. Similar to the `directory` flag this will export a class config based on the remote repository. You can then edit the config to your liking and needs and import it afterwards with `$ proji class import --config proji-proji.toml`.
+As an example, let's create a class based on this repository. First, run the command `proji class import --remote-repo https://github.com/nikoksr/proji`. Similar to the `directory` flag this will export a class config based on the remote repository. You can then edit the config to your liking and needs and import it afterwards with `proji class import --config proji-proji.toml`.
 
 ##### 4. Class add command (not recommended)
 
-The third option is to use the `$ proji class add CLASS-NAME [CLASS-NAME...]` command to create one or more classes in an interactive CLI. Proji will query the necessary data for the new class from you and then create the new class based on that data.
+The third option is to use the `proji class add CLASS-NAME [CLASS-NAME...]` command to create one or more classes in an interactive CLI. Proji will query the necessary data for the new class from you and then create the new class based on that data.
 
 The advantage of the config file is that incorrect information can easily be corrected. For example, if you entered a script that does not exist or whose name was simply misspelled, you can easily change the name in the configuration file. This is not possible in the CLI menu. If the entry is incorrect, the creation process must be restarted.
 
 <h1></h1>
 
-After the class has been created or imported, we can use the command `$ proji class ls` to display a list of our available classes. The command `$ proji class show LABEL [LABEL...]` allows us to display a detailed view of one or more classes.
+After the class has been created or imported, we can use the command `proji class ls` to display a list of our available classes. The command `proji class show LABEL [LABEL...]` allows us to display a detailed view of one or more classes.
 
 ### Creating our first projects <a id="creating_our_first_projects"></a>
 
 Now that we have created our python class in proji, we can use it to easily create new projects. A class is created once and is then reused by proji over and over again, and although the process of creating a class might initially seem a bit complex, you will very soon start saving a lot of time and keystrokes and will improve the general consistency of your projects structures.
 
-Assuming our class has been assigned the label `py`, we will create three projects with the command `$ proji create py my-py-project-1 my-py-project-2 my-py-project-3`.
+Assuming our class has been assigned the label `py`, we will create three projects with the command `proji create py my-py-project-1 my-py-project-2 my-py-project-3`.
 
 <br />
 <p align="center">
@@ -200,49 +225,49 @@ Take a look at the [python class config](assets/examples/proji-python.toml), the
 
 ## Advanced Usage <a id="advanced_usage"></a>
 
-Help for all commands is also available with `$ proji help`.
+Help for all commands is also available with `proji help`.
 
 ### Class <a id="au_class"></a>
 
--   Add a class: `$ proji class add NAME`
+-   Add a class: `proji class add NAME`
 
--   Remove one or more classes: `$ proji class rm LABEL [LABEL...]`
+-   Remove one or more classes: `proji class rm LABEL [LABEL...]`
 
--   Import one or more classes from configs: `$ proji class import --config FILE [--config FILE...]`
+-   Import one or more classes from configs: `proji class import --config FILE [--config FILE...]`
 
--   Import one or more classes from directories: `$ proji class import --directory DIR [--directory DIR...]`
+-   Import one or more classes from directories: `proji class import --directory DIR [--directory DIR...]`
 
--   Import one or more classes from remote repositories: `$ proji class import --remote-repo URL [--remote-repo URL...]`
+-   Import one or more classes from remote repositories: `proji class import --remote-repo URL [--remote-repo URL...]`
 
--   Export one or more classes: `$ proji class export LABEL [LABEL...]`
+-   Export one or more classes: `proji class export LABEL [LABEL...]`
 
--   List all classes: `$ proji class ls`
+-   List all classes: `proji class ls`
 
--   Show details of one or more classes: `$ proji class show LABEL [LABEL...]`
+-   Show details of one or more classes: `proji class show LABEL [LABEL...]`
 
 ### Project <a id="au_project"></a>
 
--   Create one or more projects: `$ proji create LABEL NAME [NAME...]`
+-   Create one or more projects: `proji create LABEL NAME [NAME...]`
 
--   Add a project: `$ proji add LABEL PATH STATUS`
+-   Add a project: `proji add LABEL PATH STATUS`
 
--   Remove one or more projects: `$ proji rm ID [ID...]`
+-   Remove one or more projects: `proji rm ID [ID...]`
 
--   Set new project path: `$ proji set path PATH PROJECT-ID`
+-   Set new project path: `proji set path PATH PROJECT-ID`
 
--   Set new project status: `$ proji set status STATUS PROJECT-ID`
+-   Set new project status: `proji set status STATUS PROJECT-ID`
 
--   List all projects: `$ proji ls`
+-   List all projects: `proji ls`
 
--   Clean up project database: `$ proji clean`
+-   Clean up project database: `proji clean`
 
 ### Status <a id="au_status"></a>
 
--   Add one or more statuses: `$ proji status add STATUS [STATUS...]`
+-   Add one or more statuses: `proji status add STATUS [STATUS...]`
 
--   Remove one or more statuses: `$ proji status rm ID [ID...]`
+-   Remove one or more statuses: `proji status rm ID [ID...]`
 
--   List all statuses: `$ proji status ls`
+-   List all statuses: `proji status ls`
 
 ## Contribute <a id="contribute"></a>
 
