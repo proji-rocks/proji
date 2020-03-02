@@ -165,6 +165,10 @@ Note that folders and files can either be created new and empty or be copied fro
 
 In addition, we can assign scripts to a proji class which will be executed in a desired and defined order. Scripts must be saved under `~/.config/proji/scripts/` and can then be referenced by name in the class config.
 
+<br />
+
+> A collection of example configs can be found [here.](https://github.com/nikoksr/proji-examples)
+
 #### Structure of a Class
 
 -   **Name:** A name that describes the topic of the class (e.g. `python`)
