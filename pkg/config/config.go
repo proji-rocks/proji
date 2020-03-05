@@ -36,7 +36,7 @@ func InitConfig(path, version string) (string, error) {
 			},
 			{
 				src: "https://raw.githubusercontent.com/nikoksr/proji/v" + version + "/assets/examples/example-class-export.toml",
-				dst: "examples/class-export.toml",
+				dst: "examples/proji-class.toml",
 			},
 		},
 		subFolders: []string{"db", "examples", "scripts", "templates"},
