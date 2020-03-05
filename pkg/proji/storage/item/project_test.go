@@ -3,6 +3,7 @@ package item
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/nikoksr/proji/pkg/config"
@@ -99,7 +100,16 @@ func TestProjectCreate(t *testing.T) {
 		if err != nil {
 			t.FailNow()
 		}
-		assert.True(t, tmpDir == currentCwd)
+
+		// Special case for darwin systems.
+		// On darwin systems /tmp is a symlink to /private/tmp which gets resolved by os.Getwd().
+		// So the final path resulting from os.Getwd() differs from the original working directory
+		// by the prefixed /private.
+		if runtime.GOOS == "darwin" {
+			assert.True(t, filepath.Join("/private", tmpDir) == currentCwd)
+		} else {
+			assert.True(t, tmpDir == currentCwd)
+		}
 
 		_ = os.RemoveAll(filepath.Join(tmpDir, test.proj.Name))
 	}
