@@ -106,10 +106,13 @@ func (proj *Project) createFiles() error {
 
 		// Replace keyword with project name
 		file.Destination = re.ReplaceAllString(file.Destination, proj.Name)
-		_, err := os.OpenFile(file.Destination, os.O_RDONLY|os.O_CREATE, os.ModePerm)
+
+		// Create file
+		f, err := os.Create(file.Destination)
 		if err != nil {
 			return err
 		}
+		_ = f.Close()
 	}
 	return nil
 }
