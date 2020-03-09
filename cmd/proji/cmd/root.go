@@ -50,7 +50,7 @@ func Execute() {
 
 func init() {
 	if projiEnv == nil {
-		projiEnv = &env{Svc: nil, UserConfigPath: "", Excludes: make([]string, 0), Version: "0.19.1"}
+		projiEnv = &env{Svc: nil, UserConfigPath: "", Excludes: make([]string, 0), Version: "0.19.2"}
 	}
 
 	var err error
