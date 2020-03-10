@@ -19,6 +19,8 @@
   <a href="#installation">Installation</a>
   ·
   <a href="#basic_usage">Basic Usage</a>
+  ·
+  <a href="https://github.com/nikoksr/proji-examples">Example configs</a>
 </p>
 </div>
 
