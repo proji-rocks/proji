@@ -93,3 +93,43 @@ changelog:
       - 'README'
       - Merge pull request
       - Merge branch
+
+nfpms:
+  -
+    id: proji-linux-amd64 
+    package_name: proji
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}"
+    replacements:
+      amd64: 64bit
+      386: 32bit
+      arm: ARM
+      arm64: ARM64
+      linux: Linux
+    homepage: https://github.com/nikoksr/proji
+    maintainer: Niko Köser <koeserniko@gmail.com>
+    description: A powerful cross-platform CLI project templating tool.
+    license: MIT
+    formats:
+      - deb
+      - rpm
+    bindir: /usr/bin
+
+
+snapcrafts: 
+  -
+    id: proji-linux-amd64 
+    builds:
+      - proji-linux-amd64 
+    name_template: "{{.ProjectName}}-{{.Os}}-{{.Arch}}"
+    replacements:
+      amd64: 64bit
+      386: 32bit
+      arm: ARM
+      arm64: ARM64
+      linux: Linux
+    publish: false
+    description: A powerful cross-platform CLI project templating tool.
+    summary: A powerful cross-platform CLI project templating tool.
+    confinement: strict
+    license: MIT
+    base: bare
