@@ -129,7 +129,7 @@ snapcrafts:
       linux: Linux
     publish: false
     description: A powerful cross-platform CLI project templating tool.
-    summary: A powerful cross-platform CLI project templating tool.
+    summary: cross-platform CLI templating tool.
     confinement: strict
     license: MIT
     base: bare
