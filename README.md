@@ -1,11 +1,11 @@
 <div align="center">
-<img 
-    width=300px 
-    src="assets/images/proji-logo-title.svg" 
+<img
+    width=300px
+    src="assets/images/proji-logo-title.svg"
     alt="proji logo"
 />
 
-[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/nikoksr/proji?sort=semver)](https://github.com/nikoksr/proji/releases/latest)
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/nikoksr/proji)](https://github.com/nikoksr/proji/releases/latest)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/643b7cce9fd2491e9fde38de6e1c58ad)](https://www.codacy.com/manual/nikoksr/proji?utm_source=github.com&utm_medium=referral&utm_content=nikoksr/proji&utm_campaign=Badge_Grade)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nikoksr/proji)](https://goreportcard.com/report/github.com/nikoksr/proji)
 [![CircleCI](https://circleci.com/gh/nikoksr/proji/tree/master.svg?style=shield&circle-token=<YOUR_STATUS_API_TOKEN>)](https://circleci.com/gh/nikoksr/proji/tree/master)
@@ -28,7 +28,7 @@
 
 <br />
 
-<p align="center">    
+<p align="center">
     <img src="assets/gifs/proji-quick-demo.gif" alt="Quick proji demo" width="550">
 </p>
 
@@ -52,8 +52,8 @@
 Quick comparison between proji and a common way of project creation. In the demo we create a python project which consists of three folders and two files. We create a `virtualenv`, install three python packages, initialize the project as a `git repo` and finally make the first commit and add a develop branch.
 
 <p><strong>Proji:</strong></p>
-<p align="center">      
-    <img src="assets/gifs/proji-project-demo.gif" alt="Create a go project" width="800px">  
+<p align="center">
+    <img src="assets/gifs/proji-project-demo.gif" alt="Create a go project" width="800px">
 </p>
 <p><strong>Common Way:</strong></p>
 <p align="center">
@@ -67,8 +67,8 @@ As you can see proji would have saved you about **1:15 minutes and 230 keystroke
 <h1></h1>
 <br />
 <p><strong>Import a remote repository:<a id="import_remote_repo"></a></strong></p>
-<p align="center">    
-    <img src="assets/gifs/proji-demo-import-remote.gif" alt="Import a remote repository" width="800px">  
+<p align="center">
+    <img src="assets/gifs/proji-demo-import-remote.gif" alt="Import a remote repository" width="800px">
 </p>
 
 You can easily import the structure of your favorite projects from [GitHub](https://github.com) and [GitLab](https://gitlab.com) as proji classes.
@@ -106,12 +106,12 @@ Install the correct binary for your operating system and architecture in `./bin`
 
 #### From Source <a id="install_from_source"></a>
 
-> **Note:** The `master` branch may be in an *unstable or even broken state* during development. Please use [releases](https://github.com/nikoksr/proji/releases) instead of the `master` branch in order to get stable binaries.
+> **Note:** The `master` branch may be in an _unstable or even broken state_ during development. Please use [releases](https://github.com/nikoksr/proji/releases) instead of the `master` branch in order to get stable binaries.
 
     go get -u github.com/nikoksr/proji
-    
+
     cd $GOPATH/src/github.com/nikoksr/proji
-    
+
     go install ./cmd/proji
 
 <h1></h1>
@@ -193,7 +193,7 @@ Once the config has been edited and saved, it can be imported using the `proji c
 
 ##### 2. Local directory
 
-Proji can import the structure of a local directory as a class. It will analyze the directory and create a class config based on all sub-directories and files. 
+Proji can import the structure of a local directory as a class. It will analyze the directory and create a class config based on all sub-directories and files.
 
 To do so, first create the config with `proji class import --directory path/to/dir`. Then edit the resulting config as needed in your editor of choice. For example, remove folders and files that you do not want to add to your class, or add files, folders, and scripts that are missing. When you are done, import the configuration as seen above with `proji class import --config proji-dir.toml`.
 
@@ -278,6 +278,8 @@ Help for all commands is also available with `proji help`.
 ## Contribute <a id="contribute"></a>
 
 Contributions to the project are highly appreciated. Take a look at the [code of conduct](./CODE_OF_CONDUCT.md) and at the [contribution instructions](./CONTRIBUTING.md) and you should be good to go.
+
+If you have any questions or need help with your contribution, please contact me at the address in my profile. I will gladly help you.
 
 ## Credits <a id="credits"></a>
 
