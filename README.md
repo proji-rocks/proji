@@ -87,12 +87,18 @@ Proji is **cross-platform** and runs on Linux, MacOS and Windows.
 Install the correct binary for your operating system and architecture in `./bin` with a single command:
 
     curl -sfL https://git.io/proji | sh
+    
+Afterwards, move the executable to a folder that's in your path.
 
 #### Package <a id="install_pkg"></a>
 
 ##### Arch Linux (AUR) <a id="install_pkg_arch"></a>
 
     yay -S proji
+    
+or
+
+    yay -S proji-bin
 
 ##### MacOS <a id="install_pkg_mac"></a>
 
