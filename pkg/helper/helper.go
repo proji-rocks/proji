@@ -2,6 +2,8 @@ package helper
 
 import (
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -60,4 +62,47 @@ func SkipNetworkBasedTests(t *testing.T) {
 	if env == "1" {
 		t.Skip("Skipping network based tests")
 	}
+}
+
+// CreateFolderIfNotExists creates a folder at the given path if it doesn't already exist.
+func CreateFolderIfNotExists(path string) error {
+	_, err := os.Stat(path)
+	if !os.IsNotExist(err) {
+		return err
+	}
+	return os.MkdirAll(path, os.ModePerm)
+}
+
+// DownloadFile downloads a file from an url to the local fs.
+func DownloadFile(src, dst string) error {
+	// Get the data
+	resp, err := http.Get(src)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("error: %s", resp.Status)
+	}
+
+	defer resp.Body.Close()
+
+	// Create the file
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	// Write the body to file
+	_, err = io.Copy(out, resp.Body)
+	return err
+}
+
+// DownloadFileIfNotExists runs downloadFile() if the destination file doesn't already exist.
+func DownloadFileIfNotExists(src, dst string) error {
+	_, err := os.Stat(dst)
+	if os.IsNotExist(err) {
+		err = DownloadFile(src, dst)
+	}
+	return err
 }

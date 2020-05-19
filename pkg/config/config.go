@@ -2,12 +2,12 @@ package config
 
 import (
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 	"sync"
+
+	"github.com/nikoksr/proji/pkg/helper"
 )
 
 type configFile struct {
@@ -46,14 +46,14 @@ func InitConfig(path, version string) (string, error) {
 	cf.path = path
 
 	// Create basefolder if it does not exist.
-	err := createFolderIfNotExists(cf.path)
+	err := helper.CreateFolderIfNotExists(cf.path)
 	if err != nil {
 		return "", err
 	}
 
 	// Create subfolders if they do not exist.
 	for _, subFolder := range cf.subFolders {
-		err = createFolderIfNotExists(filepath.Join(cf.path, "/", subFolder))
+		err = helper.CreateFolderIfNotExists(filepath.Join(cf.path, "/", subFolder))
 		if err != nil {
 			return "", err
 		}
@@ -68,7 +68,7 @@ func InitConfig(path, version string) (string, error) {
 		go func(conf *configFile, wg *sync.WaitGroup, e chan error) {
 			defer wg.Done()
 			dst := filepath.Join(cf.path, conf.dst)
-			e <- downloadFileIfNotExists(conf.src, dst)
+			e <- helper.DownloadFileIfNotExists(conf.src, dst)
 		}(conf, &wg, errors)
 	}
 
@@ -108,47 +108,4 @@ func GetBaseConfigPath() (string, error) {
 			"https://github.com/nikoksr/proji to request the support of your OS.\n", runtime.GOOS)
 	}
 	return configPath, nil
-}
-
-// createFolderIfNotExists creates a folder at the given path if it doesn't already exist.
-func createFolderIfNotExists(path string) error {
-	_, err := os.Stat(path)
-	if !os.IsNotExist(err) {
-		return err
-	}
-	return os.MkdirAll(path, os.ModePerm)
-}
-
-// downloadFile downloads a file from an url to the local fs.
-func downloadFile(src, dst string) error {
-	// Get the data
-	resp, err := http.Get(src)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("error: %s", resp.Status)
-	}
-
-	defer resp.Body.Close()
-
-	// Create the file
-	out, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
-	return err
-}
-
-// downloadFileIfNotExists runs downloadFile() if the destination file doesn't already exist.
-func downloadFileIfNotExists(src, dst string) error {
-	_, err := os.Stat(dst)
-	if os.IsNotExist(err) {
-		err = downloadFile(src, dst)
-	}
-	return err
 }
