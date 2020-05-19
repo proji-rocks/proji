@@ -2,12 +2,12 @@ package helper
 
 import (
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/hashicorp/go-getter"
 )
 
 // DoesPathExist checks if a given path exists in the filesystem.
@@ -75,27 +75,7 @@ func CreateFolderIfNotExists(path string) error {
 
 // DownloadFile downloads a file from an url to the local fs.
 func DownloadFile(src, dst string) error {
-	// Get the data
-	resp, err := http.Get(src)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("error: %s", resp.Status)
-	}
-
-	defer resp.Body.Close()
-
-	// Create the file
-	out, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
-	return err
+	return getter.GetFile(dst, src)
 }
 
 // DownloadFileIfNotExists runs downloadFile() if the destination file doesn't already exist.
