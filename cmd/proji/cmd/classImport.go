@@ -15,7 +15,7 @@ var classImportCmd = &cobra.Command{
 	Use:   "import FILE [FILE...]",
 	Short: "Import one or more classes",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if len(configs) < 1 && len(directories) < 1 && len(remoteRepos) < 1 {
+		if len(configs) < 1 && len(directories) < 1 && len(remoteRepos) < 1 && len(packages) < 1 && len(collections) < 1 {
 			return fmt.Errorf("no flag given")
 		}
 		excludes = append(excludes, projiEnv.Excludes...)
@@ -81,7 +81,7 @@ func importClass(location, importType string, excludes []string) (string, error)
 
 	switch importType {
 	case "config":
-		err = class.ImportFromConfig(location)
+		err = class.ImportConfig(location)
 		if err != nil {
 			return "", err
 		}
@@ -90,24 +90,37 @@ func importClass(location, importType string, excludes []string) (string, error)
 			msg = fmt.Sprintf("> Successfully imported class '%s' from '%s'", class.Name, location)
 		}
 	case "dir":
-		err = class.ImportFromDirectory(location, excludes)
+		err = class.ImportFolderStructure(location, excludes)
 		if err != nil {
 			return "", err
 		}
 	case "repo":
-		err = class.ImportFromRepo(location)
+		err = class.ImportRepoStructure(location)
 		if err != nil {
 			return "", err
 		}
 	case "package":
-		err = class.ImportFromPackage(location)
+		err = class.ImportPackage(location)
 		if err != nil {
 			return "", err
 		}
+		err = projiEnv.Svc.SaveClass(class)
+		if err == nil {
+			msg = fmt.Sprintf("> Successfully imported class '%s' from '%s'", class.Name, location)
+		}
 	case "collection":
-		err = class.ImportFromCollection(location)
+		classList := make([]*item.Class, 0)
+		classList, err = item.ImportClassesFromCollection(location)
 		if err != nil {
 			return "", err
+		}
+		for _, class := range classList {
+			err = projiEnv.Svc.SaveClass(class)
+			if err == nil {
+				msg += fmt.Sprintf("> Successfully imported class '%s' from '%s'\n", class.Name, location)
+			} else {
+				msg += fmt.Sprintf("> Importing class '%s' from '%s' failed: %v\n", class.Name, location, err)
+			}
 		}
 	default:
 		err = fmt.Errorf("path type %s is not supported", importType)
@@ -115,7 +128,7 @@ func importClass(location, importType string, excludes []string) (string, error)
 
 	// Classes that are generated from directories or repos (structure, package and collection) should be exported to a config file first
 	// so that the user can fine tune them
-	if importType != "config" {
+	if importType != "config" && importType != "package" && importType != "collection" {
 		confName, err = class.Export(".")
 		if err == nil {
 			msg = fmt.Sprintf("> '%s' was successfully exported to '%s'", location, confName)
