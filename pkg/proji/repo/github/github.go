@@ -3,15 +3,16 @@ package github
 import (
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 	"regexp"
 
 	"github.com/nikoksr/proji/pkg/proji/repo"
-
 	"github.com/tidwall/gjson"
 )
 
 // github struct holds important data about a github repo
 type github struct {
+	baseURI    string
 	apiBaseURI string
 	userName   string
 	repoName   string
@@ -52,8 +53,9 @@ func New(repoURLPath string) (repo.Importer, error) {
 		return nil, fmt.Errorf("could not parse url path")
 	}
 
-	userName := specs[1]
-	repoName := specs[2]
+	baseURI := specs[1]
+	userName := specs[2]
+	repoName := specs[3]
 	branchName := specs[4]
 
 	if userName == "" || repoName == "" {
@@ -67,6 +69,22 @@ func New(repoURLPath string) (repo.Importer, error) {
 
 	g := &github{apiBaseURI: "https://api.github.com/repos/", userName: userName, repoName: repoName, branchName: branchName, repoSHA: ""}
 	return g, g.setRepoSHA()
+}
+
+// GetBaseURI returns the base URI of the repo
+func (g *github) GetBaseURI() string { return g.baseURI }
+
+// GetBaseURI returns the base URI of the repo
+// You can pass the relative path to a file of that repo to receive the complete raw url for said file.
+// Or you pass an empty string resulting in the base of the raw url for files of this repo.
+func (g *github) GetRawURI(filePath string) string {
+	return "https://raw.githubusercontent.com/" +
+		filepath.Join(
+			g.userName,
+			g.repoName,
+			g.branchName,
+			filePath,
+		)
 }
 
 // GetUserName returns the name of the repo owner
