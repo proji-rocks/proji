@@ -45,8 +45,8 @@ func New(repoURLPath string) (repo.Importer, error) {
 	// Examples:
 	//  - https://github.com/[nikoksr]/[proji]                -> extracts user and repo name; no branch name
 	//  - https://github.com/[nikoksr]/[proji]/tree/[master]  -> extracts user, repo and branch name
-	r := regexp.MustCompile(`github.com/(?P<User>[^/]+)/(?P<Repo>[^/]+)(/tree/(?P<Branch>[^/]+))?`)
-	specs := r.FindStringSubmatch(repoURLPath)
+	r := regexp.MustCompile(`((?:(?:http|https)://)?github.com/([^/]+)/([^/]+))(?:/tree/([^/]+))?`)
+	specs := r.FindStringSubmatch(URL)
 
 	if specs == nil || len(specs) < 5 {
 		return nil, fmt.Errorf("could not parse url path")
