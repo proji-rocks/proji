@@ -19,6 +19,26 @@ type github struct {
 	repoSHA    string
 }
 
+// setRepoSHA sets the repoSHA attribute equal to the SHA-1 of the last commit in the current branch
+func (g *github) setRepoSHA() error {
+	// Send request for SHA-1 of branch
+	shaReq := g.apiBaseURI + g.userName + "/" + g.repoName + "/branches/" + g.branchName
+	response, err := repo.GetRequest(shaReq)
+	if err != nil {
+		return err
+	}
+
+	// Parse body and try to extract SHA
+	body, _ := ioutil.ReadAll(response.Body)
+	repoSHA := gjson.Get(string(body), "commit.sha")
+	defer response.Body.Close()
+	if !repoSHA.Exists() {
+		return fmt.Errorf("could not get commit sha-1 from body")
+	}
+	g.repoSHA = repoSHA.String()
+	return nil
+}
+
 // New creates a new github repo object
 func New(repoURLPath string) (repo.Importer, error) {
 	// Parse URL
@@ -58,25 +78,6 @@ func (g *github) GetRepoName() string { return g.repoName }
 // GetBranchName returns the branch name
 func (g *github) GetBranchName() string { return g.branchName }
 
-// setRepoSHA sets the repoSHA attribute equal to the SHA-1 of the last commit in the current branch
-func (g *github) setRepoSHA() error {
-	// Send request for SHA-1 of branch
-	shaReq := g.apiBaseURI + g.userName + "/" + g.repoName + "/branches/" + g.branchName
-	response, err := repo.GetRequest(shaReq)
-	if err != nil {
-		return err
-	}
-
-	// Parse body and try to extract SHA
-	body, _ := ioutil.ReadAll(response.Body)
-	repoSHA := gjson.Get(string(body), "commit.sha")
-	defer response.Body.Close()
-	if !repoSHA.Exists() {
-		return fmt.Errorf("could not get commit sha-1 from body")
-	}
-	g.repoSHA = repoSHA.String()
-	return nil
-}
 
 // GetTreePathsAndTypes gets the paths and types of the repo tree
 func (g *github) GetTreePathsAndTypes() ([]gjson.Result, []gjson.Result, error) {
