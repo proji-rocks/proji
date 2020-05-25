@@ -12,6 +12,7 @@
 ![Platforms](https://img.shields.io/badge/platforms-Windows%2C%20macOS%20and%20Linux-blue)
 [![AUR version](https://img.shields.io/aur/version/proji)](https://aur.archlinux.org/packages/proji/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fnikoksr%2Fproji.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fnikoksr%2Fproji?ref=badge_shield)
 
 <p align="center">
   <a href="#demo">Demo</a>
@@ -288,3 +289,6 @@ Contributions to the project are highly appreciated. Take a look at the [code of
 ## License <a id="license"></a>
 
 Proji is released under the MIT license. See [LICENSE](LICENSE)
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fnikoksr%2Fproji.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fnikoksr%2Fproji?ref=badge_large)
