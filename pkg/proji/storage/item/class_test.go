@@ -2,6 +2,7 @@ package item
 
 import (
 	"errors"
+	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
@@ -81,7 +82,7 @@ func TestClassImportFromConfig(t *testing.T) {
 
 	for _, test := range tests {
 		c := NewClass("", "", false)
-		err := c.ImportFromConfig(test.configName)
+		err := c.ImportConfig(test.configName)
 		assert.IsType(t, test.err, err)
 		assert.Equal(t, test.class, c)
 	}
@@ -143,10 +144,10 @@ func TestClassImportFromDirectory(t *testing.T) {
 		}
 
 		c := NewClass("", "", false)
-		assert.NoError(t, c.ImportFromDirectory(test.basePath, make([]string, 0)))
+		assert.NoError(t, c.ImportFolderStructure(test.basePath, make([]string, 0)))
 		conf, err := c.Export(tmpDir)
 		assert.NoError(t, err)
-		assert.NoError(t, c.ImportFromConfig(conf))
+		assert.NoError(t, c.ImportConfig(conf))
 		assert.Equal(t, test.class, c)
 
 		// Clean up
@@ -159,12 +160,12 @@ func TestClassImportFromURL(t *testing.T) {
 	helper.SkipNetworkBasedTests(t)
 
 	tests := []struct {
-		URL   string
+		URL   *url.URL
 		class *Class
 		err   error
 	}{
 		{
-			URL: "https://github.com/nikoksr/proji-test",
+			URL: &url.URL{Scheme: "https", Host: "github.com", Path: "/nikoksr/proji-test"},
 			class: &Class{
 				Name:      "proji-test",
 				Label:     "pt",
@@ -191,7 +192,7 @@ func TestClassImportFromURL(t *testing.T) {
 			err: nil,
 		},
 		{
-			URL: "https://github.com/nikoksr/proji-test/tree/develop",
+			URL: &url.URL{Scheme: "https", Host: "github.com", Path: "/nikoksr/proji-test/tree/develop"},
 			class: &Class{
 				Name:      "proji-test",
 				Label:     "pt",
@@ -219,7 +220,7 @@ func TestClassImportFromURL(t *testing.T) {
 			err: nil,
 		},
 		{
-			URL: "https://gitlab.com/nikoksr/proji-test",
+			URL: &url.URL{Scheme: "https", Host: "gitlab.com", Path: "/nikoksr/proji-test"},
 			class: &Class{
 				Name:      "proji-test",
 				Label:     "pt",
@@ -249,7 +250,11 @@ func TestClassImportFromURL(t *testing.T) {
 
 	for _, test := range tests {
 		c := NewClass("", "", false)
-		assert.NoError(t, c.ImportFromURL(test.URL))
+		importer, err := GetRepoImporterFromURL(test.URL)
+		if err != nil {
+			t.Errorf("failed getting repo importer for URL %s", test.URL.String())
+		}
+		assert.NoError(t, c.ImportRepoStructure(test.URL, importer, nil))
 		assert.Equal(t, test.class, c)
 	}
 }
