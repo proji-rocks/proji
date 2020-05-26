@@ -257,7 +257,8 @@ func pickLabel(className string) string {
 	maxLabelLen := 4
 
 	// Try to create label by separators
-	seps := []string{"-", "_", ".", " "}
+	// '%20' is for escaped paths.
+	seps := []string{"-", "_", ".", " ", "%20"}
 	parts := make([]string, 0)
 
 	for _, d := range seps {
