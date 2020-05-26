@@ -87,7 +87,7 @@ func TestIsInSlice(t *testing.T) {
 }
 
 func Test_createFolderIfNotExists(t *testing.T) {
-	tmpDir := filepath.Join(os.TempDir(), "/proji/")
+	tmpDir := filepath.Join(os.TempDir(), "proji-testing")
 
 	type args struct {
 		path string
@@ -132,9 +132,8 @@ func Test_createFolderIfNotExists(t *testing.T) {
 }
 
 func Test_downloadFile(t *testing.T) {
-	tmpDir := filepath.Join(os.TempDir(), "/proji/")
-	err := CreateFolderIfNotExists(tmpDir)
-	assert.NoError(t, err)
+	tmpDir := filepath.Join(os.TempDir(), "proji-testing")
+	_ = os.RemoveAll(tmpDir)
 
 	type args struct {
 		src string
@@ -149,7 +148,7 @@ func Test_downloadFile(t *testing.T) {
 			name: "Download existing file - v1",
 			args: args{
 				src: "https://raw.githubusercontent.com/nikoksr/proji-test/master/CMakeLists.txt",
-				dst: filepath.Join(tmpDir, "/CMakeLists.txt"),
+				dst: filepath.Join(tmpDir, "CMakeLists.txt"),
 			},
 			wantErr: false,
 		},
@@ -157,7 +156,7 @@ func Test_downloadFile(t *testing.T) {
 			name: "Download existing file - v2",
 			args: args{
 				src: "https://raw.githubusercontent.com/nikoksr/proji-test/master/.vscode/tasks.json",
-				dst: filepath.Join(tmpDir, "/tasks.json"),
+				dst: filepath.Join(tmpDir, "tasks.json"),
 			},
 			wantErr: false,
 		},
@@ -165,7 +164,7 @@ func Test_downloadFile(t *testing.T) {
 			name: "Download from private repo",
 			args: args{
 				src: "https://raw.githubusercontent.com/nikoksr/proji-private/master/top-secret.txt",
-				dst: filepath.Join(tmpDir, "/top-secret.txt"),
+				dst: filepath.Join(tmpDir, "top-secret.txt"),
 			},
 			wantErr: true,
 		},
@@ -200,7 +199,7 @@ func Test_downloadFile(t *testing.T) {
 }
 
 func Test_downloadFileIfNotExists(t *testing.T) {
-	tmpDir := filepath.Join(os.TempDir(), "/proji/")
+	tmpDir := filepath.Join(os.TempDir(), "proji-testing")
 	err := CreateFolderIfNotExists(tmpDir)
 	assert.NoError(t, err)
 
