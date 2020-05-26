@@ -10,6 +10,8 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/nikoksr/proji/pkg/config"
+
 	"github.com/tidwall/gjson"
 
 	"github.com/nikoksr/proji/pkg/helper"
@@ -150,54 +152,130 @@ func (c *Class) ImportRepoStructure(URL *url.URL, importer repo.Importer, filter
 	return nil
 }
 
-// getRepoTree gets the tree of the given repository and applies it to the class
-func (c *Class) getRepoTree(url *url.URL) error {
-	var r repo.Importer
-	var err error
-	escapedURL := url.Hostname() + url.EscapedPath()
-
-	// Handle different platforms
-	switch url.Hostname() {
-	case "github.com":
-		r, err = github.New(escapedURL)
-	case "gitlab.com":
-		r, err = gitlab.New(escapedURL)
-	default:
-		return fmt.Errorf("platform not supported yet")
-	}
-
+// ImportPackage imports a package from a given URL. The URL should point directly to a class config in a remote repo
+// of one of the following code platforms: github, gitlab. Proji will import the class config and download its
+// dependencies if necessary.
+func (c *Class) ImportPackage(URL *url.URL, importer repo.Importer) error {
+	// Download config
+	f := filepath.Join(os.TempDir(), "/proji/configs/", filepath.Base(URL.Path))
+	dwn := importer.FilePathToRawURI(filepath.Join("configs/", filepath.Base(URL.Path)))
+	err := helper.DownloadFileIfNotExists(dwn, f)
 	if err != nil {
 		return err
 	}
 
-	// Get paths and types
-	paths, types, err := r.GetTreePathsAndTypes()
+	// Import config
+	err = c.ImportConfig(f)
 	if err != nil {
 		return err
 	}
-	c.Folders, c.Files = convertPathsTypesToFoldersFiles(paths, types)
 
-	// Set class name and label
-	c.Name = r.GetRepoName()
-	c.Label = pickLabel(c.Name)
+	// Download scripts and templates
+	// Create list of necessary scripts and templates
+	filesNeeded := make(map[string][]string, 0)
+
+	// All templates
+	var rex *regexp.Regexp
+	var paths, types []gjson.Result
+	templatesKey := "templates"
+	scriptsKey := "scripts"
+
+	for _, folder := range c.Folders {
+		if folder.Template == "" {
+			continue
+		}
+
+		// Create regex and request only once and only when necessary
+		if rex == nil {
+			rex = regexp.MustCompile("templates/")
+			paths, types, err = importer.GetTree([]*regexp.Regexp{rex})
+			if err != nil {
+				return err
+			}
+		}
+
+		if paths == nil {
+			return fmt.Errorf("no templates were found in repo but class %s requires templates", c.Name)
+		}
+
+		// Filter for templates folder
+		rex = regexp.MustCompile(filepath.Join(URL.Path, "templates/"))
+
+		for i, t := range types {
+			// Check if file
+			if t.String() == "blob" {
+				// Trim the path
+				file := paths[i].String()[len("templates/"):]
+				// Add file to list only if its in the current template folder
+				if strings.HasPrefix(file, folder.Template) {
+					filesNeeded[templatesKey] = append(filesNeeded[templatesKey],
+						file)
+				}
+			}
+		}
+	}
+	for _, file := range c.Files {
+		filesNeeded[templatesKey] = append(filesNeeded[templatesKey], file.Template)
+	}
+	for _, script := range c.Scripts {
+		filesNeeded[scriptsKey] = append(filesNeeded[scriptsKey], script.Name)
+	}
+
+	// Try and get default home dir
+	var downloadDestination string
+	downloadDestination, err = config.GetBaseConfigPath()
+	if err != nil {
+		return err
+	}
+
+	// Download scripts and templates
+	for fileType, fileList := range filesNeeded {
+		for _, file := range fileList {
+			src := importer.FilePathToRawURI(filepath.Join(fileType, file))
+			dst := filepath.Join(downloadDestination, fileType, file)
+			err = helper.DownloadFileIfNotExists(src, dst)
+			if err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 
-// convertPathsTypesToFoldersFiles converts the git types blob and tree to proji types folder and file
-func convertPathsTypesToFoldersFiles(paths, types []gjson.Result) ([]*Folder, []*File) {
-	// Splitting in folders and files
-	folders := make([]*Folder, 0)
-	files := make([]*File, 0)
-	for idx, p := range paths {
-		dest := p.String()
-
-		if types[idx].String() == "tree" {
-			folders = append(folders, &Folder{Destination: dest})
-		} else {
-			files = append(files, &File{Destination: dest})
-		}
+// ImportClassesFromCollection imports all classes from a given URL. A collection is a repo with multiple classes. It must include
+// a folder called configs, which holds the class configs. If the classes have scripts or templates as dependencies,
+// they should be put into the folders scripts/ and templates/ respectively.
+func ImportClassesFromCollection(URL *url.URL, importer repo.Importer) ([]*Class, error) {
+	// Get list of class configs and loop through them
+	re := regexp.MustCompile(`configs/.*`)
+	c := NewClass("", "", false)
+	err := c.ImportRepoStructure(URL, importer, []*regexp.Regexp{re})
+	if err != nil {
+		return nil, err
 	}
-	return folders, files
+
+	// Check if class is empty -> no configs found
+	if c.isEmpty() {
+		return nil, fmt.Errorf("no configs were found")
+	}
+
+	// Import one package at a time
+	classList := make([]*Class, 0)
+
+	for _, file := range c.Files {
+		class := NewClass("", "", false)
+		packageURL, err := repo.ParseURL(URL.String() + "/" + file.Destination)
+		if err != nil {
+			return nil, err
+		}
+		err = class.ImportPackage(packageURL, importer)
+		if err != nil {
+			return nil, err
+		}
+		classList = append(classList, class)
+	}
+
+	return classList, nil
 }
 
 // Export exports a given class to a toml config file
