@@ -135,21 +135,18 @@ func (c *Class) ImportRepoStructure(URL *url.URL, importer repo.Importer, filter
 		return err
 	}
 
-	// Set class name from base name
-	// E.g. https://github.com/nikoksr/proji -> proji is the base name
-	c.Name = path.Base(u.Path)
-	c.Label = pickLabel(c.Name)
-
-	// Get repo tree (folder and file structure of remote repo)
-	err = c.getRepoTree(u)
-	if err != nil {
-		return err
-	}
+	// Convert repo paths and types to proji folders and files
+	c.Folders, c.Files = convertPathsNTypesToFoldersNFiles(paths, types)
 
 	// Check if any data was loaded
 	if c.isEmpty() {
 		return fmt.Errorf("no relevant data was found. Platform might be unsupported")
 	}
+
+	// Set class name from base name
+	// E.g. https://github.com/nikoksr/proji -> proji is the base name
+	c.Name = path.Base(importer.Repo())
+	c.Label = pickLabel(c.Name)
 	return nil
 }
 
@@ -222,6 +219,23 @@ func (c *Class) Export(destination string) (string, error) {
 	}
 	defer conf.Close()
 	return confName, toml.NewEncoder(conf).Encode(configTxt)
+}
+
+// convertPathsNTypesToFoldersNFiles converts the git types blob and tree to proji types folder and file
+func convertPathsNTypesToFoldersNFiles(paths, types []gjson.Result) ([]*Folder, []*File) {
+	// Splitting in folders and files
+	folders := make([]*Folder, 0)
+	files := make([]*File, 0)
+	for idx, p := range paths {
+		dest := p.String()
+
+		if types[idx].String() == "tree" {
+			folders = append(folders, &Folder{Destination: dest})
+		} else {
+			files = append(files, &File{Destination: dest})
+		}
+	}
+	return folders, files
 }
 
 // isEmpty checks if the class holds no data
