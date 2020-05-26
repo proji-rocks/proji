@@ -1,6 +1,7 @@
 package gitlab
 
 import (
+	"net/url"
 	"testing"
 
 	"github.com/nikoksr/proji/pkg/helper"
@@ -11,21 +12,23 @@ import (
 
 const glAPIBase = "https://gitlab.com/api/v4/projects/"
 
-var goodURLs = []string{
-	"gitlab.com/nikoksr/proji-test",
-	"gitlab.com/nikoksr/proji-test/-/tree/develop",
+var goodURLs = []*url.URL{
+	{Scheme: "https", Host: "gitlab.com", Path: "/nikoksr/proji-test"},
+	{Scheme: "https", Host: "gitlab.com", Path: "/nikoksr/proji-test/-/tree/develop"},
 }
 
 var goodRepoObjects = []repo.Importer{
 	&gitlab{
-		apiBaseURI: glAPIBase,
-		userName:   "nikoksr",
+		baseURI:    goodURLs[0],
+		apiBaseURL: glAPIBase,
+		ownerName:  "nikoksr",
 		repoName:   "proji-test",
 		branchName: "master",
 	},
 	&gitlab{
-		apiBaseURI: glAPIBase,
-		userName:   "nikoksr",
+		baseURI:    goodURLs[1],
+		apiBaseURL: glAPIBase,
+		ownerName:  "nikoksr",
 		repoName:   "proji-test",
 		branchName: "develop",
 	},
@@ -44,16 +47,18 @@ func TestNew(t *testing.T) {
 	}
 
 	// These should fail
-	var badURLs = []string{
-		"gitlab.com/nikoksr/does-not-exist",
-		"https://github.com/nikoksr/does-not-exist",
-		"https://google.com",
+	var badURLs = []*url.URL{
+		{Scheme: "https", Host: "gitlab.com", Path: "/nikoksr/does-not-exist"},
+		{Scheme: "https", Host: "gitlab.com", Path: "/nikoksr/proji-test/-/tree/dead-branch"},
+		{Scheme: "https", Host: "gitlab.com", Path: ""},
+		{Scheme: "https", Host: "github.com", Path: "/nikoksr/blaa"},
+		{Scheme: "https", Host: "google.com", Path: ""},
 	}
 
 	for _, URL := range badURLs {
 		glRepo, err := New(URL)
 		if err == nil {
-			_, _, err = glRepo.GetTreePathsAndTypes()
+			_, _, err = glRepo.GetTree(nil)
 		}
 		assert.Error(t, err)
 	}
@@ -134,7 +139,7 @@ func TestGetTreePathsAndTypes(t *testing.T) {
 
 	// These should work
 	for i, ghRepo := range goodRepoObjects {
-		paths, types, err := ghRepo.GetTreePathsAndTypes()
+		paths, types, err := ghRepo.GetTree(nil)
 		assert.NoError(t, err)
 		assert.NotNil(t, paths)
 		assert.NotNil(t, types)
@@ -145,21 +150,21 @@ func TestGetTreePathsAndTypes(t *testing.T) {
 	// These should fail
 	var badRepoObjects = []repo.Importer{
 		&gitlab{
-			apiBaseURI: "",
-			userName:   "",
+			apiBaseURL: "",
+			ownerName:  "",
 			repoName:   "",
 			branchName: "",
 		},
 		&gitlab{
-			apiBaseURI: glAPIBase,
-			userName:   "nikoksr",
+			apiBaseURL: glAPIBase,
+			ownerName:  "nikoksr",
 			repoName:   "proji-test",
 			branchName: "does_not_exist",
 		},
 	}
 
 	for _, ghRepo := range badRepoObjects {
-		paths, types, err := ghRepo.GetTreePathsAndTypes()
+		paths, types, err := ghRepo.GetTree(nil)
 		assert.Error(t, err)
 		assert.Nil(t, paths)
 		assert.Nil(t, types)
@@ -175,8 +180,8 @@ func TestGetBranchName(t *testing.T) {
 		{
 			name: "",
 			g: &gitlab{
-				apiBaseURI: glAPIBase,
-				userName:   "nikoksr",
+				apiBaseURL: glAPIBase,
+				ownerName:  "nikoksr",
 				repoName:   "proji-test",
 				branchName: "master",
 			},
@@ -185,8 +190,8 @@ func TestGetBranchName(t *testing.T) {
 		{
 			name: "",
 			g: &gitlab{
-				apiBaseURI: glAPIBase,
-				userName:   "nikoksr",
+				apiBaseURL: glAPIBase,
+				ownerName:  "nikoksr",
 				repoName:   "proji-test",
 				branchName: "develop",
 			},
@@ -194,8 +199,7 @@ func TestGetBranchName(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		branch := test.g.GetBranchName()
-		assert.Equal(t, test.want, branch, "%s\n", test.name)
+		assert.Equal(t, test.want, test.g.branchName, "%s\n", test.name)
 	}
 }
 
@@ -208,8 +212,8 @@ func TestGetRepoName(t *testing.T) {
 		{
 			name: "",
 			g: &gitlab{
-				apiBaseURI: glAPIBase,
-				userName:   "nikoksr",
+				apiBaseURL: glAPIBase,
+				ownerName:  "nikoksr",
 				repoName:   "proji-test",
 				branchName: "master",
 			},
@@ -218,8 +222,8 @@ func TestGetRepoName(t *testing.T) {
 		{
 			name: "",
 			g: &gitlab{
-				apiBaseURI: glAPIBase,
-				userName:   "inkscape",
+				apiBaseURL: glAPIBase,
+				ownerName:  "inkscape",
 				repoName:   "inkscape",
 				branchName: "develop",
 			},
@@ -227,12 +231,11 @@ func TestGetRepoName(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		repo := test.g.GetRepoName()
-		assert.Equal(t, test.want, repo, "%s\n", test.name)
+		assert.Equal(t, test.want, test.g.repoName, "%s\n", test.name)
 	}
 }
 
-func TestGetUserName(t *testing.T) {
+func TestGetownerName(t *testing.T) {
 	tests := []struct {
 		name string
 		g    *gitlab
@@ -241,8 +244,8 @@ func TestGetUserName(t *testing.T) {
 		{
 			name: "",
 			g: &gitlab{
-				apiBaseURI: glAPIBase,
-				userName:   "nikoksr",
+				apiBaseURL: glAPIBase,
+				ownerName:  "nikoksr",
 				repoName:   "proji-test",
 				branchName: "master",
 			},
@@ -251,8 +254,8 @@ func TestGetUserName(t *testing.T) {
 		{
 			name: "",
 			g: &gitlab{
-				apiBaseURI: glAPIBase,
-				userName:   "inkscape",
+				apiBaseURL: glAPIBase,
+				ownerName:  "inkscape",
 				repoName:   "inkscape",
 				branchName: "master",
 			},
@@ -260,7 +263,6 @@ func TestGetUserName(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		user := test.g.GetUserName()
-		assert.Equal(t, test.want, user, "%s\n", test.name)
+		assert.Equal(t, test.want, test.g.ownerName, "%s\n", test.name)
 	}
 }
