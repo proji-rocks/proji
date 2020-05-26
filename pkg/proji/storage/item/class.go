@@ -300,3 +300,19 @@ func pickLabel(className string) string {
 	label = string(className[0]) + string(className[nameLen/2]) + string(className[nameLen-1])
 	return strings.ToLower(label)
 }
+
+// GetRepoImporterFromURL returns the most suiting importer based on the code hosting platform.
+func GetRepoImporterFromURL(URL *url.URL) (repo.Importer, error) {
+	var importer repo.Importer
+	var err error
+
+	switch URL.Hostname() {
+	case "github.com":
+		importer, err = github.New(URL)
+	case "gitlab.com":
+		importer, err = gitlab.New(URL)
+	default:
+		return nil, fmt.Errorf("platform not supported yet")
+	}
+	return importer, err
+}
