@@ -44,15 +44,15 @@ func NewClass(name, label string, isDefault bool) *Class {
 	}
 }
 
-// ImportFromConfig imports class data from a given config file.
-func (c *Class) ImportFromConfig(configName string) error {
+// ImportConfig imports class data from a given config file.
+func (c *Class) ImportConfig(path string) error {
 	// Validate that it's a toml file
-	if !strings.HasSuffix(configName, ".toml") {
+	if !strings.HasSuffix(path, ".toml") {
 		return fmt.Errorf("import file has to be of type 'toml'")
 	}
 
 	// Validate config is not empty
-	conf, err := os.Stat(configName)
+	conf, err := os.Stat(path)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func (c *Class) ImportFromConfig(configName string) error {
 	}
 
 	// Decode the file
-	_, err = toml.DecodeFile(configName, &c)
+	_, err = toml.DecodeFile(path, &c)
 	if err != nil {
 		return err
 	}
@@ -79,26 +79,26 @@ func (c *Class) ImportFromConfig(configName string) error {
 	return nil
 }
 
-// ImportFromDirectory imports a class from a given directory. Proji will copy the
+// ImportFolderStructure imports a class from a given directory. Proji will imitate the
 // structure and content of the directory and create a class based on it.
-func (c *Class) ImportFromDirectory(directory string, excludeDirs []string) error {
+func (c *Class) ImportFolderStructure(path string, excludeDirs []string) error {
 	// Validate that the directory exists
-	if !helper.DoesPathExist(directory) {
+	if !helper.DoesPathExist(path) {
 		return fmt.Errorf("given directory does not exist")
 	}
 
 	// Set class name from directory base name
-	base := path.Base(directory)
+	base := filepath.Base(path)
 	c.Name = base
 	c.Label = pickLabel(c.Name)
 
-	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(path, func(currentPath string, info os.FileInfo, err error) error {
 		// Skip base directory
-		if directory == path {
+		if path == currentPath {
 			return nil
 		}
 		// Extract relative path
-		relPath, err := filepath.Rel(directory, path)
+		relPath, err := filepath.Rel(path, currentPath)
 		if err != nil {
 			return err
 		}
@@ -125,17 +125,12 @@ func (c *Class) ImportFromDirectory(directory string, excludeDirs []string) erro
 	return nil
 }
 
-// ImportFromURL imports a class from a given URL. The URL should point to a remote repo of one of the following code
-// platforms: github, gitlab. Proji will copy the structure and content of the repo and create a class
+// ImportRepoStructure imports a class from a given URL. The URL should point to a remote repo of one of the following code
+// platforms: github, gitlab. Proji will imitate the structure and content of the repo and create a class
 // based on it.
-func (c *Class) ImportFromURL(URL string) error {
-	// Trim trailing '.git'
-	if strings.HasSuffix(URL, ".git") {
-		URL = URL[:len(URL)-len(".git")]
-	}
-
-	// Validate the URL
-	u, err := url.Parse(URL)
+func (c *Class) ImportRepoStructure(URL *url.URL, importer repo.Importer, filters []*regexp.Regexp) error {
+	// Import the complete repo tree. No filters needed.
+	paths, types, err := importer.GetTree(filters)
 	if err != nil {
 		return err
 	}
