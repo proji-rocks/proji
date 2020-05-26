@@ -54,7 +54,7 @@ func New(URL *url.URL) (repo.Importer, error) {
 	r := regexp.MustCompile(`/([^/]+)/([^/]+)(?:/tree/([^/]+))?`)
 	specs := r.FindStringSubmatch(URL.Path)
 
-	if specs == nil || len(specs) < 5 {
+	if specs == nil {
 		return nil, fmt.Errorf("could not parse url")
 	}
 
@@ -83,12 +83,9 @@ func New(URL *url.URL) (repo.Importer, error) {
 }
 
 // GetBaseURI returns the base URI of the repo
-func (g *github) GetBaseURI() string { return g.baseURI }
-
-// GetBaseURI returns the base URI of the repo
 // You can pass the relative path to a file of that repo to receive the complete raw url for said file.
 // Or you pass an empty string resulting in the base of the raw url for files of this repo.
-func (g *github) GetRawURI(filePath string) string {
+func (g *github) FilePathToRawURI(filePath string) string {
 	return "https://raw.githubusercontent.com/" +
 		filepath.Join(
 			g.ownerName,
@@ -97,15 +94,6 @@ func (g *github) GetRawURI(filePath string) string {
 			filePath,
 		)
 }
-
-// GetUserName returns the name of the repo owner
-func (g *github) GetUserName() string { return g.userName }
-
-// GetRepoName returns the name of the repo
-func (g *github) GetRepoName() string { return g.repoName }
-
-// GetBranchName returns the branch name
-func (g *github) GetBranchName() string { return g.branchName }
 
 // GetTree gets the paths and types of the repo tree
 func (g *github) GetTree(filters []*regexp.Regexp) ([]gjson.Result, []gjson.Result, error) {
@@ -132,3 +120,9 @@ func (g *github) GetTree(filters []*regexp.Regexp) ([]gjson.Result, []gjson.Resu
 	paths, types = repo.FilterPathsNTypes(paths, types, filters)
 	return paths, types, nil
 }
+
+// Owner returns the name of the repo owner
+func (g *github) Owner() string { return g.ownerName }
+
+// Repo returns the name of the repo
+func (g *github) Repo() string { return g.repoName }

@@ -33,7 +33,7 @@ func New(URL *url.URL) (repo.Importer, error) {
 	r := regexp.MustCompile(`/([^/]+)/([^/]+)(?:/-/(?:(?:blob|tree)/([^/]+)))?`)
 	specs := r.FindStringSubmatch(URL.Path)
 
-	if specs == nil || len(specs) < 5 {
+	if specs == nil {
 		return nil, fmt.Errorf("could not parse url path")
 	}
 
@@ -59,17 +59,20 @@ func New(URL *url.URL) (repo.Importer, error) {
 	}, nil
 }
 
-// GetUserName returns the name of the repo owner
-func (g *gitlab) GetUserName() string { return g.userName }
+// GetBaseURI returns the base URI of the repo
+// You can pass the relative path to a file of that repo to receive the complete raw url for said file.
+// Or you pass an empty string resulting in the base of the raw url for files of this repo.
+func (g *gitlab) FilePathToRawURI(filePath string) string {
+	return g.baseURI.String() +
+		filepath.Join(
+			"/-/raw/",
+			g.branchName, "/",
+			filePath,
+		)
+}
 
-// GetRepoName returns the name of the repo
-func (g *gitlab) GetRepoName() string { return g.repoName }
-
-// GetBranchName returns the branch name
-func (g *gitlab) GetBranchName() string { return g.branchName }
-
-// GetTreePathsAndTypes gets the paths and types of the repo tree
-func (g *gitlab) GetTreePathsAndTypes() ([]gjson.Result, []gjson.Result, error) {
+// GetTree gets the paths and types of the repo tree
+func (g *gitlab) GetTree(filters []*regexp.Regexp) ([]gjson.Result, []gjson.Result, error) {
 	nextPage := "1"
 	paths := make([]gjson.Result, 0)
 	types := make([]gjson.Result, 0)
@@ -95,5 +98,13 @@ func (g *gitlab) GetTreePathsAndTypes() ([]gjson.Result, []gjson.Result, error) 
 		// Set next page from response header
 		nextPage = response.Header.Get("X-Next-Page")
 	}
+	// Filter paths
+	paths, types = repo.FilterPathsNTypes(paths, types, filters)
 	return paths, types, nil
 }
+
+// GetOwner returns the name of the repo owner
+func (g *gitlab) Owner() string { return g.ownerName }
+
+// GetRepo returns the name of the repo
+func (g *gitlab) Repo() string { return g.repoName }
