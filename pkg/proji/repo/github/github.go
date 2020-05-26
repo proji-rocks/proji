@@ -46,11 +46,13 @@ func New(URL *url.URL) (repo.Importer, error) {
 	if URL.Hostname() != "github.com" {
 		return nil, fmt.Errorf("invalid host %s", URL.Hostname())
 	}
+
+	// Extract owner, repo and branch if given
 	// Examples:
-	//  - [https://github.com/[nikoksr]/[proji]]                -> extracts base uri, user and repo name; no branch name
-	//  - [https://github.com/[nikoksr]/[proji]]/tree/[master]  -> extracts base uri, user, repo and branch name
-	r := regexp.MustCompile(`((?:(?:http|https)://)?github.com/([^/]+)/([^/]+))(?:/tree/([^/]+))?`)
-	specs := r.FindStringSubmatch(URL)
+	//  - /[nikoksr]/[proji]				-> extracts owner and repo name; no branch name
+	//  - /[nikoksr]/[proji]/tree/[master]	-> extracts owner, repo and branch name
+	r := regexp.MustCompile(`/([^/]+)/([^/]+)(?:/tree/([^/]+))?`)
+	specs := r.FindStringSubmatch(URL.Path)
 
 	if specs == nil || len(specs) < 5 {
 		return nil, fmt.Errorf("could not parse url")
