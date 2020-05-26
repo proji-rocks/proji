@@ -2,6 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"net/url"
+
+	"github.com/nikoksr/proji/pkg/proji/repo"
 
 	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
@@ -70,56 +73,70 @@ func init() {
 	_ = classImportCmd.MarkFlagFilename("exclude")
 }
 
-func importClass(location, importType string, excludes []string) (string, error) {
-	if helper.IsInSlice(excludes, location) {
+func importClass(path, importType string, excludes []string) (string, error) {
+	if helper.IsInSlice(excludes, path) {
 		return "", nil
 	}
 
 	class := item.NewClass("", "", false)
 	var err error
 	var confName, msg string
+	var URL *url.URL
+	var importer repo.Importer
+
+	// In case of a repo, package or collection try to parse the path to a URL structure
+	if importType == "repo" || importType == "package" || importType == "collection" {
+		URL, err = repo.ParseURL(path)
+		if err != nil {
+			return "", err
+		}
+		importer, err = item.GetRepoImporterFromURL(URL)
+		if err != nil {
+			return "", err
+		}
+	}
 
 	switch importType {
 	case "config":
-		err = class.ImportConfig(location)
+		err = class.ImportConfig(path)
 		if err != nil {
 			return "", err
 		}
 		err = projiEnv.Svc.SaveClass(class)
 		if err == nil {
-			msg = fmt.Sprintf("> Successfully imported class '%s' from '%s'", class.Name, location)
+			msg = fmt.Sprintf("> Successfully imported class '%s' from '%s'", class.Name, path)
 		}
 	case "dir":
-		err = class.ImportFolderStructure(location, excludes)
+		err = class.ImportFolderStructure(path, excludes)
 		if err != nil {
 			return "", err
 		}
 	case "repo":
-		err = class.ImportRepoStructure(location)
+		err = class.ImportRepoStructure(URL, importer, nil)
 		if err != nil {
 			return "", err
 		}
 	case "package":
-		err = class.ImportPackage(location)
+		err = class.ImportPackage(URL, importer)
 		if err != nil {
 			return "", err
 		}
 		err = projiEnv.Svc.SaveClass(class)
 		if err == nil {
-			msg = fmt.Sprintf("> Successfully imported class '%s' from '%s'", class.Name, location)
+			msg = fmt.Sprintf("> Successfully imported class '%s' from '%s'", class.Name, path)
 		}
 	case "collection":
 		classList := make([]*item.Class, 0)
-		classList, err = item.ImportClassesFromCollection(location)
+		classList, err = item.ImportClassesFromCollection(URL, importer)
 		if err != nil {
 			return "", err
 		}
 		for _, class := range classList {
 			err = projiEnv.Svc.SaveClass(class)
 			if err == nil {
-				msg += fmt.Sprintf("> Successfully imported class '%s' from '%s'\n", class.Name, location)
+				msg += fmt.Sprintf("> Successfully imported class '%s' from '%s'\n", class.Name, path)
 			} else {
-				msg += fmt.Sprintf("> Importing class '%s' from '%s' failed: %v\n", class.Name, location, err)
+				msg += fmt.Sprintf("> Importing class '%s' from '%s' failed: %v\n", class.Name, path, err)
 			}
 		}
 	default:
@@ -131,7 +148,7 @@ func importClass(location, importType string, excludes []string) (string, error)
 	if importType != "config" && importType != "package" && importType != "collection" {
 		confName, err = class.Export(".")
 		if err == nil {
-			msg = fmt.Sprintf("> '%s' was successfully exported to '%s'", location, confName)
+			msg = fmt.Sprintf("> '%s' was successfully exported to '%s'", path, confName)
 		}
 	}
 	return msg, err
