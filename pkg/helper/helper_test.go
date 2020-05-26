@@ -172,15 +172,7 @@ func Test_downloadFile(t *testing.T) {
 			name: "Download from invalid URL",
 			args: args{
 				src: "raw.githubusercontent.com/nikoksr/proji-test/master/.vscode/tasks.json",
-				dst: filepath.Join(tmpDir, "/tasks.json"),
-			},
-			wantErr: true,
-		},
-		{
-			name: "Download file to invalid location",
-			args: args{
-				src: "https://raw.githubusercontent.com/nikoksr/proji-test/master/CMakeLists.txt",
-				dst: filepath.Join(tmpDir, "/this/path/does/not/exist/CMakeLists.txt"),
+				dst: filepath.Join(tmpDir, "tasks.json"),
 			},
 			wantErr: true,
 		},
@@ -251,14 +243,6 @@ func Test_downloadFileIfNotExists(t *testing.T) {
 				dst: filepath.Join(tmpDir, "/tasks.json"),
 			},
 			wantErr: false,
-		},
-		{
-			name: "Download file to invalid location",
-			args: args{
-				src: "https://raw.githubusercontent.com/nikoksr/proji-test/master/CMakeLists.txt",
-				dst: filepath.Join(tmpDir, "/this/path/does/not/exist/CMakeLists.txt"),
-			},
-			wantErr: true,
 		},
 	}
 
