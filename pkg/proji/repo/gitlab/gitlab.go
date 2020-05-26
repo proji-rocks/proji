@@ -3,6 +3,8 @@ package gitlab
 import (
 	"fmt"
 	"io/ioutil"
+	"net/url"
+	"path/filepath"
 	"regexp"
 
 	"github.com/nikoksr/proji/pkg/proji/repo"
@@ -20,6 +22,10 @@ type gitlab struct {
 
 // New creates a new gitlab repo object
 func New(URL *url.URL) (repo.Importer, error) {
+	if URL.Hostname() != "gitlab.com" {
+		return nil, fmt.Errorf("invalid host %s", URL.Hostname())
+	}
+
 	// Parse URL
 	// Examples:
 	//  - https://gitlab.com/[inkscape]/[inkscape]                  -> extracts user and repo name; no branch name

@@ -3,6 +3,7 @@ package github
 import (
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"path/filepath"
 	"regexp"
 
@@ -41,8 +42,10 @@ func (g *github) setRepoSHA() error {
 }
 
 // New creates a new github repo object
-	// Parse URL
 func New(URL *url.URL) (repo.Importer, error) {
+	if URL.Hostname() != "github.com" {
+		return nil, fmt.Errorf("invalid host %s", URL.Hostname())
+	}
 	// Examples:
 	//  - [https://github.com/[nikoksr]/[proji]]                -> extracts base uri, user and repo name; no branch name
 	//  - [https://github.com/[nikoksr]/[proji]]/tree/[master]  -> extracts base uri, user, repo and branch name
