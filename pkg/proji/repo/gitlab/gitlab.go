@@ -11,14 +11,15 @@ import (
 
 // gitlab struct holds important data about a gitlab repo
 type gitlab struct {
-	apiBaseURI string
-	userName   string
+	baseURI    *url.URL
+	apiBaseURL string
+	ownerName  string
 	repoName   string
 	branchName string
 }
 
 // New creates a new gitlab repo object
-func New(repoURLPath string) (repo.Importer, error) {
+func New(URL *url.URL) (repo.Importer, error) {
 	// Parse URL
 	// Examples:
 	//  - https://gitlab.com/[inkscape]/[inkscape]                  -> extracts user and repo name; no branch name
@@ -30,11 +31,11 @@ func New(repoURLPath string) (repo.Importer, error) {
 		return nil, fmt.Errorf("could not parse url path")
 	}
 
-	userName := specs[1]
+	ownerName := specs[1]
 	repoName := specs[2]
-	branchName := specs[4]
+	branchName := specs[3]
 
-	if userName == "" || repoName == "" {
+	if ownerName == "" || repoName == "" {
 		return nil, fmt.Errorf("could not extract user and/or repository name. Please check the URL")
 	}
 
@@ -43,7 +44,13 @@ func New(repoURLPath string) (repo.Importer, error) {
 		branchName = "master"
 	}
 
-	return &gitlab{apiBaseURI: "https://gitlab.com/api/v4/projects/", userName: userName, repoName: repoName, branchName: branchName}, nil
+	return &gitlab{
+		baseURI:    URL,
+		apiBaseURL: "https://gitlab.com/api/v4/projects/",
+		ownerName:  ownerName,
+		repoName:   repoName,
+		branchName: branchName,
+	}, nil
 }
 
 // GetUserName returns the name of the repo owner
@@ -60,7 +67,7 @@ func (g *gitlab) GetTreePathsAndTypes() ([]gjson.Result, []gjson.Result, error) 
 	nextPage := "1"
 	paths := make([]gjson.Result, 0)
 	types := make([]gjson.Result, 0)
-	treeReq := g.apiBaseURI + g.userName + "%2F" + g.repoName + "/repository/tree/?ref=" + g.branchName + "&recursive=true&per_page=100&page="
+	treeReq := g.apiBaseURL + g.ownerName + "%2F" + g.repoName + "/repository/tree/?ref=" + g.branchName + "&recursive=true&per_page=100&page="
 
 	for nextPage != "" {
 		// Request repo tree

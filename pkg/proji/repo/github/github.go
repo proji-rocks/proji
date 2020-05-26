@@ -12,9 +12,9 @@ import (
 
 // github struct holds important data about a github repo
 type github struct {
-	baseURI    string
-	apiBaseURI string
-	userName   string
+	baseURI    *url.URL
+	apiBaseURL string
+	ownerName  string
 	repoName   string
 	branchName string
 	repoSHA    string
@@ -23,7 +23,7 @@ type github struct {
 // setRepoSHA sets the repoSHA attribute equal to the SHA-1 of the last commit in the current branch
 func (g *github) setRepoSHA() error {
 	// Send request for SHA-1 of branch
-	shaReq := g.apiBaseURI + g.userName + "/" + g.repoName + "/branches/" + g.branchName
+	shaReq := g.apiBaseURL + g.ownerName + "/" + g.repoName + "/branches/" + g.branchName
 	response, err := repo.GetRequest(shaReq)
 	if err != nil {
 		return err
@@ -41,8 +41,8 @@ func (g *github) setRepoSHA() error {
 }
 
 // New creates a new github repo object
-func New(URL string) (repo.Importer, error) {
 	// Parse URL
+func New(URL *url.URL) (repo.Importer, error) {
 	// Examples:
 	//  - [https://github.com/[nikoksr]/[proji]]                -> extracts base uri, user and repo name; no branch name
 	//  - [https://github.com/[nikoksr]/[proji]]/tree/[master]  -> extracts base uri, user, repo and branch name
@@ -53,12 +53,11 @@ func New(URL string) (repo.Importer, error) {
 		return nil, fmt.Errorf("could not parse url")
 	}
 
-	baseURI := specs[1]
-	userName := specs[2]
-	repoName := specs[3]
-	branchName := specs[4]
+	ownerName := specs[1]
+	repoName := specs[2]
+	branchName := specs[3]
 
-	if userName == "" || repoName == "" {
+	if ownerName == "" || repoName == "" {
 		return nil, fmt.Errorf("could not extract user and/or repository name. Please check the URL")
 	}
 
@@ -68,9 +67,9 @@ func New(URL string) (repo.Importer, error) {
 	}
 
 	g := &github{
-		baseURI:    baseURI,
-		apiBaseURI: "https://api.github.com/repos/",
-		userName:   userName,
+		baseURI:    URL,
+		apiBaseURL: "https://api.github.com/repos/",
+		ownerName:  ownerName,
 		repoName:   repoName,
 		branchName: branchName,
 		repoSHA:    "",
@@ -87,7 +86,7 @@ func (g *github) GetBaseURI() string { return g.baseURI }
 func (g *github) GetRawURI(filePath string) string {
 	return "https://raw.githubusercontent.com/" +
 		filepath.Join(
-			g.userName,
+			g.ownerName,
 			g.repoName,
 			g.branchName,
 			filePath,
@@ -106,7 +105,7 @@ func (g *github) GetBranchName() string { return g.branchName }
 // GetTree gets the paths and types of the repo tree
 func (g *github) GetTree(filters []*regexp.Regexp) ([]gjson.Result, []gjson.Result, error) {
 	// Request repo tree
-	treeReq := g.apiBaseURI + g.userName + "/" + g.repoName + "/git/trees/" + g.repoSHA + "?recursive=1"
+	treeReq := g.apiBaseURL + g.ownerName + "/" + g.repoName + "/git/trees/" + g.repoSHA + "?recursive=1"
 	response, err := repo.GetRequest(treeReq)
 	if err != nil {
 		return nil, nil, err
