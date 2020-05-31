@@ -8,7 +8,10 @@ import (
 	"regexp"
 
 	"github.com/nikoksr/proji/pkg/proji/repo"
-	"github.com/tidwall/gjson"
+)
+
+const (
+	rawBaseURL = "https://raw.githubusercontent.com/"
 )
 
 // github struct holds important data about a github repo
@@ -85,8 +88,8 @@ func New(URL *url.URL) (repo.Importer, error) {
 // GetBaseURI returns the base URI of the repo
 // You can pass the relative path to a file of that repo to receive the complete raw url for said file.
 // Or you pass an empty string resulting in the base of the raw url for files of this repo.
-func (g *github) FilePathToRawURI(filePath string) string {
-	return "https://raw.githubusercontent.com/" +
+func (g *GitHub) FilePathToRawURI(filePath string) string {
+	return rawBaseURL +
 		filepath.Join(
 			g.ownerName,
 			g.repoName,
