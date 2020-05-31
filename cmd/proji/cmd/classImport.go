@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/nikoksr/proji/pkg/proji/repo"
-
 	"github.com/nikoksr/proji/pkg/helper"
+	"github.com/nikoksr/proji/pkg/proji/repo"
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
 
 	"github.com/spf13/cobra"
@@ -90,6 +89,7 @@ func importClass(path, importType string, excludes []string) (string, error) {
 		if err != nil {
 			return "", err
 		}
+
 		importer, err = item.GetRepoImporterFromURL(URL)
 		if err != nil {
 			return "", err
@@ -112,7 +112,7 @@ func importClass(path, importType string, excludes []string) (string, error) {
 			return "", err
 		}
 	case "repo":
-		err = class.ImportRepoStructure(URL, importer, nil)
+		err = class.ImportRepoStructure(importer, nil)
 		if err != nil {
 			return "", err
 		}
