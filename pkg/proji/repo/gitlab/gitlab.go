@@ -2,22 +2,23 @@ package gitlab
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"path/filepath"
 	"regexp"
 
 	"github.com/nikoksr/proji/pkg/proji/repo"
-	"github.com/tidwall/gjson"
+	gl "github.com/xanzy/go-gitlab"
 )
 
 // gitlab struct holds important data about a gitlab repo
-type gitlab struct {
-	baseURI    *url.URL
-	apiBaseURL string
-	ownerName  string
-	repoName   string
-	branchName string
+type GitLab struct {
+	baseURI     *url.URL
+	apiBaseURL  string
+	OwnerName   string
+	RepoName    string
+	BranchName  string
+	TreeEntries []*gl.TreeNode
+	client      *gl.Client
 }
 
 // New creates a new gitlab repo object
@@ -37,36 +38,42 @@ func New(URL *url.URL) (repo.Importer, error) {
 		return nil, fmt.Errorf("could not parse url path")
 	}
 
-	ownerName := specs[1]
-	repoName := specs[2]
-	branchName := specs[3]
+	OwnerName := specs[1]
+	RepoName := specs[2]
+	BranchName := specs[3]
 
-	if ownerName == "" || repoName == "" {
+	if OwnerName == "" || RepoName == "" {
 		return nil, fmt.Errorf("could not extract user and/or repository name. Please check the URL")
 	}
 
 	// Default to master if no branch was defined
-	if branchName == "" {
-		branchName = "master"
+	if BranchName == "" {
+		BranchName = "master"
 	}
 
-	return &gitlab{
+	glClient, err := gl.NewClient("")
+	if err != nil {
+		return nil, err
+	}
+
+	return &GitLab{
 		baseURI:    URL,
 		apiBaseURL: "https://gitlab.com/api/v4/projects/",
-		ownerName:  ownerName,
-		repoName:   repoName,
-		branchName: branchName,
+		OwnerName:  OwnerName,
+		RepoName:   RepoName,
+		BranchName: BranchName,
+		client:     glClient,
 	}, nil
 }
 
 // GetBaseURI returns the base URI of the repo
 // You can pass the relative path to a file of that repo to receive the complete raw url for said file.
 // Or you pass an empty string resulting in the base of the raw url for files of this repo.
-func (g *gitlab) FilePathToRawURI(filePath string) string {
+func (g *GitLab) FilePathToRawURI(filePath string) string {
 	return g.baseURI.String() +
 		filepath.Join(
 			"/-/raw/",
-			g.branchName, "/",
+			g.BranchName, "/",
 			filePath,
 		)
 }
@@ -104,7 +111,7 @@ func (g *gitlab) GetTree(filters []*regexp.Regexp) ([]gjson.Result, []gjson.Resu
 }
 
 // GetOwner returns the name of the repo owner
-func (g *gitlab) Owner() string { return g.ownerName }
+func (g *GitLab) Owner() string { return g.OwnerName }
 
 // GetRepo returns the name of the repo
-func (g *gitlab) Repo() string { return g.repoName }
+func (g *GitLab) Repo() string { return g.RepoName }

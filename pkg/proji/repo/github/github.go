@@ -1,12 +1,15 @@
 package github
 
 import (
+	"context"
 	"fmt"
-	"io/ioutil"
+	"net/http"
 	"net/url"
 	"path/filepath"
 	"regexp"
+	"time"
 
+	gh "github.com/google/go-github/v31/github"
 	"github.com/nikoksr/proji/pkg/proji/repo"
 )
 
@@ -15,13 +18,14 @@ const (
 )
 
 // github struct holds important data about a github repo
-type github struct {
-	baseURI    *url.URL
-	apiBaseURL string
-	ownerName  string
-	repoName   string
-	branchName string
-	repoSHA    string
+type GitHub struct {
+	baseURI     *url.URL
+	OwnerName   string
+	RepoName    string
+	BranchName  string
+	TreeEntries []*gh.TreeEntry
+	repoSHA     string
+	client      *gh.Client
 }
 
 // setRepoSHA sets the repoSHA attribute equal to the SHA-1 of the last commit in the current branch
@@ -61,25 +65,19 @@ func New(URL *url.URL) (repo.Importer, error) {
 		return nil, fmt.Errorf("could not parse url")
 	}
 
-	ownerName := specs[1]
-	repoName := specs[2]
-	branchName := specs[3]
+	OwnerName := specs[1]
+	RepoName := specs[2]
+	BranchName := specs[3]
 
-	if ownerName == "" || repoName == "" {
+	if OwnerName == "" || RepoName == "" {
 		return nil, fmt.Errorf("could not extract user and/or repository name. Please check the URL")
 	}
 
-	// Default to master if no branch was defined
-	if branchName == "" {
-		branchName = "master"
-	}
-
-	g := &github{
+	g := &GitHub{
 		baseURI:    URL,
-		apiBaseURL: "https://api.github.com/repos/",
-		ownerName:  ownerName,
-		repoName:   repoName,
-		branchName: branchName,
+		OwnerName:  OwnerName,
+		RepoName:   RepoName,
+		BranchName: BranchName,
 		repoSHA:    "",
 	}
 	return g, g.setRepoSHA()
@@ -91,41 +89,28 @@ func New(URL *url.URL) (repo.Importer, error) {
 func (g *GitHub) FilePathToRawURI(filePath string) string {
 	return rawBaseURL +
 		filepath.Join(
-			g.ownerName,
-			g.repoName,
-			g.branchName,
+			g.OwnerName,
+			g.RepoName,
+			g.BranchName,
 			filePath,
 		)
 }
 
-// GetTree gets the paths and types of the repo tree
-func (g *github) GetTree(filters []*regexp.Regexp) ([]gjson.Result, []gjson.Result, error) {
-	// Request repo tree
-	treeReq := g.apiBaseURL + g.ownerName + "/" + g.repoName + "/git/trees/" + g.repoSHA + "?recursive=1"
-	response, err := repo.GetRequest(treeReq)
+// GetTreeEntries gets the paths and types of the repo tree
+func (g *GitHub) LoadTreeEntries() error {
+	tree, _, err := g.client.Git.GetTree(context.Background(), g.OwnerName, g.RepoName, g.repoSHA, true)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
-	body, _ := ioutil.ReadAll(response.Body)
-
-	// Check if response was truncated
-	if gjson.Get(string(body), "truncated").Bool() == true {
-		return nil, nil, fmt.Errorf("the response was truncated by Github, which means that the number of items in the tree array exceeded the maximum limit.\n\nClone the repo manually with git and use 'proji class import --directory /path/to/repo' to import your local copy of that repo")
+	if tree.GetTruncated() {
+		return fmt.Errorf("the response was truncated by Github, which means that the number of items in the tree array exceeded the maximum limit.\n\nClone the repo manually with git and use 'proji class import --directory /path/to/repo' to import the local instance of that repo")
 	}
-
-	// Parse the tree
-	treeResponse := gjson.GetMany(string(body), "tree.#.path", "tree.#.type")
-	defer response.Body.Close()
-	paths := treeResponse[0].Array()
-	types := treeResponse[1].Array()
-
-	// Filter paths
-	paths, types = repo.FilterPathsNTypes(paths, types, filters)
-	return paths, types, nil
+	g.TreeEntries = tree.Entries
+	return nil
 }
 
 // Owner returns the name of the repo owner
-func (g *github) Owner() string { return g.ownerName }
+func (g *GitHub) Owner() string { return g.OwnerName }
 
 // Repo returns the name of the repo
-func (g *github) Repo() string { return g.repoName }
+func (g *GitHub) Repo() string { return g.RepoName }
