@@ -136,3 +136,13 @@ func IsConfigUpToDate(projiVersion, configVersion string) (bool, error) {
 		return true, nil
 	}
 }
+
+func ParsePathFromConfig(configFolderPath, pathToParse string) string {
+	if filepath.IsAbs(pathToParse) {
+		// Either user defined path like '/my/custom/db/path' or default value was loaded
+		return pathToParse
+	}
+	// User defined path like 'db/proji.sqlite3'. Gets prefixed with config folder path. This has to be a relative
+	// path or else the above will trigger.
+	return filepath.Join(configFolderPath, pathToParse)
+}
