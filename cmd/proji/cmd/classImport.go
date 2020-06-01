@@ -53,10 +53,10 @@ var classImportCmd = &cobra.Command{
 func init() {
 	classCmd.AddCommand(classImportCmd)
 
-	classImportCmd.Flags().StringSliceVar(&remoteRepos, "remote-repo", make([]string, 0), "create an importable config based on a remote repository")
+	classImportCmd.Flags().StringSliceVar(&remoteRepos, "remote-repo", make([]string, 0), "create an importable config based on on the structure of a remote repository")
 	_ = classImportCmd.MarkFlagDirname("remote-repo")
 
-	classImportCmd.Flags().StringSliceVar(&directories, "directory", make([]string, 0), "create an importable config based on a local directory")
+	classImportCmd.Flags().StringSliceVar(&directories, "directory", make([]string, 0), "create an importable config based on the structure of a local directory")
 	_ = classImportCmd.MarkFlagDirname("directory")
 
 	classImportCmd.Flags().StringSliceVar(&configs, "config", make([]string, 0), "import a class from a config file")
