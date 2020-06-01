@@ -84,7 +84,15 @@ func initConfig() {
 	if err != nil {
 		log.Fatalf("Error: %v\n\nTry and execute: proji init\n", err)
 	}
-	projiEnv.Excludes = viper.GetStringSlice("import.excludeFolders")
+
+	// Set default values as fallback
+	viper.SetDefault(configVersionKey, "0.1.0")
+	viper.SetDefault(configExcludeFoldersKey, make([]string, 0))
+	viper.SetDefault(configDBKey, filepath.Join(projiEnv.ConfigFolderPath, "/db/proji.sqlite3"))
+
+	// Automatic environment variables handling
+	viper.AutomaticEnv()
+
 }
 
 func initStorageService() {
