@@ -110,10 +110,9 @@ func initConfig() {
 }
 
 func initStorageService() {
-	dbPath := viper.GetString("sqlite3.path")
 	var err error
-	projiEnv.Svc, err = sqlite.New(filepath.Join(projiEnv.UserConfigPath, dbPath))
+	projiEnv.Svc, err = sqlite.New(projiEnv.DBPath)
 	if err != nil {
-		log.Fatalf("Error: could not connect to sqlite db. %v\n%s\n", err, projiEnv.UserConfigPath)
+		log.Fatalf("Error: could not connect to sqlite db. %v\n%s\n", err, projiEnv.DBPath)
 	}
 }
