@@ -38,8 +38,8 @@
 
 -   Creates project directories of any size **in seconds**
 -   Project templates are based on **individual config files**
--   Structure of **GitHub/GitLab repos can be imported** to project configs
--   Structure of **directories can be imported** to project configs
+-   Structures of **GitHub/GitLab repos can be imported** as templates
+-   Structures of **directories can be imported** as templates
 -   Infinitely extendable through integration of **custom shell scripts**
 -   Supports **custom template files**
 -   **Shareable** project configs
