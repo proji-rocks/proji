@@ -93,6 +93,11 @@ func initConfig() {
 	// Automatic environment variables handling
 	viper.AutomaticEnv()
 
+	// Read values from config
+	projiEnv.ConfigVersion = viper.GetString(configVersionKey)
+	projiEnv.ExcludedPaths = viper.GetStringSlice(configExcludeFoldersKey)
+	projiEnv.DBPath = config.ParsePathFromConfig(projiEnv.ConfigFolderPath, viper.GetString(configDBKey))
+
 }
 
 func initStorageService() {
