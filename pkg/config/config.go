@@ -1,12 +1,14 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
 	"sync"
 
+	"github.com/Masterminds/semver"
 	"github.com/nikoksr/proji/pkg/helper"
 )
 
@@ -84,7 +86,7 @@ func InitConfig(path, version string, forceUpdate bool) (string, error) {
 			if version == fallbackVersion {
 				return cf.path, err
 			}
-			// Try with fallback version. This may help regular users but is manly for circleCI, which
+			// Try with fallback version. This may help regular users but is manly for CI, which
 			// fails when new versions are pushed. When a new version is pushed the corresponding github tag
 			// doesn't exist, proji init fails.
 			return InitConfig(cf.path, fallbackVersion, true)
@@ -112,4 +114,25 @@ func GetBaseConfigPath() (string, error) {
 			"https://github.com/nikoksr/proji to request the support of your OS.\n", runtime.GOOS)
 	}
 	return configPath, nil
+}
+
+func IsConfigUpToDate(projiVersion, configVersion string) (bool, error) {
+	projiV, err := semver.NewVersion(projiVersion)
+	if err != nil {
+		return false, err
+	}
+	configV, err := semver.NewVersion(configVersion)
+	if err != nil {
+		return false, err
+	}
+
+	if configV.LessThan(projiV) {
+		return false, errors.New("main config version is lower than proji's version. Please update your main" +
+			" config")
+	} else if configV.GreaterThan(projiV) {
+		return true, errors.New("main config version is greater than proji's version, which could lead to " +
+			"unforeseen errors")
+	} else {
+		return true, nil
+	}
 }

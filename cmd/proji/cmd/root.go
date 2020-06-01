@@ -98,6 +98,15 @@ func initConfig() {
 	projiEnv.ExcludedPaths = viper.GetStringSlice(configExcludeFoldersKey)
 	projiEnv.DBPath = config.ParsePathFromConfig(projiEnv.ConfigFolderPath, viper.GetString(configDBKey))
 
+	// Validate version
+	ok, err := config.IsConfigUpToDate(projiEnv.Version, projiEnv.ConfigVersion)
+	if ok {
+		if err != nil {
+			fmt.Printf("\nWarning: %v\n\n", err)
+		}
+	} else {
+		log.Fatalln(err)
+	}
 }
 
 func initStorageService() {
