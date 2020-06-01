@@ -62,10 +62,10 @@ func init() {
 	classImportCmd.Flags().StringSliceVar(&configs, "config", make([]string, 0), "import a class from a config file")
 	_ = classImportCmd.MarkFlagFilename("config")
 
-	classImportCmd.Flags().StringSliceVar(&packages, "package", make([]string, 0), "import a package")
+	classImportCmd.Flags().StringSliceVar(&packages, "package", make([]string, 0), "import a package (EXPERIMENTAL)")
 	_ = classImportCmd.MarkFlagFilename("package")
 
-	classImportCmd.Flags().StringSliceVar(&collections, "collection", make([]string, 0), "import a collection of packages")
+	classImportCmd.Flags().StringSliceVar(&collections, "collection", make([]string, 0), "import a collection of packages (EXPERIMENTAL)")
 	_ = classImportCmd.MarkFlagFilename("collection")
 
 	classImportCmd.Flags().StringSliceVar(&excludes, "exclude", make([]string, 0), "folder to exclude from local directory import")
