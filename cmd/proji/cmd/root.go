@@ -62,23 +62,25 @@ func init() {
 		projiEnv = &env{Svc: nil, ConfigFolderPath: "", ExcludedPaths: make([]string, 0), Version: "0.20.0"}
 	}
 
-	var err error
-	projiEnv.ConfigFolderPath, err = config.GetBaseConfigPath()
-	if err != nil {
-		log.Fatalf("Error: %v\n", err)
-	}
-
-	viper.AddConfigPath(projiEnv.UserConfigPath)
-	viper.SetConfigName("config")
-	viper.AutomaticEnv()
-
 	if len(os.Args) > 1 && os.Args[1] != "init" && os.Args[1] != "version" && os.Args[1] != "help" {
 		cobra.OnInitialize(initConfig, initStorageService)
 	}
 }
 
 func initConfig() {
-	err := viper.ReadInConfig()
+	// Set platform specific config path
+	var err error
+	projiEnv.ConfigFolderPath, err = config.GetBaseConfigPath()
+	if err != nil {
+		log.Fatalf("Error: %v\n", err)
+	}
+	viper.AddConfigPath(projiEnv.ConfigFolderPath)
+
+	// Config name
+	viper.SetConfigName("config")
+
+	// Read in config
+	err = viper.ReadInConfig()
 	if err != nil {
 		log.Fatalf("Error: %v\n\nTry and execute: proji init\n", err)
 	}
