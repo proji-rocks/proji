@@ -26,6 +26,12 @@ type env struct {
 
 var projiEnv *env
 
+const (
+	configVersionKey        = "version"
+	configExcludeFoldersKey = "import.excludeFolders"
+	configDBKey             = "sqlite3.path"
+)
+
 var rootCmd = &cobra.Command{
 	Use:   "proji",
 	Short: "A powerful cross-platform CLI project templating tool.",
