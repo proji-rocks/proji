@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -15,10 +16,12 @@ import (
 
 // Env represents central resources and information the app uses.
 type env struct {
-	Svc            storage.Service
-	UserConfigPath string
-	Excludes       []string
-	Version        string
+	DBPath           string
+	Svc              storage.Service
+	ConfigFolderPath string
+	ConfigVersion    string
+	ExcludedPaths    []string
+	Version          string
 }
 
 var projiEnv *env
@@ -50,11 +53,11 @@ func Execute() {
 
 func init() {
 	if projiEnv == nil {
-		projiEnv = &env{Svc: nil, UserConfigPath: "", Excludes: make([]string, 0), Version: "0.20.0"}
+		projiEnv = &env{Svc: nil, ConfigFolderPath: "", ExcludedPaths: make([]string, 0), Version: "0.20.0"}
 	}
 
 	var err error
-	projiEnv.UserConfigPath, err = config.GetBaseConfigPath()
+	projiEnv.ConfigFolderPath, err = config.GetBaseConfigPath()
 	if err != nil {
 		log.Fatalf("Error: %v\n", err)
 	}

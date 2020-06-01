@@ -16,7 +16,7 @@ var initCmd = &cobra.Command{
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
-		projiEnv.UserConfigPath, err = config.InitConfig(projiEnv.UserConfigPath, projiEnv.Version, false)
+		projiEnv.ConfigFolderPath, err = config.InitConfig(projiEnv.ConfigFolderPath, projiEnv.Version, false)
 		if err != nil {
 
 			log.Fatalf(

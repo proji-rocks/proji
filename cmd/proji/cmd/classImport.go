@@ -20,7 +20,7 @@ var classImportCmd = &cobra.Command{
 		if len(configs) < 1 && len(directories) < 1 && len(remoteRepos) < 1 && len(packages) < 1 && len(collections) < 1 {
 			return fmt.Errorf("no flag given")
 		}
-		excludes = append(excludes, projiEnv.Excludes...)
+		excludes = append(excludes, projiEnv.ExcludedPaths...)
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -37,9 +37,9 @@ var classImportCmd = &cobra.Command{
 		}
 
 		// Import configs
-		for importType, locations := range importTypes {
-			for _, location := range locations {
-				result, err := importClass(location, importType, excludes)
+		for importType, paths := range importTypes {
+			for _, path := range paths {
+				result, err := importClass(path, importType, excludes)
 				if err != nil {
 					fmt.Printf("Error: %v\n", err)
 				} else {

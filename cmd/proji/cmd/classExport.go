@@ -27,7 +27,7 @@ var classExportCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Export an example class
 		if example {
-			file, err := exportExample(destination, projiEnv.UserConfigPath)
+			file, err := exportExample(destination, projiEnv.ConfigFolderPath)
 			if err != nil {
 				fmt.Printf("> Export of example class failed: %v\n", err)
 				return err
