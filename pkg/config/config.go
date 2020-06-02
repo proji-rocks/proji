@@ -58,7 +58,7 @@ func InitConfig(path, version string, forceUpdate bool) (string, error) {
 	cf.path = path
 
 	// Create basefolder if it does not exist.
-	err := helper.CreateFolderIfNotExists(cf.path)
+	err = helper.CreateFolderIfNotExists(cf.path)
 	if err != nil {
 		return "", err
 	}
@@ -73,7 +73,7 @@ func InitConfig(path, version string, forceUpdate bool) (string, error) {
 
 	// Create configs if they do not exist.
 	var wg sync.WaitGroup
-	errors := make(chan error, len(cf.configs))
+	errs := make(chan error, len(cf.configs))
 
 	for _, conf := range cf.configs {
 		wg.Add(1)
@@ -85,13 +85,13 @@ func InitConfig(path, version string, forceUpdate bool) (string, error) {
 			} else {
 				e <- helper.DownloadFileIfNotExists(conf.src, dst)
 			}
-		}(conf, forceUpdate, &wg, errors)
+		}(conf, forceUpdate, &wg, errs)
 	}
 
 	wg.Wait()
-	close(errors)
+	close(errs)
 
-	for err = range errors {
+	for err = range errs {
 		if err != nil {
 			if version == fallbackVersion {
 				return cf.path, err
