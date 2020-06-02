@@ -3,17 +3,15 @@ package gitlab
 import (
 	"fmt"
 	"net/url"
-	"path/filepath"
 	"regexp"
+	"strings"
 
-	"github.com/nikoksr/proji/pkg/proji/repo"
 	gl "github.com/xanzy/go-gitlab"
 )
 
-// gitlab struct holds important data about a gitlab repo
+// GitLab struct holds important data about a gitlab repo
 type GitLab struct {
 	baseURI     *url.URL
-	apiBaseURL  string
 	OwnerName   string
 	RepoName    string
 	BranchName  string
@@ -58,7 +56,6 @@ func New(URL *url.URL) (repo.Importer, error) {
 
 	return &GitLab{
 		baseURI:    URL,
-		apiBaseURL: "https://gitlab.com/api/v4/projects/",
 		OwnerName:  OwnerName,
 		RepoName:   RepoName,
 		BranchName: BranchName,
