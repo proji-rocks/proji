@@ -29,7 +29,7 @@ func New(URL *url.URL) (*GitLab, error) {
 	// Examples:
 	//  - /[inkscape]/[inkscape]                 	-> extracts owner and repo name; no branch name
 	//  - /[inkscape]/[inkscape]/-/tree/[master]	-> extracts owner, repo and branch name
-	r := regexp.MustCompile(`/([^/]+)/([^/]+)(?:/-/(?:(?:blob|tree)/([^/]+)))?`)
+	r := regexp.MustCompile(`/([^/]+)/([^/]+)(?:/(?:tree|blob)/([^/]+))?`)
 	specs := r.FindStringSubmatch(URL.Path)
 
 	if specs == nil {
