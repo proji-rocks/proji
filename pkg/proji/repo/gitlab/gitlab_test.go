@@ -241,122 +241,129 @@ func TestGitLab_LoadTreeEntries(t *testing.T) {
 	}
 }
 
-	// These should fail
-	var badRepoObjects = []repo.Importer{
-		&gitlab{
-			apiBaseURL: "",
-			ownerName:  "",
-			repoName:   "",
-			branchName: "",
+func TestGitLab_FilePathToRawURI(t *testing.T) {
+	type fields struct {
+		OwnerName  string
+		RepoName   string
+		BranchName string
+	}
+	type args struct {
+		filePath string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   string
+	}{
+		{
+			name: "Test FilePathToRawURI 1",
+			fields: fields{
+				OwnerName:  "nikoksr",
+				RepoName:   "proji-test",
+				BranchName: "master",
+			},
+			args: args{filePath: "/configs/test.conf"},
+			want: "https://gitlab.com/nikoksr/proji-test/-/raw/master/configs/test.conf",
 		},
-		&gitlab{
-			apiBaseURL: glAPIBase,
-			ownerName:  "nikoksr",
-			repoName:   "proji-test",
-			branchName: "does_not_exist",
+		{
+			name: "Test FilePathToRawURI 2",
+			fields: fields{
+				OwnerName:  "nikoksr",
+				RepoName:   "proji-test-package",
+				BranchName: "develop",
+			},
+			args: args{filePath: "/test/some_test.go"},
+			want: "https://gitlab.com/nikoksr/proji-test-package/-/raw/develop/test/some_test.go",
 		},
 	}
-
-	for _, ghRepo := range badRepoObjects {
-		paths, types, err := ghRepo.GetTree(nil)
-		assert.Error(t, err)
-		assert.Nil(t, paths)
-		assert.Nil(t, types)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g := &GitLab{
+				OwnerName:  tt.fields.OwnerName,
+				RepoName:   tt.fields.RepoName,
+				BranchName: tt.fields.BranchName,
+			}
+			if got := g.FilePathToRawURI(tt.args.filePath); got != tt.want {
+				t.Errorf("FilePathToRawURI() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
-func TestGetBranchName(t *testing.T) {
+func TestGitLab_Owner(t *testing.T) {
 	tests := []struct {
 		name string
-		g    *gitlab
+		got  *GitLab
 		want string
 	}{
 		{
-			name: "",
-			g: &gitlab{
-				apiBaseURL: glAPIBase,
-				ownerName:  "nikoksr",
-				repoName:   "proji-test",
-				branchName: "master",
-			},
-			want: "master",
-		},
-		{
-			name: "",
-			g: &gitlab{
-				apiBaseURL: glAPIBase,
-				ownerName:  "nikoksr",
-				repoName:   "proji-test",
-				branchName: "develop",
-			},
-			want: "develop",
-		},
-	}
-	for _, test := range tests {
-		assert.Equal(t, test.want, test.g.branchName, "%s\n", test.name)
-	}
-}
-
-func TestGetRepoName(t *testing.T) {
-	tests := []struct {
-		name string
-		g    *gitlab
-		want string
-	}{
-		{
-			name: "",
-			g: &gitlab{
-				apiBaseURL: glAPIBase,
-				ownerName:  "nikoksr",
-				repoName:   "proji-test",
-				branchName: "master",
-			},
-			want: "proji-test",
-		},
-		{
-			name: "",
-			g: &gitlab{
-				apiBaseURL: glAPIBase,
-				ownerName:  "inkscape",
-				repoName:   "inkscape",
-				branchName: "develop",
-			},
-			want: "inkscape",
-		},
-	}
-	for _, test := range tests {
-		assert.Equal(t, test.want, test.g.repoName, "%s\n", test.name)
-	}
-}
-
-func TestGetownerName(t *testing.T) {
-	tests := []struct {
-		name string
-		g    *gitlab
-		want string
-	}{
-		{
-			name: "",
-			g: &gitlab{
-				apiBaseURL: glAPIBase,
-				ownerName:  "nikoksr",
-				repoName:   "proji-test",
-				branchName: "master",
-			},
+			name: "Test Owner 1",
+			got:  goodRepos[0],
 			want: "nikoksr",
 		},
 		{
-			name: "",
-			g: &gitlab{
-				apiBaseURL: glAPIBase,
-				ownerName:  "inkscape",
-				repoName:   "inkscape",
-				branchName: "master",
+			name: "Test Owner 2",
+			got: &GitLab{
+				OwnerName: "testUser247",
 			},
-			want: "inkscape",
+			want: "testUser247",
 		},
 	}
 	for _, test := range tests {
-		assert.Equal(t, test.want, test.g.ownerName, "%s\n", test.name)
+		assert.Equal(t, test.want, test.got.Owner(), "%s\n", test.name)
+	}
+}
+
+func TestGitLab_Repo(t *testing.T) {
+	tests := []struct {
+		name string
+		got  *GitLab
+		want string
+	}{
+		{
+			name: "Test Repo 1",
+			got:  goodRepos[0],
+			want: "proji-test",
+		},
+		{
+			name: "Test Repo 2",
+			got: &GitLab{
+				RepoName: "testRepo247",
+			},
+			want: "testRepo247",
+		},
+	}
+	for _, test := range tests {
+		assert.Equal(t, test.want, test.got.Repo(), "%s\n", test.name)
+	}
+}
+
+func TestGitLab_Branch(t *testing.T) {
+	tests := []struct {
+		name string
+		got  *GitLab
+		want string
+	}{
+		{
+			name: "Test Branch 1",
+			got:  goodRepos[0],
+			want: "master",
+		},
+		{
+			name: "Test Branch 2",
+			got:  goodRepos[1],
+			want: "develop",
+		},
+		{
+			name: "Test Branch 3",
+			got: &GitLab{
+				BranchName: "testBranch247",
+			},
+			want: "testBranch247",
+		},
+	}
+	for _, test := range tests {
+		assert.Equal(t, test.want, test.got.Branch(), "%s\n", test.name)
 	}
 }
