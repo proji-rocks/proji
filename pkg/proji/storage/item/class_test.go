@@ -7,10 +7,28 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/nikoksr/proji/pkg/proji/repo/github"
+
+	"github.com/nikoksr/proji/pkg/proji/repo"
+	"github.com/nikoksr/proji/pkg/proji/repo/gitlab"
+
 	"github.com/nikoksr/proji/pkg/helper"
 
 	"github.com/stretchr/testify/assert"
 )
+
+var goodURLs = []*url.URL{
+	{Scheme: "https", Host: "github.com", Path: "/nikoksr/proji-test"},
+	{Scheme: "https", Host: "github.com", Path: "/nikoksr/proji-test/tree/develop"},
+	{Scheme: "https", Host: "gitlab.com", Path: "/nikoksr/proji-test"},
+	{Scheme: "https", Host: "gitlab.com", Path: "/nikoksr/proji-test/tree/develop"},
+}
+
+var badURLs = []*url.URL{
+	{Scheme: "https", Host: "github.com", Path: "/nikoksr/does-not-exist"},
+	{Scheme: "https", Host: "github.com", Path: "/nikoksr/proji-test/tree/dead-branch"},
+	{Scheme: "https", Host: "google.com", Path: ""},
+}
 
 func TestNewClass(t *testing.T) {
 	classExp := &Class{
@@ -26,7 +44,7 @@ func TestNewClass(t *testing.T) {
 	assert.Equal(t, classExp, classAct)
 }
 
-func TestClassImportFromConfig(t *testing.T) {
+func TestClass_ImportConfig(t *testing.T) {
 	tests := []struct {
 		configName string
 		class      *Class
@@ -88,7 +106,7 @@ func TestClassImportFromConfig(t *testing.T) {
 	}
 }
 
-func TestClassImportFromDirectory(t *testing.T) {
+func TestClass_ImportFolderStructure(t *testing.T) {
 	tmpDir := os.TempDir()
 
 	tests := []struct {
@@ -156,7 +174,7 @@ func TestClassImportFromDirectory(t *testing.T) {
 	}
 }
 
-func TestClassImportFromURL(t *testing.T) {
+func TestClass_ImportRepoStructure(t *testing.T) {
 	helper.SkipNetworkBasedTests(t)
 
 	tests := []struct {
@@ -254,12 +272,12 @@ func TestClassImportFromURL(t *testing.T) {
 		if err != nil {
 			t.Errorf("failed getting repo importer for URL %s", test.URL.String())
 		}
-		assert.NoError(t, c.ImportRepoStructure(test.URL, importer, nil))
+		assert.NoError(t, c.ImportRepoStructure(importer, nil))
 		assert.Equal(t, test.class, c)
 	}
 }
 
-func TestClassExport(t *testing.T) {
+func TestClass_Export(t *testing.T) {
 	tmpDir := os.TempDir()
 
 	tests := []struct {
@@ -296,7 +314,7 @@ func TestClassExport(t *testing.T) {
 	}
 }
 
-func TestClassIsEmpty(t *testing.T) {
+func TestClass_isEmpty(t *testing.T) {
 	tests := []struct {
 		class   *Class
 		isEmpty bool
