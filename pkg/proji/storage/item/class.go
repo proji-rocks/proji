@@ -135,7 +135,7 @@ func (c *Class) ImportFolderStructure(path string, excludeDirs []string) error {
 // ImportRepoStructure imports a class from a given URL. The URL should point to a remote repo of one of the following code
 // platforms: github, gitlab. Proji will imitate the structure and content of the repo and create a class
 // based on it.
-func (c *Class) ImportRepoStructure(URL *url.URL, importer repo.Importer, filters []*regexp.Regexp) error {
+func (c *Class) ImportRepoStructure(importer repo.Importer, filters []*regexp.Regexp) error {
 	// Import the complete repo tree. No filters needed.
 	paths, types, err := importer.GetTree(filters)
 	if err != nil {
@@ -254,7 +254,7 @@ func ImportClassesFromCollection(URL *url.URL, importer repo.Importer) ([]*Class
 	// Get list of class configs and loop through them
 	re := regexp.MustCompile(`configs/.*`)
 	c := NewClass("", "", false)
-	err := c.ImportRepoStructure(URL, importer, []*regexp.Regexp{re})
+	err := c.ImportRepoStructure(importer, []*regexp.Regexp{re})
 	if err != nil {
 		return nil, err
 	}
