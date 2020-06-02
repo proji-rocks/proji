@@ -67,12 +67,10 @@ func New(URL *url.URL) (*GitLab, error) {
 // You can pass the relative path to a file of that repo to receive the complete raw url for said file.
 // Or you pass an empty string resulting in the base of the raw url for files of this repo.
 func (g *GitLab) FilePathToRawURI(filePath string) string {
-	return g.baseURI.String() +
-		filepath.Join(
-			"/-/raw/",
-			g.BranchName, "/",
-			filePath,
-		)
+	if strings.HasPrefix(filePath, "/") {
+		filePath = filePath[1:]
+	}
+	return fmt.Sprintf("https://gitlab.com/%s/%s/-/raw/%s/%s", g.OwnerName, g.RepoName, g.BranchName, filePath)
 }
 
 // GetTree gets the paths and types of the repo tree
