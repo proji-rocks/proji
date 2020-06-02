@@ -20,7 +20,7 @@ type GitLab struct {
 }
 
 // New creates a new gitlab repo object
-func New(URL *url.URL) (repo.Importer, error) {
+func New(URL *url.URL) (*GitLab, error) {
 	if URL.Hostname() != "gitlab.com" {
 		return nil, fmt.Errorf("invalid host %s", URL.Hostname())
 	}
