@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 
 	"github.com/Masterminds/semver"
@@ -26,6 +27,15 @@ type configFolder struct {
 // InitConfig is the main function for projis config initialization. It determines the OS' preferred config location, creates
 // proji's config folders and downloads the required configs from GitHub to the local config folder.
 func InitConfig(path, version string, forceUpdate bool) (string, error) {
+	var err error
+
+	if strings.Trim(path, " ") == "" {
+		path, err = GetBaseConfigPath()
+		if err != nil {
+			return "", err
+		}
+	}
+
 	fallbackVersion := "0.18.1"
 
 	// Representation of default config folder
