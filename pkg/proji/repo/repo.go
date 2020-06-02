@@ -61,27 +61,5 @@ func ParseURL(URL string) (*url.URL, error) {
 			return nil, err
 		}
 	}
-
 	return u, nil
-}
-
-// FilterPathsNTypes converts the git types blob and tree to proji types folder and file
-func FilterPathsNTypes(paths, types []gjson.Result, filters []*regexp.Regexp) ([]gjson.Result, []gjson.Result) {
-	if filters == nil {
-		return paths, types
-	}
-
-	filteredPaths := make([]gjson.Result, 0)
-	filteredTypes := make([]gjson.Result, 0)
-
-	for idx, path := range paths {
-		for _, filter := range filters {
-			if filter.FindStringIndex(path.String()) != nil {
-				filteredPaths = append(filteredPaths, path)
-				filteredTypes = append(filteredTypes, types[idx])
-				break
-			}
-		}
-	}
-	return filteredPaths, filteredTypes
 }
