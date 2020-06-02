@@ -30,6 +30,10 @@ type Importer interface {
 //   - Parse raw string to URL structure
 //   - Make absolute if not already
 func ParseURL(URL string) (*url.URL, error) {
+	if strings.Trim(URL, " ") == "" {
+		return nil, fmt.Errorf("can't parse empty url")
+	}
+
 	// Trim trailing '.git'
 	if strings.HasSuffix(URL, ".git") {
 		URL = URL[:len(URL)-len(".git")]
