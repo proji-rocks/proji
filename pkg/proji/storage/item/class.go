@@ -296,23 +296,6 @@ func (c *Class) Export(destination string) (string, error) {
 	return confName, toml.NewEncoder(conf).Encode(configTxt)
 }
 
-// convertPathsNTypesToFoldersNFiles converts the git types blob and tree to proji types folder and file
-func convertPathsNTypesToFoldersNFiles(paths, types []gjson.Result) ([]*Folder, []*File) {
-	// Splitting in folders and files
-	folders := make([]*Folder, 0)
-	files := make([]*File, 0)
-	for idx, p := range paths {
-		dest := p.String()
-
-		if types[idx].String() == "tree" {
-			folders = append(folders, &Folder{Destination: dest})
-		} else {
-			files = append(files, &File{Destination: dest})
-		}
-	}
-	return folders, files
-}
-
 // isEmpty checks if the class holds no data
 func (c *Class) isEmpty() bool {
 	if len(c.Folders) == 0 && len(c.Files) == 0 && len(c.Scripts) == 0 {
@@ -332,11 +315,9 @@ func pickLabel(className string) string {
 	maxLabelLen := 4
 
 	// Try to create label by separators
-	// '%20' is for escaped paths.
-	seps := []string{"-", "_", ".", " ", "%20"}
 	parts := make([]string, 0)
 
-	for _, d := range seps {
+	for _, d := range labelSeparators {
 		parts = strings.Split(className, d)
 		if len(parts) > 1 {
 			break
@@ -376,6 +357,13 @@ func pickLabel(className string) string {
 	return strings.ToLower(label)
 }
 
+/*
+
+	This section will be refactored asap. For now, I just want working support for packages and collections and
+	don't want to spend more time refactoring it before uploading it. This works, it's just very ugly. Sorry.
+
+*/
+
 // GetRepoImporterFromURL returns the most suiting importer based on the code hosting platform.
 func GetRepoImporterFromURL(URL *url.URL) (repo.Importer, error) {
 	var importer repo.Importer
@@ -390,4 +378,86 @@ func GetRepoImporterFromURL(URL *url.URL) (repo.Importer, error) {
 		return nil, fmt.Errorf("platform not supported yet")
 	}
 	return importer, err
+}
+
+func filterAndConvertTreeEntries(importer repo.Importer, filters []*regexp.Regexp) ([]*File, []*Folder) {
+	if filters == nil {
+		filters = make([]*regexp.Regexp, 0)
+	}
+
+	files := make([]*File, 0)
+	folders := make([]*Folder, 0)
+
+	switch importer.(type) {
+	case *github.GitHub:
+		files, folders = filterAndConvertGHTreeEntries(importer.(*github.GitHub).TreeEntries, filters)
+	case *gitlab.GitLab:
+		files, folders = filterAndConvertGLTreeEntries(importer.(*gitlab.GitLab).TreeEntries, filters)
+	default:
+		return nil, nil
+	}
+
+	return files, folders
+}
+
+func filterAndConvertGHTreeEntries(treeEntries []*gh.TreeEntry, filters []*regexp.Regexp) ([]*File, []*Folder) {
+	if filters == nil {
+		filters = make([]*regexp.Regexp, 0)
+	}
+
+	files := make([]*File, 0)
+	folders := make([]*Folder, 0)
+
+	for _, entry := range treeEntries {
+		skip := false
+		for _, filter := range filters {
+			if !skip {
+				skip = true
+			}
+			if filter.FindStringIndex(entry.String()) != nil {
+				skip = false
+				break
+			}
+		}
+		if skip {
+			continue
+		}
+		if entry.GetType() == "blob" {
+			files = append(files, &File{Destination: entry.GetPath()})
+		} else {
+			folders = append(folders, &Folder{Destination: entry.GetPath()})
+		}
+	}
+	return files, folders
+}
+
+func filterAndConvertGLTreeEntries(treeEntries []*gl.TreeNode, filters []*regexp.Regexp) ([]*File, []*Folder) {
+	if filters == nil {
+		filters = make([]*regexp.Regexp, 0)
+	}
+
+	files := make([]*File, 0)
+	folders := make([]*Folder, 0)
+
+	for _, entry := range treeEntries {
+		skip := false
+		for _, filter := range filters {
+			if !skip {
+				skip = true
+			}
+			if filter.FindStringIndex(entry.String()) != nil {
+				skip = false
+				break
+			}
+		}
+		if skip {
+			continue
+		}
+		if entry.Type == "blob" {
+			files = append(files, &File{Destination: entry.Path})
+		} else {
+			folders = append(folders, &Folder{Destination: entry.Path})
+		}
+	}
+	return files, folders
 }
