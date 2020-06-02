@@ -112,8 +112,11 @@ func (g *GitHub) LoadTreeEntries() error {
 	return nil
 }
 
-// Owner returns the name of the repo owner
+// Owner returns the name of the owner
 func (g *GitHub) Owner() string { return g.OwnerName }
 
 // Repo returns the name of the repo
 func (g *GitHub) Repo() string { return g.RepoName }
+
+// Repo returns the name of the branch
+func (g *GitHub) Branch() string { return g.BranchName }
