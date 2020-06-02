@@ -137,7 +137,7 @@ func (c *Class) ImportFolderStructure(path string, excludeDirs []string) error {
 // based on it.
 func (c *Class) ImportRepoStructure(importer repo.Importer, filters []*regexp.Regexp) error {
 	// Import the complete repo tree. No filters needed.
-	paths, types, err := importer.GetTree(filters)
+	err := importer.LoadTreeEntries()
 	if err != nil {
 		return err
 	}
