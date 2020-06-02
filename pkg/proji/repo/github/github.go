@@ -48,7 +48,7 @@ func (g *GitHub) setRepoSHA(ctx context.Context) error {
 }
 
 // New creates a new github repo object
-func New(URL *url.URL) (repo.Importer, error) {
+func New(URL *url.URL) (*GitHub, error) {
 	if URL.Hostname() != "github.com" {
 		return nil, fmt.Errorf("invalid host %s", URL.Hostname())
 	}
