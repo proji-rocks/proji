@@ -141,9 +141,7 @@ func (c *Class) ImportRepoStructure(importer repo.Importer, filters []*regexp.Re
 	if err != nil {
 		return err
 	}
-
-	// Convert repo paths and types to proji folders and files
-	c.Folders, c.Files = convertPathsNTypesToFoldersNFiles(paths, types)
+	c.Files, c.Folders = filterAndConvertTreeEntries(importer, filters)
 
 	// Check if any data was loaded
 	if c.isEmpty() {
@@ -181,7 +179,7 @@ func (c *Class) ImportPackage(URL *url.URL, importer repo.Importer) error {
 
 	// All templates
 	var rex *regexp.Regexp
-	var paths, types []gjson.Result
+	var files []*File
 	templatesKey := "templates"
 	scriptsKey := "scripts"
 
@@ -193,29 +191,23 @@ func (c *Class) ImportPackage(URL *url.URL, importer repo.Importer) error {
 		// Create regex and request only once and only when necessary
 		if rex == nil {
 			rex = regexp.MustCompile("templates/")
-			paths, types, err = importer.GetTree([]*regexp.Regexp{rex})
+			err = importer.LoadTreeEntries()
 			if err != nil {
 				return err
 			}
+			files, _ = filterAndConvertTreeEntries(importer, []*regexp.Regexp{rex})
 		}
 
-		if paths == nil {
+		if len(files) < 1 {
 			return fmt.Errorf("no templates were found in repo but class %s requires templates", c.Name)
 		}
 
-		// Filter for templates folder
-		rex = regexp.MustCompile(filepath.Join(URL.Path, "templates/"))
-
-		for i, t := range types {
-			// Check if file
-			if t.String() == "blob" {
-				// Trim the path
-				file := paths[i].String()[len("templates/"):]
-				// Add file to list only if its in the current template folder
-				if strings.HasPrefix(file, folder.Template) {
-					filesNeeded[templatesKey] = append(filesNeeded[templatesKey],
-						file)
-				}
+		for _, file := range files {
+			// Trim the path
+			trimmedFilePath := file.Destination[len("templates/"):]
+			// Add file to list only if its in the current template folder
+			if strings.HasPrefix(trimmedFilePath, folder.Template) {
+				filesNeeded[templatesKey] = append(filesNeeded[templatesKey], trimmedFilePath)
 			}
 		}
 	}
