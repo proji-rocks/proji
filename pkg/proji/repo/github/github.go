@@ -24,22 +24,26 @@ type GitHub struct {
 }
 
 // setRepoSHA sets the repoSHA attribute equal to the SHA-1 of the last commit in the current branch
-func (g *github) setRepoSHA() error {
-	// Send request for SHA-1 of branch
-	shaReq := g.apiBaseURL + g.ownerName + "/" + g.repoName + "/branches/" + g.branchName
-	response, err := repo.GetRequest(shaReq)
+func (g *GitHub) setRepoSHA(ctx context.Context) error {
+	if g.BranchName == "" {
+		/*
+			r := &gh.Repository{}
+			r, _, err := g.client.Repositories.Get(ctx, g.OwnerName, g.RepoName)
+			if err != nil {
+				return err
+			}
+			g.BranchName = r.GetDefaultBranch()
+		*/
+		// Default to master branch for now. The above uses too many API calls and Github's API limit gets exceeded
+		// too quickly.
+		g.BranchName = "master"
+	}
+
+	b, _, err := g.client.Repositories.GetBranch(ctx, g.OwnerName, g.RepoName, g.BranchName)
 	if err != nil {
 		return err
 	}
-
-	// Parse body and try to extract SHA
-	body, _ := ioutil.ReadAll(response.Body)
-	repoSHA := gjson.Get(string(body), "commit.sha")
-	defer response.Body.Close()
-	if !repoSHA.Exists() {
-		return fmt.Errorf("could not get commit sha-1 from body")
-	}
-	g.repoSHA = repoSHA.String()
+	g.repoSHA = b.GetCommit().GetSHA()
 	return nil
 }
 
