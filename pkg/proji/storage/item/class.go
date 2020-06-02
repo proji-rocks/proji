@@ -10,9 +10,11 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/nikoksr/proji/pkg/config"
+	gl "github.com/xanzy/go-gitlab"
 
-	"github.com/tidwall/gjson"
+	gh "github.com/google/go-github/v31/github"
+
+	"github.com/nikoksr/proji/pkg/config"
 
 	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/repo"
@@ -32,6 +34,9 @@ type Class struct {
 	Files     []*File   `toml:"file"`   // Class files
 	Scripts   []*Script `toml:"script"` // Class scripts
 }
+
+// '%20' is for escaped paths.
+var labelSeparators = []string{"-", "_", ".", " ", "%20"}
 
 // NewClass returns a new class
 func NewClass(name, label string, isDefault bool) *Class {
