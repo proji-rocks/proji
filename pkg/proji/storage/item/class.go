@@ -1,6 +1,7 @@
 package item
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -8,6 +9,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"unicode"
 
 	gl "github.com/xanzy/go-gitlab"
@@ -226,17 +228,39 @@ func (c *Class) ImportPackage(URL *url.URL, importer repo.Importer) error {
 	}
 
 	// Download scripts and templates
+	var wg sync.WaitGroup
+	errs := make(chan error, len(filesNeeded))
+
 	for fileType, fileList := range filesNeeded {
 		for _, file := range fileList {
-			src := importer.FilePathToRawURI(filepath.Join(fileType, file))
-			dst := filepath.Join(downloadDestination, fileType, file)
-			err = helper.DownloadFileIfNotExists(src, dst)
-			if err != nil {
-				return err
-			}
+			wg.Add(1)
+			go func(fileType, file, downloadDestination string, e chan error) {
+				defer wg.Done()
+				src := importer.FilePathToRawURI(filepath.Join(fileType, file))
+				dst := filepath.Join(downloadDestination, fileType, file)
+				err = helper.DownloadFileIfNotExists(src, dst)
+				if err != nil {
+					e <- err
+				}
+			}(fileType, file, downloadDestination, errs)
 		}
 	}
-	return nil
+	wg.Wait()
+	close(errs)
+
+	var errMsg string
+	err = nil
+	for e := range errs {
+		if e != nil {
+			errMsg += fmt.Sprintf("%s\n", e.Error())
+		}
+	}
+
+	if len(errMsg) > 0 {
+		err = errors.New(errMsg)
+	}
+
+	return err
 }
 
 // ImportClassesFromCollection imports all classes from a given URL. A collection is a repo with multiple classes. It must include
@@ -257,22 +281,49 @@ func ImportClassesFromCollection(URL *url.URL, importer repo.Importer) ([]*Class
 	}
 
 	// Import one package at a time
+	var wg sync.WaitGroup
+	classChannel := make(chan *Class, len(c.Files))
+	errs := make(chan error, len(c.Files))
 	classList := make([]*Class, 0)
 
 	for _, file := range c.Files {
-		class := NewClass("", "", false)
-		packageURL, err := repo.ParseURL(URL.String() + "/" + file.Destination)
-		if err != nil {
-			return nil, err
-		}
-		err = class.ImportPackage(packageURL, importer)
-		if err != nil {
-			return nil, err
-		}
-		classList = append(classList, class)
+		wg.Add(1)
+		go func(file *File, classChannel chan *Class, e chan error) {
+			defer wg.Done()
+			class := NewClass("", "", false)
+			packageURL, err := repo.ParseURL(URL.String() + "/" + file.Destination)
+			if err != nil {
+				e <- err
+			}
+			err = class.ImportPackage(packageURL, importer)
+			if err != nil {
+				e <- err
+			}
+			classChannel <- class
+		}(file, classChannel, errs)
 	}
 
-	return classList, nil
+	wg.Wait()
+	close(classChannel)
+
+	for cls := range classChannel {
+		if cls != nil {
+			classList = append(classList, cls)
+		}
+	}
+
+	err = nil
+	var errMsg string
+	for e := range errs {
+		if e != nil {
+			errMsg += fmt.Sprintf("%s\n", e.Error())
+		}
+	}
+	if len(errMsg) > 0 {
+		err = errors.New(errMsg)
+	}
+
+	return classList, err
 }
 
 // Export exports a given class to a toml config file
