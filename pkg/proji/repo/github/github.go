@@ -5,19 +5,14 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"regexp"
+	"strings"
 	"time"
 
 	gh "github.com/google/go-github/v31/github"
-	"github.com/nikoksr/proji/pkg/proji/repo"
 )
 
-const (
-	rawBaseURL = "https://raw.githubusercontent.com/"
-)
-
-// github struct holds important data about a github repo
+// GitHub struct holds important data about a github repo
 type GitHub struct {
 	baseURI     *url.URL
 	OwnerName   string
@@ -74,26 +69,30 @@ func New(URL *url.URL) (repo.Importer, error) {
 	}
 
 	g := &GitHub{
-		baseURI:    URL,
-		OwnerName:  OwnerName,
-		RepoName:   RepoName,
-		BranchName: BranchName,
-		repoSHA:    "",
+		baseURI:     URL,
+		OwnerName:   OwnerName,
+		RepoName:    RepoName,
+		BranchName:  BranchName,
+		TreeEntries: make([]*gh.TreeEntry, 0),
+		repoSHA:     "",
+		client:      gh.NewClient(&http.Client{Timeout: 10 * time.Second}),
 	}
-	return g, g.setRepoSHA()
+
+	err := g.setRepoSHA(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	return g, nil
 }
 
 // GetBaseURI returns the base URI of the repo
 // You can pass the relative path to a file of that repo to receive the complete raw url for said file.
 // Or you pass an empty string resulting in the base of the raw url for files of this repo.
 func (g *GitHub) FilePathToRawURI(filePath string) string {
-	return rawBaseURL +
-		filepath.Join(
-			g.OwnerName,
-			g.RepoName,
-			g.BranchName,
-			filePath,
-		)
+	if strings.HasPrefix(filePath, "/") {
+		filePath = filePath[1:]
+	}
+	return fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s/%s", g.OwnerName, g.RepoName, g.BranchName, filePath)
 }
 
 // GetTreeEntries gets the paths and types of the repo tree
