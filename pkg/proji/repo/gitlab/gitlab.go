@@ -85,8 +85,11 @@ func (g *GitLab) LoadTreeEntries() error {
 	return nil
 }
 
-// GetOwner returns the name of the repo owner
+// Owner returns the name of the owner
 func (g *GitLab) Owner() string { return g.OwnerName }
 
-// GetRepo returns the name of the repo
+// Repo returns the name of the repo
 func (g *GitLab) Repo() string { return g.RepoName }
+
+// Repo returns the name of the branch
+func (g *GitLab) Branch() string { return g.BranchName }
