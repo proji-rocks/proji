@@ -339,7 +339,57 @@ func TestGitHub_setRepoSHA(t *testing.T) {
 	}
 }
 
-func TestGetBranchName(t *testing.T) {
+func TestGitHub_FilePathToRawURI(t *testing.T) {
+	type fields struct {
+		OwnerName  string
+		RepoName   string
+		BranchName string
+	}
+	type args struct {
+		filePath string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   string
+	}{
+		{
+			name: "Test FilePathToRawURI 1",
+			fields: fields{
+				OwnerName:  "nikoksr",
+				RepoName:   "proji-test",
+				BranchName: "master",
+			},
+			args: args{filePath: "/configs/test.conf"},
+			want: "https://raw.githubusercontent.com/nikoksr/proji-test/master/configs/test.conf",
+		},
+		{
+			name: "Test FilePathToRawURI 2",
+			fields: fields{
+				OwnerName:  "nikoksr",
+				RepoName:   "proji-test-package",
+				BranchName: "develop",
+			},
+			args: args{filePath: "/test/some_test.go"},
+			want: "https://raw.githubusercontent.com/nikoksr/proji-test-package/develop/test/some_test.go",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g := &GitHub{
+				OwnerName:  tt.fields.OwnerName,
+				RepoName:   tt.fields.RepoName,
+				BranchName: tt.fields.BranchName,
+			}
+			if got := g.FilePathToRawURI(tt.args.filePath); got != tt.want {
+				t.Errorf("FilePathToRawURI() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGitHub_Owner(t *testing.T) {
 	tests := []struct {
 		name string
 		got  *GitHub
@@ -387,36 +437,31 @@ func TestGitHub_Repo(t *testing.T) {
 	}
 }
 
-func TestGetownerName(t *testing.T) {
+func TestGitHub_Branch(t *testing.T) {
 	tests := []struct {
 		name string
-		g    *github
+		got  *GitHub
 		want string
 	}{
 		{
-			name: "",
-			g: &github{
-				apiBaseURL: ghAPIBase,
-				ownerName:  "nikoksr",
-				repoName:   "proji",
-				branchName: "master",
-				repoSHA:    "",
-			},
-			want: "nikoksr",
+			name: "Test Branch 1",
+			got:  goodRepos[0],
+			want: "master",
 		},
 		{
-			name: "",
-			g: &github{
-				apiBaseURL: ghAPIBase,
-				ownerName:  "golang",
-				repoName:   "go",
-				branchName: "master",
-				repoSHA:    "",
+			name: "Test Branch 2",
+			got:  goodRepos[1],
+			want: "develop",
+		},
+		{
+			name: "Test Branch 3",
+			got: &GitHub{
+				BranchName: "testBranch247",
 			},
-			want: "golang",
+			want: "testBranch247",
 		},
 	}
 	for _, test := range tests {
-		assert.Equal(t, test.want, test.g.ownerName, "%s\n", test.name)
+		assert.Equal(t, test.want, test.got.Branch(), "%s\n", test.name)
 	}
 }
