@@ -73,36 +73,16 @@ func (g *GitLab) FilePathToRawURI(filePath string) string {
 	return fmt.Sprintf("https://gitlab.com/%s/%s/-/raw/%s/%s", g.OwnerName, g.RepoName, g.BranchName, filePath)
 }
 
-// GetTree gets the paths and types of the repo tree
-func (g *gitlab) GetTree(filters []*regexp.Regexp) ([]gjson.Result, []gjson.Result, error) {
-	nextPage := "1"
-	paths := make([]gjson.Result, 0)
-	types := make([]gjson.Result, 0)
-	treeReq := g.apiBaseURL + g.ownerName + "%2F" + g.repoName + "/repository/tree/?ref=" + g.branchName + "&recursive=true&per_page=100&page="
-
-	for nextPage != "" {
-		// Request repo tree
-		response, err := repo.GetRequest(treeReq + nextPage)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		// Parse the tree
-		body, _ := ioutil.ReadAll(response.Body)
-		treeResponse := gjson.GetMany(string(body), "#.path", "#.type")
-		paths = append(paths, treeResponse[0].Array()...)
-		types = append(types, treeResponse[1].Array()...)
-		err = response.Body.Close()
-		if err != nil {
-			return nil, nil, err
-		}
-
-		// Set next page from response header
-		nextPage = response.Header.Get("X-Next-Page")
+// GetTreeEntries gets the paths and types of the repo tree
+func (g *GitLab) LoadTreeEntries() error {
+	pid := g.OwnerName + "/" + g.RepoName
+	rec := true
+	treeNodes, _, err := g.client.Repositories.ListTree(pid, &gl.ListTreeOptions{Recursive: &rec, Ref: &g.BranchName})
+	if err != nil {
+		return err
 	}
-	// Filter paths
-	paths, types = repo.FilterPathsNTypes(paths, types, filters)
-	return paths, types, nil
+	g.TreeEntries = treeNodes
+	return nil
 }
 
 // GetOwner returns the name of the repo owner
