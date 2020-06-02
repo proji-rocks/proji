@@ -86,7 +86,7 @@ func TestIsInSlice(t *testing.T) {
 	}
 }
 
-func Test_createFolderIfNotExists(t *testing.T) {
+func TestCreateFolderIfNotExists(t *testing.T) {
 	tmpDir := filepath.Join(os.TempDir(), "proji-testing")
 
 	type args struct {
@@ -131,7 +131,7 @@ func Test_createFolderIfNotExists(t *testing.T) {
 	_ = os.RemoveAll(tmpDir)
 }
 
-func Test_downloadFile(t *testing.T) {
+func TestDownloadFile(t *testing.T) {
 	tmpDir := filepath.Join(os.TempDir(), "proji-testing")
 	_ = os.RemoveAll(tmpDir)
 
@@ -190,7 +190,7 @@ func Test_downloadFile(t *testing.T) {
 	_ = os.RemoveAll(tmpDir)
 }
 
-func Test_downloadFileIfNotExists(t *testing.T) {
+func TestDownloadFileIfNotExists(t *testing.T) {
 	tmpDir := filepath.Join(os.TempDir(), "proji-testing")
 	err := CreateFolderIfNotExists(tmpDir)
 	assert.NoError(t, err)
