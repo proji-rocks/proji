@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var rmAllStatuses bool
+var removeAllStatuses, forceRemoveStatuses bool
 
 var statusRmCmd = &cobra.Command{
 	Use:   "rm ID [ID...]",
@@ -19,7 +19,7 @@ var statusRmCmd = &cobra.Command{
 		// Collect statuses that will be removed
 		var statuses []*item.Status
 
-		if rmAllStatuses {
+		if removeAllStatuses {
 			var err error
 			statuses, err = projiEnv.Svc.LoadAllStatuses()
 			if err != nil {
@@ -45,8 +45,17 @@ var statusRmCmd = &cobra.Command{
 
 		// Remove the statuses
 		for _, status := range statuses {
+			// Skip default statuses
 			if status.IsDefault {
 				continue
+			}
+			// Ask for confirmation if force flag was not passed
+			if !forceRemoveClasses {
+				if !helper.WantTo(
+					fmt.Sprintf("Do you really want to remove status '%s (%d)'?", status.Title, status.ID),
+				) {
+					continue
+				}
 			}
 			err := projiEnv.Svc.RemoveStatus(status.ID)
 			if err != nil {
@@ -61,5 +70,6 @@ var statusRmCmd = &cobra.Command{
 
 func init() {
 	statusCmd.AddCommand(statusRmCmd)
-	statusRmCmd.Flags().BoolVarP(&rmAllStatuses, "all", "a", false, "Remove all statuses")
+	statusRmCmd.Flags().BoolVarP(&removeAllStatuses, "all", "a", false, "Remove all statuses")
+	classRmCmd.Flags().BoolVarP(&forceRemoveStatuses, "force", "f", false, "Don't ask for confirmation")
 }
