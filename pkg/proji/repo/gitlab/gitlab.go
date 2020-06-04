@@ -75,13 +75,32 @@ func (g *GitLab) FilePathToRawURI(filePath string) string {
 
 // GetTreeEntries gets the paths and types of the repo tree
 func (g *GitLab) LoadTreeEntries() error {
+	// Reset tree entries
+	g.TreeEntries = make([]*gl.TreeNode, 0)
 	pid := g.OwnerName + "/" + g.RepoName
 	rec := true
-	treeNodes, _, err := g.client.Repositories.ListTree(pid, &gl.ListTreeOptions{Recursive: &rec, Ref: &g.BranchName})
-	if err != nil {
-		return err
+	nextPage := 1
+
+	for {
+		treeNodes, resp, err := g.client.Repositories.ListTree(pid, &gl.ListTreeOptions{
+			Recursive: &rec,
+			Ref:       &g.BranchName,
+			ListOptions: gl.ListOptions{
+				Page:    nextPage,
+				PerPage: 100,
+			},
+		})
+		if err != nil {
+			return err
+		}
+		g.TreeEntries = append(g.TreeEntries, treeNodes...)
+
+		// Break if no next page
+		if resp.NextPage == 0 {
+			break
+		}
+		nextPage = resp.NextPage
 	}
-	g.TreeEntries = treeNodes
 	return nil
 }
 
