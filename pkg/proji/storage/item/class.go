@@ -228,21 +228,23 @@ func (c *Class) ImportPackage(URL *url.URL, importer repo.Importer) error {
 	}
 
 	// Download scripts and templates
+	// Sum of templates and scripts counts
+	numFiles := len(filesNeeded[templatesKey]) + len(filesNeeded[scriptsKey])
 	var wg sync.WaitGroup
-	errs := make(chan error, len(filesNeeded))
+	wg.Add(numFiles)
+	errs := make(chan error, numFiles)
 
 	for fileType, fileList := range filesNeeded {
 		for _, file := range fileList {
-			wg.Add(1)
-			go func(fileType, file, downloadDestination string, e chan error) {
+			go func(fileType, file string) {
 				defer wg.Done()
 				src := importer.FilePathToRawURI(filepath.Join(fileType, file))
 				dst := filepath.Join(downloadDestination, fileType, file)
 				err = helper.DownloadFileIfNotExists(dst, src)
 				if err != nil {
-					e <- err
+					errs <- err
 				}
-			}(fileType, file, downloadDestination, errs)
+			}(fileType, file)
 		}
 	}
 	wg.Wait()
@@ -259,7 +261,6 @@ func (c *Class) ImportPackage(URL *url.URL, importer repo.Importer) error {
 	if len(errMsg) > 0 {
 		err = errors.New(errMsg)
 	}
-
 	return err
 }
 
@@ -281,30 +282,34 @@ func ImportClassesFromCollection(URL *url.URL, importer repo.Importer) ([]*Class
 	}
 
 	// Import one package at a time
-	var wg sync.WaitGroup
-	classChannel := make(chan *Class, len(c.Files))
-	errs := make(chan error, len(c.Files))
 	classList := make([]*Class, 0)
+	numFiles := len(c.Files)
+	var wg sync.WaitGroup
+	wg.Add(numFiles)
+	classChannel := make(chan *Class, numFiles)
+	errs := make(chan error, numFiles)
 
 	for _, file := range c.Files {
-		wg.Add(1)
-		go func(file *File, classChannel chan *Class, e chan error) {
+		go func(file *File) {
 			defer wg.Done()
 			class := NewClass("", "", false)
 			packageURL, err := repo.ParseURL(URL.String() + "/" + file.Destination)
 			if err != nil {
-				e <- err
+				errs <- err
+				return
 			}
 			err = class.ImportPackage(packageURL, importer)
 			if err != nil {
-				e <- err
+				errs <- err
+				return
 			}
 			classChannel <- class
-		}(file, classChannel, errs)
+		}(file)
 	}
 
 	wg.Wait()
 	close(classChannel)
+	close(errs)
 
 	for cls := range classChannel {
 		if cls != nil {
@@ -322,7 +327,6 @@ func ImportClassesFromCollection(URL *url.URL, importer repo.Importer) ([]*Class
 	if len(errMsg) > 0 {
 		err = errors.New(errMsg)
 	}
-
 	return classList, err
 }
 
