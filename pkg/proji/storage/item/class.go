@@ -40,6 +40,11 @@ type Class struct {
 // '%20' is for escaped paths.
 var labelSeparators = []string{"-", "_", ".", " ", "%20"}
 
+const (
+	templatesKey = "templates"
+	scriptsKey   = "scripts"
+)
+
 // NewClass returns a new class
 func NewClass(name, label string, isDefault bool) *Class {
 	return &Class{
@@ -182,8 +187,6 @@ func (c *Class) ImportPackage(URL *url.URL, importer repo.Importer) error {
 	// All templates
 	var rex *regexp.Regexp
 	var files []*File
-	templatesKey := "templates"
-	scriptsKey := "scripts"
 
 	for _, folder := range c.Folders {
 		if folder.Template == "" {
