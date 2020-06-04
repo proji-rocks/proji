@@ -34,14 +34,21 @@ func WantTo(question string) bool {
 	var input string
 	for {
 		fmt.Print(question + " [y/N] ")
-		n, err := fmt.Scan(&input)
-		if n == 1 && err == nil {
+		n, err := fmt.Scanln(&input)
+		if err != nil {
+			if err.Error() != "unexpected newline" {
+				fmt.Printf("Unexpected error: %v", err)
+			}
+		}
+		if n == 1 {
 			input = strings.ToLower(input)
-			if input == "n" || input == "\n" {
+			if input == "n" {
 				return false
 			} else if input == "y" {
 				return true
 			}
+		} else if n == 0 {
+			return false
 		}
 	}
 }
