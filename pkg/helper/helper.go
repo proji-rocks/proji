@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/go-getter"
+	"github.com/cavaliercoder/grab"
 )
 
 // DoesPathExist checks if a given path exists in the filesystem.
@@ -81,15 +81,16 @@ func CreateFolderIfNotExists(path string) error {
 }
 
 // DownloadFile downloads a file from an url to the local fs.
-func DownloadFile(src, dst string) error {
-	return getter.GetFile(dst, src)
+func DownloadFile(dst, src string) error {
+	_, err := grab.Get(dst, src)
+	return err
 }
 
 // DownloadFileIfNotExists runs downloadFile() if the destination file doesn't already exist.
-func DownloadFileIfNotExists(src, dst string) error {
+func DownloadFileIfNotExists(dst, src string) error {
 	_, err := os.Stat(dst)
 	if os.IsNotExist(err) {
-		err = DownloadFile(src, dst)
+		err = DownloadFile(dst, src)
 	}
 	return err
 }

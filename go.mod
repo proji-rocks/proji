@@ -8,6 +8,7 @@ require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/aws/aws-sdk-go v1.31.1 // indirect
+	github.com/cavaliercoder/grab v2.0.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-openapi/errors v0.19.4 // indirect
 	github.com/go-openapi/strfmt v0.19.5 // indirect
@@ -29,7 +30,6 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.5.1
-	github.com/tidwall/gjson v1.6.0
 	github.com/tidwall/pretty v1.0.1 // indirect
 	github.com/ulikunitz/xz v0.5.7 // indirect
 	github.com/xanzy/go-gitlab v0.32.0
