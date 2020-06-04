@@ -6,14 +6,14 @@
 />
 
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/nikoksr/proji)](https://github.com/nikoksr/proji/releases/latest)
+[![AUR version](https://img.shields.io/aur/version/proji)](https://aur.archlinux.org/packages/proji/)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/643b7cce9fd2491e9fde38de6e1c58ad)](https://www.codacy.com/manual/nikoksr/proji?utm_source=github.com&utm_medium=referral&utm_content=nikoksr/proji&utm_campaign=Badge_Grade)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nikoksr/proji)](https://goreportcard.com/report/github.com/nikoksr/proji)
 [![CircleCI](https://circleci.com/gh/nikoksr/proji.svg?style=shield)](https://github.com/nikoksr/proji)
 [![codecov](https://codecov.io/gh/nikoksr/proji/branch/master/graph/badge.svg)](https://codecov.io/gh/nikoksr/proji)
 ![Platforms](https://img.shields.io/badge/platforms-Windows%2C%20macOS%20and%20Linux-blue)
-[![AUR version](https://img.shields.io/aur/version/proji)](https://aur.archlinux.org/packages/proji/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
 [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/nikoksr/proji)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
 
 <p align="center">
   <a href="#demo">Demo</a>
@@ -89,7 +89,7 @@ Proji is **cross-platform** and runs on Linux, MacOS and Windows.
 Install the correct binary for your operating system and architecture in `./bin` with a single command:
 
     curl -sfL https://git.io/proji | sh
-    
+
 Afterwards, move the executable to a folder that's in your path.
 
 #### Package <a id="install_pkg"></a>
@@ -97,7 +97,7 @@ Afterwards, move the executable to a folder that's in your path.
 ##### Arch Linux (AUR) <a id="install_pkg_arch"></a>
 
     yay -S proji
-    
+
 or
 
     yay -S proji-bin
