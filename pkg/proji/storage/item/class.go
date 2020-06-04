@@ -472,7 +472,7 @@ func filterAndConvertGHTreeEntries(treeEntries []*gh.TreeEntry, filters []*regex
 			if !skip {
 				skip = true
 			}
-			if filter.FindStringIndex(entry.String()) != nil {
+			if filter.FindStringIndex(entry.GetPath()) != nil {
 				skip = false
 				break
 			}
@@ -503,7 +503,7 @@ func filterAndConvertGLTreeEntries(treeEntries []*gl.TreeNode, filters []*regexp
 			if !skip {
 				skip = true
 			}
-			if filter.FindStringIndex(entry.String()) != nil {
+			if filter.FindStringIndex(entry.Path) != nil {
 				skip = false
 				break
 			}
