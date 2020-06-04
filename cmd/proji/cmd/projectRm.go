@@ -67,5 +67,5 @@ var rmCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(rmCmd)
 	rmCmd.Flags().BoolVarP(&removeAllClasses, "all", "a", false, "Remove all projects")
-	classRmCmd.Flags().BoolVarP(&forceRemoveProjects, "force", "f", false, "Don't ask for confirmation")
+	rmCmd.Flags().BoolVarP(&forceRemoveProjects, "force", "f", false, "Don't ask for confirmation")
 }

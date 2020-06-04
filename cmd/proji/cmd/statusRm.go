@@ -71,5 +71,5 @@ var statusRmCmd = &cobra.Command{
 func init() {
 	statusCmd.AddCommand(statusRmCmd)
 	statusRmCmd.Flags().BoolVarP(&removeAllStatuses, "all", "a", false, "Remove all statuses")
-	classRmCmd.Flags().BoolVarP(&forceRemoveStatuses, "force", "f", false, "Don't ask for confirmation")
+	statusRmCmd.Flags().BoolVarP(&forceRemoveStatuses, "force", "f", false, "Don't ask for confirmation")
 }
