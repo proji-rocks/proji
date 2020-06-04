@@ -36,7 +36,7 @@ func InitConfig(path, version string, forceUpdate bool) (string, error) {
 		}
 	}
 
-	fallbackVersion := "0.18.1"
+	fallbackVersion := "0.19.2"
 
 	// Representation of default config folder
 	cf := &configFolder{
