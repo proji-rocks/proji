@@ -54,8 +54,7 @@ func TestInitConfig(t *testing.T) {
 		if err == nil {
 			assert.DirExists(t, got, "%s\n", test.name)
 		}
-		err = os.RemoveAll(test.args.path)
-		assert.NoError(t, err, "%s\n", test.name)
+		_ = os.RemoveAll(test.args.path)
 	}
 }
 

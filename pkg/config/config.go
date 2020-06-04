@@ -73,19 +73,20 @@ func InitConfig(path, version string, forceUpdate bool) (string, error) {
 
 	// Create configs if they do not exist.
 	var wg sync.WaitGroup
-	errs := make(chan error, len(cf.configs))
+	numConfigs := len(cf.configs)
+	wg.Add(numConfigs)
+	errs := make(chan error, numConfigs)
 
 	for _, conf := range cf.configs {
-		wg.Add(1)
-		go func(conf *configFile, forceUpdate bool, wg *sync.WaitGroup, e chan error) {
+		go func(conf *configFile) {
 			defer wg.Done()
 			dst := filepath.Join(cf.path, conf.dst)
 			if forceUpdate {
-				e <- helper.DownloadFile(conf.src, dst)
+				errs <- helper.DownloadFile(dst, conf.src)
 			} else {
-				e <- helper.DownloadFileIfNotExists(conf.src, dst)
+				errs <- helper.DownloadFileIfNotExists(dst, conf.src)
 			}
-		}(conf, forceUpdate, &wg, errs)
+		}(conf)
 	}
 
 	wg.Wait()

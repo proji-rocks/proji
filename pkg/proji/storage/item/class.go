@@ -164,7 +164,7 @@ func (c *Class) ImportPackage(URL *url.URL, importer repo.Importer) error {
 	// Download config
 	f := filepath.Join(os.TempDir(), "/proji/configs/", filepath.Base(URL.Path))
 	dwn := importer.FilePathToRawURI(filepath.Join("configs/", filepath.Base(URL.Path)))
-	err := helper.DownloadFileIfNotExists(dwn, f)
+	err := helper.DownloadFileIfNotExists(f, dwn)
 	if err != nil {
 		return err
 	}
@@ -238,7 +238,7 @@ func (c *Class) ImportPackage(URL *url.URL, importer repo.Importer) error {
 				defer wg.Done()
 				src := importer.FilePathToRawURI(filepath.Join(fileType, file))
 				dst := filepath.Join(downloadDestination, fileType, file)
-				err = helper.DownloadFileIfNotExists(src, dst)
+				err = helper.DownloadFileIfNotExists(dst, src)
 				if err != nil {
 					e <- err
 				}

@@ -179,7 +179,7 @@ func TestDownloadFile(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		err := DownloadFile(test.args.src, test.args.dst)
+		err := DownloadFile(test.args.dst, test.args.src)
 		assert.Equal(t, test.wantErr, err != nil, "%s\n", test.name)
 
 		if !test.wantErr {
@@ -247,7 +247,7 @@ func TestDownloadFileIfNotExists(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		err := DownloadFileIfNotExists(test.args.src, test.args.dst)
+		err := DownloadFileIfNotExists(test.args.dst, test.args.src)
 		assert.Equal(t, test.wantErr, err != nil, "%s\n", test.name)
 
 		if !test.wantErr {
