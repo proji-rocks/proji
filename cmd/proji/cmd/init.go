@@ -15,10 +15,13 @@ var initCmd = &cobra.Command{
 	Short:  "Initialize user-specific config folder",
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		var err error
-		projiEnv.ConfigFolderPath, err = config.InitConfig(projiEnv.ConfigFolderPath, projiEnv.Version, false)
+		err := config.InitConfig(
+			projiEnv.ConfigFolderPath,
+			projiEnv.Version,
+			projiEnv.FallbackVersion,
+			false,
+		)
 		if err != nil {
-
 			log.Fatalf(
 				"Error: could not set up config folder. %v\n\n"+initHelp(),
 				err,
