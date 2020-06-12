@@ -8,8 +8,9 @@ import (
 )
 
 var statusLsCmd = &cobra.Command{
-	Use:   "ls",
-	Short: "List statuses",
+	Use:        "ls",
+	Short:      "List statuses",
+	Deprecated: "support for project statuses will be dropped with v0.21.0",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return listStatuses()
 	},

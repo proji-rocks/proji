@@ -28,7 +28,11 @@ jobs:
 
       - run:
           name: Run go test
-          command: go test -v ./pkg/...
+          command: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./pkg/...
+
+      - run:
+          name: Upload results to codecov
+          command: bash <(curl -s https://codecov.io/bash)
 
       - store_test_results:
           path: test-results-proji

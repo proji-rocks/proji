@@ -2,85 +2,113 @@ package gitlab
 
 import (
 	"fmt"
-	"io/ioutil"
+	"net/url"
 	"regexp"
+	"strings"
 
-	"github.com/nikoksr/proji/pkg/proji/repo"
-	"github.com/tidwall/gjson"
+	gl "github.com/xanzy/go-gitlab"
 )
 
-// gitlab struct holds important data about a gitlab repo
-type gitlab struct {
-	apiBaseURI string
-	userName   string
-	repoName   string
-	branchName string
+// GitLab struct holds important data about a gitlab repo
+type GitLab struct {
+	baseURI     *url.URL
+	OwnerName   string
+	RepoName    string
+	BranchName  string
+	TreeEntries []*gl.TreeNode
+	client      *gl.Client
 }
 
 // New creates a new gitlab repo object
-func New(repoURLPath string) (repo.Importer, error) {
+func New(URL *url.URL) (*GitLab, error) {
+	if URL.Hostname() != "gitlab.com" {
+		return nil, fmt.Errorf("invalid host %s", URL.Hostname())
+	}
+
 	// Parse URL
 	// Examples:
-	//  - https://gitlab.com/[inkscape]/[inkscape]                  -> extracts user and repo name; no branch name
-	//  - https://gitlab.com/[inkscape]/[inkscape]/-/tree/[master]  -> extracts user, repo and branch name
-	r := regexp.MustCompile(`gitlab.com/(?P<User>[^/]+)/(?P<Repo>[^/]+)(/-/tree/(?P<Branch>[^/]+))?`)
-	specs := r.FindStringSubmatch(repoURLPath)
+	//  - /[inkscape]/[inkscape]                 	-> extracts owner and repo name; no branch name
+	//  - /[inkscape]/[inkscape]/-/tree/[master]	-> extracts owner, repo and branch name
+	r := regexp.MustCompile(`/([^/]+)/([^/]+)(?:/(?:tree|blob)/([^/]+))?`)
+	specs := r.FindStringSubmatch(URL.Path)
 
-	if specs == nil || len(specs) < 5 {
+	if specs == nil {
 		return nil, fmt.Errorf("could not parse url path")
 	}
 
-	userName := specs[1]
-	repoName := specs[2]
-	branchName := specs[4]
+	OwnerName := specs[1]
+	RepoName := specs[2]
+	BranchName := specs[3]
 
-	if userName == "" || repoName == "" {
+	if OwnerName == "" || RepoName == "" {
 		return nil, fmt.Errorf("could not extract user and/or repository name. Please check the URL")
 	}
 
 	// Default to master if no branch was defined
-	if branchName == "" {
-		branchName = "master"
+	if BranchName == "" {
+		BranchName = "master"
 	}
 
-	return &gitlab{apiBaseURI: "https://gitlab.com/api/v4/projects/", userName: userName, repoName: repoName, branchName: branchName}, nil
-}
-
-// GetUserName returns the name of the repo owner
-func (g *gitlab) GetUserName() string { return g.userName }
-
-// GetRepoName returns the name of the repo
-func (g *gitlab) GetRepoName() string { return g.repoName }
-
-// GetBranchName returns the branch name
-func (g *gitlab) GetBranchName() string { return g.branchName }
-
-// GetTreePathsAndTypes gets the paths and types of the repo tree
-func (g *gitlab) GetTreePathsAndTypes() ([]gjson.Result, []gjson.Result, error) {
-	nextPage := "1"
-	paths := make([]gjson.Result, 0)
-	types := make([]gjson.Result, 0)
-	treeReq := g.apiBaseURI + g.userName + "%2F" + g.repoName + "/repository/tree/?ref=" + g.branchName + "&recursive=true&per_page=100&page="
-
-	for nextPage != "" {
-		// Request repo tree
-		response, err := repo.GetRequest(treeReq + nextPage)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		// Parse the tree
-		body, _ := ioutil.ReadAll(response.Body)
-		treeResponse := gjson.GetMany(string(body), "#.path", "#.type")
-		paths = append(paths, treeResponse[0].Array()...)
-		types = append(types, treeResponse[1].Array()...)
-		err = response.Body.Close()
-		if err != nil {
-			return nil, nil, err
-		}
-
-		// Set next page from response header
-		nextPage = response.Header.Get("X-Next-Page")
+	glClient, err := gl.NewClient("")
+	if err != nil {
+		return nil, err
 	}
-	return paths, types, nil
+
+	return &GitLab{
+		baseURI:    URL,
+		OwnerName:  OwnerName,
+		RepoName:   RepoName,
+		BranchName: BranchName,
+		client:     glClient,
+	}, nil
 }
+
+// GetBaseURI returns the base URI of the repo
+// You can pass the relative path to a file of that repo to receive the complete raw url for said file.
+// Or you pass an empty string resulting in the base of the raw url for files of this repo.
+func (g *GitLab) FilePathToRawURI(filePath string) string {
+	if strings.HasPrefix(filePath, "/") {
+		filePath = filePath[1:]
+	}
+	return fmt.Sprintf("https://gitlab.com/%s/%s/-/raw/%s/%s", g.OwnerName, g.RepoName, g.BranchName, filePath)
+}
+
+// GetTreeEntries gets the paths and types of the repo tree
+func (g *GitLab) LoadTreeEntries() error {
+	// Reset tree entries
+	g.TreeEntries = make([]*gl.TreeNode, 0)
+	pid := g.OwnerName + "/" + g.RepoName
+	rec := true
+	nextPage := 1
+
+	for {
+		treeNodes, resp, err := g.client.Repositories.ListTree(pid, &gl.ListTreeOptions{
+			Recursive: &rec,
+			Ref:       &g.BranchName,
+			ListOptions: gl.ListOptions{
+				Page:    nextPage,
+				PerPage: 100,
+			},
+		})
+		if err != nil {
+			return err
+		}
+		g.TreeEntries = append(g.TreeEntries, treeNodes...)
+
+		// Break if no next page
+		if resp.NextPage == 0 {
+			break
+		}
+		nextPage = resp.NextPage
+	}
+	return nil
+}
+
+// Owner returns the name of the owner
+func (g *GitLab) Owner() string { return g.OwnerName }
+
+// Repo returns the name of the repo
+func (g *GitLab) Repo() string { return g.RepoName }
+
+// Repo returns the name of the branch
+func (g *GitLab) Branch() string { return g.BranchName }

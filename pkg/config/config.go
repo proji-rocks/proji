@@ -1,13 +1,16 @@
 package config
 
 import (
+	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
+
+	"github.com/Masterminds/semver"
+	"github.com/nikoksr/proji/pkg/helper"
 )
 
 type configFile struct {
@@ -23,8 +26,17 @@ type configFolder struct {
 
 // InitConfig is the main function for projis config initialization. It determines the OS' preferred config location, creates
 // proji's config folders and downloads the required configs from GitHub to the local config folder.
-func InitConfig(path, version string) (string, error) {
-	fallbackVersion := "0.18.1"
+func InitConfig(path, version string, forceUpdate bool) (string, error) {
+	var err error
+
+	if strings.Trim(path, " ") == "" {
+		path, err = GetBaseConfigPath()
+		if err != nil {
+			return "", err
+		}
+	}
+
+	fallbackVersion := "0.19.2"
 
 	// Representation of default config folder
 	cf := &configFolder{
@@ -46,14 +58,14 @@ func InitConfig(path, version string) (string, error) {
 	cf.path = path
 
 	// Create basefolder if it does not exist.
-	err := createFolderIfNotExists(cf.path)
+	err = helper.CreateFolderIfNotExists(cf.path)
 	if err != nil {
 		return "", err
 	}
 
 	// Create subfolders if they do not exist.
 	for _, subFolder := range cf.subFolders {
-		err = createFolderIfNotExists(filepath.Join(cf.path, "/", subFolder))
+		err = helper.CreateFolderIfNotExists(filepath.Join(cf.path, "/", subFolder))
 		if err != nil {
 			return "", err
 		}
@@ -61,29 +73,34 @@ func InitConfig(path, version string) (string, error) {
 
 	// Create configs if they do not exist.
 	var wg sync.WaitGroup
-	errors := make(chan error, len(cf.configs))
+	numConfigs := len(cf.configs)
+	wg.Add(numConfigs)
+	errs := make(chan error, numConfigs)
 
 	for _, conf := range cf.configs {
-		wg.Add(1)
-		go func(conf *configFile, wg *sync.WaitGroup, e chan error) {
+		go func(conf *configFile) {
 			defer wg.Done()
 			dst := filepath.Join(cf.path, conf.dst)
-			e <- downloadFileIfNotExists(conf.src, dst)
-		}(conf, &wg, errors)
+			if forceUpdate {
+				errs <- helper.DownloadFile(dst, conf.src)
+			} else {
+				errs <- helper.DownloadFileIfNotExists(dst, conf.src)
+			}
+		}(conf)
 	}
 
 	wg.Wait()
-	close(errors)
+	close(errs)
 
-	for err = range errors {
+	for err = range errs {
 		if err != nil {
 			if version == fallbackVersion {
 				return cf.path, err
 			}
-			// Try with fallback version. This may help regular users but is manly for circleCI, which
+			// Try with fallback version. This may help regular users but is manly for CI, which
 			// fails when new versions are pushed. When a new version is pushed the corresponding github tag
 			// doesn't exist, proji init fails.
-			return InitConfig(cf.path, fallbackVersion)
+			return InitConfig(cf.path, fallbackVersion, true)
 		}
 	}
 
@@ -110,45 +127,33 @@ func GetBaseConfigPath() (string, error) {
 	return configPath, nil
 }
 
-// createFolderIfNotExists creates a folder at the given path if it doesn't already exist.
-func createFolderIfNotExists(path string) error {
-	_, err := os.Stat(path)
-	if !os.IsNotExist(err) {
-		return err
+func IsConfigUpToDate(projiVersion, configVersion string) (bool, error) {
+	projiV, err := semver.NewVersion(projiVersion)
+	if err != nil {
+		return false, err
 	}
-	return os.MkdirAll(path, os.ModePerm)
+	configV, err := semver.NewVersion(configVersion)
+	if err != nil {
+		return false, err
+	}
+
+	if configV.LessThan(projiV) {
+		return false, errors.New("main config version is lower than proji's version. Please update your main" +
+			" config")
+	} else if configV.GreaterThan(projiV) {
+		return true, errors.New("main config version is greater than proji's version, which could lead to " +
+			"unforeseen errors")
+	} else {
+		return true, nil
+	}
 }
 
-// downloadFile downloads a file from an url to the local fs.
-func downloadFile(src, dst string) error {
-	// Get the data
-	resp, err := http.Get(src)
-	if err != nil {
-		return err
+func ParsePathFromConfig(configFolderPath, pathToParse string) string {
+	if filepath.IsAbs(pathToParse) {
+		// Either user defined path like '/my/custom/db/path' or default value was loaded
+		return pathToParse
 	}
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("error: %s", resp.Status)
-	}
-
-	defer resp.Body.Close()
-
-	// Create the file
-	out, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
-	return err
-}
-
-// downloadFileIfNotExists runs downloadFile() if the destination file doesn't already exist.
-func downloadFileIfNotExists(src, dst string) error {
-	_, err := os.Stat(dst)
-	if os.IsNotExist(err) {
-		err = downloadFile(src, dst)
-	}
-	return err
+	// User defined path like 'db/proji.sqlite3'. Gets prefixed with config folder path. This has to be a relative
+	// path or else the above will trigger.
+	return filepath.Join(configFolderPath, pathToParse)
 }

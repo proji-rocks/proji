@@ -1,7 +1,5 @@
 title = "proji main config"
-
-[examples]
-path = "examples/proji-class.toml"
+version = "0.20.0"
 
 [sqlite3]
 path = "db/proji.sqlite3"

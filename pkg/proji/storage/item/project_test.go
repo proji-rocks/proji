@@ -27,7 +27,7 @@ func TestNewProject(t *testing.T) {
 	assert.Equal(t, projExp, projAct)
 }
 
-func TestProjectCreate(t *testing.T) {
+func TestProject_Create(t *testing.T) {
 	originalCwd, err := os.Getwd()
 	if err != nil {
 		t.Error(err)

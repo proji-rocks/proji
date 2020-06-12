@@ -3,12 +3,14 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/nikoksr/proji/pkg/helper"
+
 	"github.com/nikoksr/proji/pkg/proji/storage/item"
 
 	"github.com/spf13/cobra"
 )
 
-var removeAll bool
+var removeAllClasses, forceRemoveClasses bool
 
 var classRmCmd = &cobra.Command{
 	Use:   "rm LABEL [LABEL...]",
@@ -18,7 +20,7 @@ var classRmCmd = &cobra.Command{
 		// Collect classes that will be removed
 		var classes []*item.Class
 
-		if removeAll {
+		if removeAllClasses {
 			var err error
 			classes, err = projiEnv.Svc.LoadAllClasses()
 			if err != nil {
@@ -44,8 +46,17 @@ var classRmCmd = &cobra.Command{
 
 		// Remove the classes
 		for _, class := range classes {
+			// Skip default classes
 			if class.IsDefault {
 				continue
+			}
+			// Ask for confirmation if force flag was not passed
+			if !forceRemoveClasses {
+				if !helper.WantTo(
+					fmt.Sprintf("Do you really want to remove class '%s (%s)'?", class.Name, class.Label),
+				) {
+					continue
+				}
 			}
 			err := projiEnv.Svc.RemoveClass(class.ID)
 			if err != nil {
@@ -60,5 +71,6 @@ var classRmCmd = &cobra.Command{
 
 func init() {
 	classCmd.AddCommand(classRmCmd)
-	classRmCmd.Flags().BoolVarP(&removeAll, "all", "a", false, "Remove all classes")
+	classRmCmd.Flags().BoolVarP(&removeAllClasses, "all", "a", false, "Remove all classes")
+	classRmCmd.Flags().BoolVarP(&forceRemoveClasses, "force", "f", false, "Don't ask for confirmation")
 }

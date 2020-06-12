@@ -2,14 +2,33 @@ package item
 
 import (
 	"errors"
+	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/nikoksr/proji/pkg/proji/repo/github"
+
+	"github.com/nikoksr/proji/pkg/proji/repo"
+	"github.com/nikoksr/proji/pkg/proji/repo/gitlab"
 
 	"github.com/nikoksr/proji/pkg/helper"
 
 	"github.com/stretchr/testify/assert"
 )
+
+var goodURLs = []*url.URL{
+	{Scheme: "https", Host: "github.com", Path: "/nikoksr/proji-test"},
+	{Scheme: "https", Host: "github.com", Path: "/nikoksr/proji-test/tree/develop"},
+	{Scheme: "https", Host: "gitlab.com", Path: "/nikoksr/proji-test"},
+	{Scheme: "https", Host: "gitlab.com", Path: "/nikoksr/proji-test/tree/develop"},
+}
+
+var badURLs = []*url.URL{
+	{Scheme: "https", Host: "github.com", Path: "/nikoksr/does-not-exist"},
+	{Scheme: "https", Host: "github.com", Path: "/nikoksr/proji-test/tree/dead-branch"},
+	{Scheme: "https", Host: "google.com", Path: ""},
+}
 
 func TestNewClass(t *testing.T) {
 	classExp := &Class{
@@ -25,7 +44,7 @@ func TestNewClass(t *testing.T) {
 	assert.Equal(t, classExp, classAct)
 }
 
-func TestClassImportFromConfig(t *testing.T) {
+func TestClass_ImportConfig(t *testing.T) {
 	tests := []struct {
 		configName string
 		class      *Class
@@ -81,13 +100,13 @@ func TestClassImportFromConfig(t *testing.T) {
 
 	for _, test := range tests {
 		c := NewClass("", "", false)
-		err := c.ImportFromConfig(test.configName)
+		err := c.ImportConfig(test.configName)
 		assert.IsType(t, test.err, err)
 		assert.Equal(t, test.class, c)
 	}
 }
 
-func TestClassImportFromDirectory(t *testing.T) {
+func TestClass_ImportFolderStructure(t *testing.T) {
 	tmpDir := os.TempDir()
 
 	tests := []struct {
@@ -143,10 +162,10 @@ func TestClassImportFromDirectory(t *testing.T) {
 		}
 
 		c := NewClass("", "", false)
-		assert.NoError(t, c.ImportFromDirectory(test.basePath, make([]string, 0)))
+		assert.NoError(t, c.ImportFolderStructure(test.basePath, make([]string, 0)))
 		conf, err := c.Export(tmpDir)
 		assert.NoError(t, err)
-		assert.NoError(t, c.ImportFromConfig(conf))
+		assert.NoError(t, c.ImportConfig(conf))
 		assert.Equal(t, test.class, c)
 
 		// Clean up
@@ -155,16 +174,16 @@ func TestClassImportFromDirectory(t *testing.T) {
 	}
 }
 
-func TestClassImportFromURL(t *testing.T) {
+func TestClass_ImportRepoStructure(t *testing.T) {
 	helper.SkipNetworkBasedTests(t)
 
 	tests := []struct {
-		URL   string
+		URL   *url.URL
 		class *Class
 		err   error
 	}{
 		{
-			URL: "https://github.com/nikoksr/proji-test",
+			URL: &url.URL{Scheme: "https", Host: "github.com", Path: "/nikoksr/proji-test"},
 			class: &Class{
 				Name:      "proji-test",
 				Label:     "pt",
@@ -191,7 +210,7 @@ func TestClassImportFromURL(t *testing.T) {
 			err: nil,
 		},
 		{
-			URL: "https://github.com/nikoksr/proji-test/tree/develop",
+			URL: &url.URL{Scheme: "https", Host: "github.com", Path: "/nikoksr/proji-test/tree/develop"},
 			class: &Class{
 				Name:      "proji-test",
 				Label:     "pt",
@@ -219,7 +238,7 @@ func TestClassImportFromURL(t *testing.T) {
 			err: nil,
 		},
 		{
-			URL: "https://gitlab.com/nikoksr/proji-test",
+			URL: &url.URL{Scheme: "https", Host: "gitlab.com", Path: "/nikoksr/proji-test"},
 			class: &Class{
 				Name:      "proji-test",
 				Label:     "pt",
@@ -249,12 +268,16 @@ func TestClassImportFromURL(t *testing.T) {
 
 	for _, test := range tests {
 		c := NewClass("", "", false)
-		assert.NoError(t, c.ImportFromURL(test.URL))
+		importer, err := GetRepoImporterFromURL(test.URL)
+		if err != nil {
+			t.Errorf("failed getting repo importer for URL %s", test.URL.String())
+		}
+		assert.NoError(t, c.ImportRepoStructure(importer, nil))
 		assert.Equal(t, test.class, c)
 	}
 }
 
-func TestClassExport(t *testing.T) {
+func TestClass_Export(t *testing.T) {
 	tmpDir := os.TempDir()
 
 	tests := []struct {
@@ -291,7 +314,7 @@ func TestClassExport(t *testing.T) {
 	}
 }
 
-func TestClassIsEmpty(t *testing.T) {
+func TestClass_isEmpty(t *testing.T) {
 	tests := []struct {
 		class   *Class
 		isEmpty bool
@@ -344,5 +367,152 @@ func TestClassIsEmpty(t *testing.T) {
 
 	for _, test := range tests {
 		assert.Equal(t, test.class.isEmpty(), test.isEmpty)
+	}
+}
+
+func TestGetRepoImporterFromURL(t *testing.T) {
+	type args struct {
+		URL *url.URL
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		want    repo.Importer
+		wantErr bool
+	}{
+		{
+			name: "Test Importer 1",
+			args: args{URL: goodURLs[0]},
+			want: &github.GitHub{
+				OwnerName:  "nikoksr",
+				RepoName:   "proji-test",
+				BranchName: "master",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Test Importer 2",
+			args: args{URL: goodURLs[1]},
+			want: &github.GitHub{
+				OwnerName:  "nikoksr",
+				RepoName:   "proji-test",
+				BranchName: "develop",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Test Importer 3",
+			args: args{URL: goodURLs[2]},
+			want: &gitlab.GitLab{
+				OwnerName:  "nikoksr",
+				RepoName:   "proji-test",
+				BranchName: "master",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Test Importer 4",
+			args: args{URL: goodURLs[3]},
+			want: &gitlab.GitLab{
+				OwnerName:  "nikoksr",
+				RepoName:   "proji-test",
+				BranchName: "develop",
+			},
+			wantErr: false,
+		},
+		{
+			name:    "Test Importer 5",
+			args:    args{URL: badURLs[0]},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "Test Importer 6",
+			args:    args{URL: badURLs[1]},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "Test Importer 7",
+			args:    args{URL: badURLs[2]},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := GetRepoImporterFromURL(tt.args.URL)
+			assert.Equal(t, err != nil, tt.wantErr, "GetRepoImporterFromURL() error = %v, wantErr %v", err, tt.wantErr)
+
+			if got != nil && tt.want != nil {
+				assert.Equal(t, tt.want.Owner(), got.Owner(), tt.name)
+				assert.Equal(t, tt.want.Repo(), got.Repo(), tt.name)
+				assert.Equal(t, tt.want.Branch(), got.Branch(), tt.name)
+			}
+		})
+	}
+}
+
+func Test_pickLabel(t *testing.T) {
+	type args struct {
+		className string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "Test Pick Label 1",
+			args: args{className: "myTestClass"},
+			want: "mtc",
+		},
+		{
+			name: "Test Pick Label 2",
+			args: args{className: "my-test-class"},
+			want: "mtc",
+		},
+		{
+			name: "Test Pick Label 3",
+			args: args{className: "my.test.class"},
+			want: "mtc",
+		},
+		{
+			name: "Test Pick Label 4",
+			args: args{className: "my_test_class"},
+			want: "mtc",
+		},
+		{
+			name: "Test Pick Label 5",
+			args: args{className: "my%20test%20class"},
+			want: "mtc",
+		},
+		{
+			name: "Test Pick Label 6",
+			args: args{className: "mytestclass"},
+			want: "mts",
+		},
+		{
+			name: "Test Pick Label 7",
+			args: args{className: "sjcsdhfklhaslcsdflsancshdkljfjalksfjnsvnslkd"},
+			want: "ssd",
+		},
+		{
+			name: "Test Pick Label 8",
+			args: args{className: "s"},
+			want: "s",
+		},
+		{
+			name: "Test Pick Label 9",
+			args: args{className: ""},
+			want: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := pickLabel(tt.args.className)
+			assert.Equal(t, tt.want, got, "pickLabel() = %v, want %v", got, tt.want)
+		})
 	}
 }

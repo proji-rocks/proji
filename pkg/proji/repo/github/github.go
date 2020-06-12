@@ -1,102 +1,122 @@
 package github
 
 import (
+	"context"
 	"fmt"
-	"io/ioutil"
+	"net/http"
+	"net/url"
 	"regexp"
+	"strings"
+	"time"
 
-	"github.com/nikoksr/proji/pkg/proji/repo"
-
-	"github.com/tidwall/gjson"
+	gh "github.com/google/go-github/v31/github"
 )
 
-// github struct holds important data about a github repo
-type github struct {
-	apiBaseURI string
-	userName   string
-	repoName   string
-	branchName string
-	repoSHA    string
+// GitHub struct holds important data about a github repo
+type GitHub struct {
+	baseURI     *url.URL
+	OwnerName   string
+	RepoName    string
+	BranchName  string
+	TreeEntries []*gh.TreeEntry
+	repoSHA     string
+	client      *gh.Client
 }
-
-// New creates a new github repo object
-func New(repoURLPath string) (repo.Importer, error) {
-	// Parse URL
-	// Examples:
-	//  - https://github.com/[nikoksr]/[proji]                -> extracts user and repo name; no branch name
-	//  - https://github.com/[nikoksr]/[proji]/tree/[master]  -> extracts user, repo and branch name
-	r := regexp.MustCompile(`github.com/(?P<User>[^/]+)/(?P<Repo>[^/]+)(/tree/(?P<Branch>[^/]+))?`)
-	specs := r.FindStringSubmatch(repoURLPath)
-
-	if specs == nil || len(specs) < 5 {
-		return nil, fmt.Errorf("could not parse url path")
-	}
-
-	userName := specs[1]
-	repoName := specs[2]
-	branchName := specs[4]
-
-	if userName == "" || repoName == "" {
-		return nil, fmt.Errorf("could not extract user and/or repository name. Please check the URL")
-	}
-
-	// Default to master if no branch was defined
-	if branchName == "" {
-		branchName = "master"
-	}
-
-	g := &github{apiBaseURI: "https://api.github.com/repos/", userName: userName, repoName: repoName, branchName: branchName, repoSHA: ""}
-	return g, g.setRepoSHA()
-}
-
-// GetUserName returns the name of the repo owner
-func (g *github) GetUserName() string { return g.userName }
-
-// GetRepoName returns the name of the repo
-func (g *github) GetRepoName() string { return g.repoName }
-
-// GetBranchName returns the branch name
-func (g *github) GetBranchName() string { return g.branchName }
 
 // setRepoSHA sets the repoSHA attribute equal to the SHA-1 of the last commit in the current branch
-func (g *github) setRepoSHA() error {
-	// Send request for SHA-1 of branch
-	shaReq := g.apiBaseURI + g.userName + "/" + g.repoName + "/branches/" + g.branchName
-	response, err := repo.GetRequest(shaReq)
+func (g *GitHub) setRepoSHA(ctx context.Context) error {
+	if g.BranchName == "" {
+		/*
+			r := &gh.Repository{}
+			r, _, err := g.client.Repositories.Get(ctx, g.OwnerName, g.RepoName)
+			if err != nil {
+				return err
+			}
+			g.BranchName = r.GetDefaultBranch()
+		*/
+		// Default to master branch for now. The above uses too many API calls and Github's API limit gets exceeded
+		// too quickly.
+		g.BranchName = "master"
+	}
+
+	b, _, err := g.client.Repositories.GetBranch(ctx, g.OwnerName, g.RepoName, g.BranchName)
 	if err != nil {
 		return err
 	}
-
-	// Parse body and try to extract SHA
-	body, _ := ioutil.ReadAll(response.Body)
-	repoSHA := gjson.Get(string(body), "commit.sha")
-	defer response.Body.Close()
-	if !repoSHA.Exists() {
-		return fmt.Errorf("could not get commit sha-1 from body")
-	}
-	g.repoSHA = repoSHA.String()
+	g.repoSHA = b.GetCommit().GetSHA()
 	return nil
 }
 
-// GetTreePathsAndTypes gets the paths and types of the repo tree
-func (g *github) GetTreePathsAndTypes() ([]gjson.Result, []gjson.Result, error) {
-	// Request repo tree
-	treeReq := g.apiBaseURI + g.userName + "/" + g.repoName + "/git/trees/" + g.repoSHA + "?recursive=1"
-	response, err := repo.GetRequest(treeReq)
+// New creates a new github repo object
+func New(URL *url.URL) (*GitHub, error) {
+	if URL.Hostname() != "github.com" {
+		return nil, fmt.Errorf("invalid host %s", URL.Hostname())
+	}
+
+	// Extract owner, repo and branch if given
+	// Examples:
+	//  - /[nikoksr]/[proji]				-> extracts owner and repo name; no branch name
+	//  - /[nikoksr]/[proji]/tree/[master]	-> extracts owner, repo and branch name
+	r := regexp.MustCompile(`/([^/]+)/([^/]+)(?:/tree/([^/]+))?`)
+	specs := r.FindStringSubmatch(URL.Path)
+
+	if specs == nil {
+		return nil, fmt.Errorf("could not parse url")
+	}
+
+	OwnerName := specs[1]
+	RepoName := specs[2]
+	BranchName := specs[3]
+
+	if OwnerName == "" || RepoName == "" {
+		return nil, fmt.Errorf("could not extract user and/or repository name. Please check the URL")
+	}
+
+	g := &GitHub{
+		baseURI:     URL,
+		OwnerName:   OwnerName,
+		RepoName:    RepoName,
+		BranchName:  BranchName,
+		TreeEntries: make([]*gh.TreeEntry, 0),
+		repoSHA:     "",
+		client:      gh.NewClient(&http.Client{Timeout: 10 * time.Second}),
+	}
+
+	err := g.setRepoSHA(context.Background())
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	body, _ := ioutil.ReadAll(response.Body)
-
-	// Check if response was truncated
-	if gjson.Get(string(body), "truncated").Bool() == true {
-		return nil, nil, fmt.Errorf("the response was truncated by Github, which means that the number of items in the tree array exceeded the maximum limit.\n\nClone the repo manually with git and use 'proji class import --directory /path/to/repo' to import the local instance of that repo")
-	}
-
-	// Parse the tree
-	treeResponse := gjson.GetMany(string(body), "tree.#.path", "tree.#.type")
-	defer response.Body.Close()
-	paths := treeResponse[0].Array()
-	types := treeResponse[1].Array()
-	return paths, types, nil
+	return g, nil
 }
+
+// GetBaseURI returns the base URI of the repo
+// You can pass the relative path to a file of that repo to receive the complete raw url for said file.
+// Or you pass an empty string resulting in the base of the raw url for files of this repo.
+func (g *GitHub) FilePathToRawURI(filePath string) string {
+	if strings.HasPrefix(filePath, "/") {
+		filePath = filePath[1:]
+	}
+	return fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s/%s", g.OwnerName, g.RepoName, g.BranchName, filePath)
+}
+
+// GetTreeEntries gets the paths and types of the repo tree
+func (g *GitHub) LoadTreeEntries() error {
+	tree, _, err := g.client.Git.GetTree(context.Background(), g.OwnerName, g.RepoName, g.repoSHA, true)
+	if err != nil {
+		return err
+	}
+	if tree.GetTruncated() {
+		return fmt.Errorf("the response was truncated by Github, which means that the number of items in the tree array exceeded the maximum limit.\n\nClone the repo manually with git and use 'proji class import --directory /path/to/repo' to import the local instance of that repo")
+	}
+	g.TreeEntries = tree.Entries
+	return nil
+}
+
+// Owner returns the name of the owner
+func (g *GitHub) Owner() string { return g.OwnerName }
+
+// Repo returns the name of the repo
+func (g *GitHub) Repo() string { return g.RepoName }
+
+// Repo returns the name of the branch
+func (g *GitHub) Branch() string { return g.BranchName }
