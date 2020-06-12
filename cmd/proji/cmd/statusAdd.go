@@ -12,8 +12,9 @@ import (
 )
 
 var statusAddCmd = &cobra.Command{
-	Use:   "add STATUS [STATUS...]",
-	Short: "Add one or more statuses",
+	Use:        "add STATUS [STATUS...]",
+	Short:      "Add one or more statuses",
+	Deprecated: "support for project statuses will be dropped with v0.21.0",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			return fmt.Errorf("missing status")

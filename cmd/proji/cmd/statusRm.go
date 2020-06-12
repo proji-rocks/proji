@@ -12,8 +12,9 @@ import (
 var removeAllStatuses, forceRemoveStatuses bool
 
 var statusRmCmd = &cobra.Command{
-	Use:   "rm ID [ID...]",
-	Short: "Remove one or more statuses",
+	Use:        "rm ID [ID...]",
+	Short:      "Remove one or more statuses",
+	Deprecated: "support for project statuses will be dropped with v0.21.0",
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		// Collect statuses that will be removed
