@@ -119,7 +119,8 @@ snapcrafts:
   -
     id: proji-linux-amd64 
     builds:
-      - proji-linux-amd64 
+      - proji-linux-amd64
+    name: proji
     name_template: "{{.ProjectName}}-{{.Os}}-{{.Arch}}"
     replacements:
       amd64: 64bit
@@ -127,9 +128,21 @@ snapcrafts:
       arm: ARM
       arm64: ARM64
       linux: Linux
-    publish: false
-    description: A powerful cross-platform CLI project templating tool.
-    summary: cross-platform CLI templating tool.
-    confinement: strict
+    publish: true
+    description: |
+      **Key Features**
+
+      *   Creates project directories of any size **in seconds**
+      *   Project templates are based on **individual config files**
+      *   Structures of **GitHub/GitLab repos can be imported** as templates
+      *   Structures of **directories can be imported** as templates
+      *   Infinitely extendable through integration of **custom shell scripts**
+      *   Supports **custom template files**
+      *   **Shareable** project configs
+      *   Projects are **not bound to any language or framework**
+      *   Boosts your **productivity** and simplifies your **workflow**
+      *   Works on **Windows**, **macOS** and **Linux**
+    summary: A powerful cross-platform CLI project templating tool.
+    confinement: classic
     license: MIT
     base: bare
