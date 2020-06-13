@@ -56,7 +56,9 @@ jobs:
 
       - run:
           name: Install snapd
-          command: sudo apt install -y snapd
+          command: |
+            sudo apt update
+            sudo apt install -y snapd
 
       - run:
           name: Install snapcraft
