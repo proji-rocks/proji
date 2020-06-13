@@ -62,7 +62,7 @@ jobs:
 
       - run:
           name: Start snapd service
-          command: sudo systemctl start snapd.socket
+          command: sudo service snapd start
 
       - run:
           name: Install snapcraft
