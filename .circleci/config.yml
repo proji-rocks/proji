@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: cimg/go:1.13
+      - image: cimg/go:1.14.4
 
     working_directory: /home/circleci/go/src/github.com/nikoksr/proji
 
@@ -43,12 +43,30 @@ jobs:
 
   release:
     docker:
-      - image: mailchain/goreleaser-xcgo
+      - image: mailchain/goreleaser-xcgo:latest
 
     working_directory: /go/src/github.com/nikoksr/proji
 
     steps:
       - checkout
+
+      - run:
+          name: Add snap to path
+          command: echo "export PATH=/snap/bin:$PATH" >> $BASH_ENV
+
+      - run:
+          name: Install snapd
+          command: sudo apt install -y snapd
+
+      - run:
+          name: Install snapcraft
+          command: sudo snap install snapcraft --classic
+
+      - run:
+          name: Login to snap store
+          command: |
+            echo $SNAPCRAFT_LOGIN_FILE | base64 --decode --ignore-garbage > snapcraft.login
+            snapcraft login --with snapcraft.login
 
       - run:
           name: Deploy releases
