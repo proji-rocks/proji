@@ -61,6 +61,10 @@ jobs:
             sudo apt install -y snapd
 
       - run:
+          name: Start snapd service
+          command: sudo systemctl start snapd.socket
+
+      - run:
           name: Install snapcraft
           command: sudo snap install snapcraft --classic
 
