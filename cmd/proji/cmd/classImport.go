@@ -90,7 +90,7 @@ func importClass(path, importType string, excludes []string) (string, error) {
 			return "", err
 		}
 
-		importer, err = item.GetRepoImporterFromURL(URL)
+		importer, err = item.GetRepoImporterFromURL(URL, projiEnv.Auth)
 		if err != nil {
 			return "", err
 		}
