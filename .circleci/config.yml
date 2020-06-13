@@ -44,12 +44,44 @@ jobs:
   release:
     docker:
       - image: mailchain/goreleaser-xcgo:v0.9.0
-      - image: cibuilds/snapcraft:stable
 
     working_directory: /go/src/github.com/nikoksr/proji
 
     steps:
       - checkout
+
+      - run:
+          name: Install dependencies
+          command: |
+            apt-get update && apt-get install -y squashfs-tools && rm -rf /var/lib/apt/lists/*
+
+      - run:
+          name: Install the core snap, a dependency of the snapcraft snap
+          command: |
+            curl -L $(curl -H "X-Ubuntu-Series: 16" "https://api.snapcraft.io/api/v1/snaps/details/core" | jq ".download_url" -r) --output core.snap
+            mkdir -p /snap/core
+            unsquashfs -d /snap/core/current core.snap
+            rm -f core.snap
+
+      - run:
+          name: Install the core18 snap
+          command: |
+            curl -L $(curl -H "X-Ubuntu-Series: 16" "https://api.snapcraft.io/api/v1/snaps/details/core18" | jq ".download_url" -r) --output core18.snap
+            mkdir -p /snap/core18
+            unsquashfs -d /snap/core18/current core18.snap
+            rm -f core18.snap
+
+      - run:
+          name: Install the snapcraft snap
+          command: |
+            curl -L $(curl -H "X-Ubuntu-Series: 16" "https://api.snapcraft.io/api/v1/snaps/details/snapcraft?channel=stable" | jq ".download_url" -r) --output snapcraft.snap
+            mkdir -p /snap/snapcraft
+            unsquashfs -d /snap/snapcraft/current snapcraft.snap
+            rm -f snapcraft.snap
+
+      - run:
+          name: Add snap to path
+          command: echo "export PATH=/snap/bin:/snap/snapcraft/current/bin:$PATH" >> $BASH_ENV
 
       - run:
           name: Login to snap store
