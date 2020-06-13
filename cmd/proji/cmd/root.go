@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/nikoksr/proji/pkg/config"
 
@@ -15,21 +15,23 @@ import (
 )
 
 // Env represents central resources and information the app uses.
-type env struct {
+type Env struct {
+	Auth             *config.APIAuthentication
 	DBPath           string
 	Svc              storage.Service
 	ConfigFolderPath string
-	ConfigVersion    string
 	ExcludedPaths    []string
+	FallbackVersion  string
 	Version          string
 }
 
-var projiEnv *env
+var projiEnv *Env
 
 const (
-	configVersionKey        = "version"
-	configExcludeFoldersKey = "import.excludeFolders"
+	configExcludeFoldersKey = "import.exclude_folders"
 	configDBKey             = "sqlite3.path"
+	configGHTokenKey        = "auth.gh_token"
+	configGLTokenKey        = "auth.gl_token"
 )
 
 var rootCmd = &cobra.Command{
@@ -37,7 +39,7 @@ var rootCmd = &cobra.Command{
 	Short: "A powerful cross-platform CLI project templating tool.",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		if projiEnv == nil {
-			log.Fatalf("Error: env struct is not defined.\n")
+			log.Fatalf("Error: Env struct is not defined.\n")
 		}
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
@@ -59,7 +61,15 @@ func Execute() {
 
 func init() {
 	if projiEnv == nil {
-		projiEnv = &env{Svc: nil, ConfigFolderPath: "", ExcludedPaths: make([]string, 0), Version: "0.20.0"}
+		projiEnv = &Env{
+			Auth:             &config.APIAuthentication{},
+			DBPath:           "",
+			ExcludedPaths:    make([]string, 0),
+			ConfigFolderPath: "",
+			Svc:              nil,
+			FallbackVersion:  "0.19.2",
+			Version:          "0.20.0",
+		}
 	}
 
 	if len(os.Args) > 1 && os.Args[1] != "init" && os.Args[1] != "version" && os.Args[1] != "help" {
@@ -78,35 +88,24 @@ func initConfig() {
 
 	// Config name
 	viper.SetConfigName("config")
+	viper.SetConfigType("toml")
 
-	// Read in config
+	// Set default values as fallback
+	setDefaultConfigValues()
+
+	// Read config
 	err = viper.ReadInConfig()
 	if err != nil {
 		log.Fatalf("Error: %v\n\nTry and execute: proji init\n", err)
 	}
 
-	// Set default values as fallback
-	viper.SetDefault(configVersionKey, "0.1.0")
-	viper.SetDefault(configExcludeFoldersKey, make([]string, 0))
-	viper.SetDefault(configDBKey, filepath.Join(projiEnv.ConfigFolderPath, "/db/proji.sqlite3"))
-
-	// Automatic environment variables handling
+	// Read environment variables
+	viper.SetEnvPrefix("PROJI")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
-	// Read values from config
-	projiEnv.ConfigVersion = viper.GetString(configVersionKey)
-	projiEnv.ExcludedPaths = viper.GetStringSlice(configExcludeFoldersKey)
-	projiEnv.DBPath = config.ParsePathFromConfig(projiEnv.ConfigFolderPath, viper.GetString(configDBKey))
-
-	// Validate version
-	ok, err := config.IsConfigUpToDate(projiEnv.Version, projiEnv.ConfigVersion)
-	if ok {
-		if err != nil {
-			fmt.Printf("\nWarning: %v\n\n", err)
-		}
-	} else {
-		log.Fatalln(err)
-	}
+	// Set all proji relevant environmental values
+	setAllEnvValues()
 }
 
 func initStorageService() {
@@ -115,4 +114,18 @@ func initStorageService() {
 	if err != nil {
 		log.Fatalf("Error: could not connect to sqlite db. %v\n%s\n", err, projiEnv.DBPath)
 	}
+}
+
+func setDefaultConfigValues() {
+	viper.SetDefault(configGHTokenKey, "")
+	viper.SetDefault(configGLTokenKey, "")
+	viper.SetDefault(configExcludeFoldersKey, make([]string, 0))
+	viper.SetDefault(configDBKey, filepath.Join(projiEnv.ConfigFolderPath, "/db/proji.sqlite3"))
+}
+
+func setAllEnvValues() {
+	projiEnv.Auth.GHToken = viper.GetString(configGHTokenKey)
+	projiEnv.Auth.GLToken = viper.GetString(configGLTokenKey)
+	projiEnv.ExcludedPaths = viper.GetStringSlice(configExcludeFoldersKey)
+	projiEnv.DBPath = config.ParsePathFromConfig(projiEnv.ConfigFolderPath, viper.GetString(configDBKey))
 }
