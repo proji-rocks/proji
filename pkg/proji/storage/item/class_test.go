@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/nikoksr/proji/pkg/config"
+
 	"github.com/nikoksr/proji/pkg/proji/repo/github"
 
 	"github.com/nikoksr/proji/pkg/proji/repo"
@@ -28,6 +30,11 @@ var badURLs = []*url.URL{
 	{Scheme: "https", Host: "github.com", Path: "/nikoksr/does-not-exist"},
 	{Scheme: "https", Host: "github.com", Path: "/nikoksr/proji-test/tree/dead-branch"},
 	{Scheme: "https", Host: "google.com", Path: ""},
+}
+
+var apiAuth = config.APIAuthentication{
+	GHToken: os.Getenv("PROJI_AUTH_GH_TOKEN"),
+	GLToken: os.Getenv("PROJI_AUTH_GL_TOKEN"),
 }
 
 func TestNewClass(t *testing.T) {
@@ -268,7 +275,7 @@ func TestClass_ImportRepoStructure(t *testing.T) {
 
 	for _, test := range tests {
 		c := NewClass("", "", false)
-		importer, err := GetRepoImporterFromURL(test.URL)
+		importer, err := GetRepoImporterFromURL(test.URL, &apiAuth)
 		if err != nil {
 			t.Errorf("failed getting repo importer for URL %s", test.URL.String())
 		}
@@ -442,7 +449,7 @@ func TestGetRepoImporterFromURL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetRepoImporterFromURL(tt.args.URL)
+			got, err := GetRepoImporterFromURL(tt.args.URL, &apiAuth)
 			assert.Equal(t, err != nil, tt.wantErr, "GetRepoImporterFromURL() error = %v, wantErr %v", err, tt.wantErr)
 
 			if got != nil && tt.want != nil {

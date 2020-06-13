@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,102 +8,121 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Masterminds/semver"
 	"github.com/nikoksr/proji/pkg/helper"
 )
+
+type APIAuthentication struct {
+	GHToken string
+	GLToken string
+}
 
 type configFile struct {
 	src string
 	dst string
 }
 
-type configFolder struct {
-	path       string
+type mainConfigFolder struct {
+	basePath   string
 	configs    []*configFile
 	subFolders []string
 }
 
-// InitConfig is the main function for projis config initialization. It determines the OS' preferred config location, creates
-// proji's config folders and downloads the required configs from GitHub to the local config folder.
-func InitConfig(path, version string, forceUpdate bool) (string, error) {
-	var err error
+const (
+	rawURLPrefix = "https://raw.githubusercontent.com/nikoksr/proji/v"
+)
 
-	if strings.Trim(path, " ") == "" {
-		path, err = GetBaseConfigPath()
-		if err != nil {
-			return "", err
-		}
-	}
-
-	fallbackVersion := "0.19.2"
-
-	// Representation of default config folder
-	cf := &configFolder{
-		path: "",
+var (
+	// Representation of the proji's main config folder
+	defaultConfigFolder = &mainConfigFolder{
+		basePath: "",
 		configs: []*configFile{
 			{
-				src: "https://raw.githubusercontent.com/nikoksr/proji/v" + version + "/assets/examples/example-config.toml",
+				src: "/assets/examples/example-config.toml",
 				dst: "config.toml",
 			},
 			{
-				src: "https://raw.githubusercontent.com/nikoksr/proji/v" + version + "/assets/examples/example-class-export.toml",
+				src: "/assets/examples/example-class-export.toml",
 				dst: "examples/proji-class.toml",
 			},
 		},
 		subFolders: []string{"db", "examples", "scripts", "templates"},
 	}
+)
 
-	// Set OS specific config folder path
-	cf.path = path
+// InitConfig is the main function for projis config initialization. It determines the OS' preferred config location, creates
+// proji's config folders and downloads the required configs from GitHub to the local config folder.
+func InitConfig(path, version, fallbackVersion string, forceUpdate bool) error {
+	var err error
 
-	// Create basefolder if it does not exist.
-	err = helper.CreateFolderIfNotExists(cf.path)
-	if err != nil {
-		return "", err
-	}
-
-	// Create subfolders if they do not exist.
-	for _, subFolder := range cf.subFolders {
-		err = helper.CreateFolderIfNotExists(filepath.Join(cf.path, "/", subFolder))
+	// Set base config path if not given
+	if strings.Trim(path, " ") == "" {
+		path, err = GetBaseConfigPath()
 		if err != nil {
-			return "", err
+			return err
 		}
 	}
 
-	// Create configs if they do not exist.
+	defaultConfigFolder.basePath = path
+
+	// Create subfolders
+	err = defaultConfigFolder.createSubFolders()
+	if err != nil {
+		return err
+	}
+
+	// Download config files
+	err = defaultConfigFolder.downloadConfigFiles(
+		version,
+		fallbackVersion,
+		forceUpdate,
+	)
+	return err
+}
+
+// Create subfolders if they do not exist.
+func (mcf *mainConfigFolder) createSubFolders() error {
+	for _, subFolder := range mcf.subFolders {
+		err := helper.CreateFolderIfNotExists(filepath.Join(mcf.basePath, subFolder))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (mcf *mainConfigFolder) downloadConfigFiles(version, fallbackVersion string, forceUpdate bool) error {
 	var wg sync.WaitGroup
-	numConfigs := len(cf.configs)
+	numConfigs := len(mcf.configs)
 	wg.Add(numConfigs)
 	errs := make(chan error, numConfigs)
 
-	for _, conf := range cf.configs {
+	for _, conf := range mcf.configs {
 		go func(conf *configFile) {
 			defer wg.Done()
-			dst := filepath.Join(cf.path, conf.dst)
+			src := rawURLPrefix + version + conf.src
+			dst := filepath.Join(mcf.basePath, conf.dst)
 			if forceUpdate {
-				errs <- helper.DownloadFile(dst, conf.src)
+				errs <- helper.DownloadFile(dst, src)
 			} else {
-				errs <- helper.DownloadFileIfNotExists(dst, conf.src)
+				errs <- helper.DownloadFileIfNotExists(dst, src)
 			}
 		}(conf)
 	}
 
 	wg.Wait()
 	close(errs)
-
-	for err = range errs {
+	for err := range errs {
 		if err != nil {
-			if version == fallbackVersion {
-				return cf.path, err
+			if version != fallbackVersion {
+				// Try with fallback version. This may help regular users but is manly for CI, which
+				// fails when new versions are pushed. When a new version is pushed the corresponding github tag
+				// doesn't exist, proji init fails.
+				return mcf.downloadConfigFiles(fallbackVersion, fallbackVersion, true)
 			}
-			// Try with fallback version. This may help regular users but is manly for CI, which
-			// fails when new versions are pushed. When a new version is pushed the corresponding github tag
-			// doesn't exist, proji init fails.
-			return InitConfig(cf.path, fallbackVersion, true)
+			return err
 		}
 	}
-
-	return cf.path, nil
+	return nil
 }
 
 // GetBaseConfigPath returns the OS specific path of the config folder.
@@ -125,27 +143,6 @@ func GetBaseConfigPath() (string, error) {
 			"https://github.com/nikoksr/proji to request the support of your OS.\n", runtime.GOOS)
 	}
 	return configPath, nil
-}
-
-func IsConfigUpToDate(projiVersion, configVersion string) (bool, error) {
-	projiV, err := semver.NewVersion(projiVersion)
-	if err != nil {
-		return false, err
-	}
-	configV, err := semver.NewVersion(configVersion)
-	if err != nil {
-		return false, err
-	}
-
-	if configV.LessThan(projiV) {
-		return false, errors.New("main config version is lower than proji's version. Please update your main" +
-			" config")
-	} else if configV.GreaterThan(projiV) {
-		return true, errors.New("main config version is greater than proji's version, which could lead to " +
-			"unforeseen errors")
-	} else {
-		return true, nil
-	}
 }
 
 func ParsePathFromConfig(configFolderPath, pathToParse string) string {

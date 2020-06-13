@@ -9,7 +9,7 @@
 [![AUR version](https://img.shields.io/aur/version/proji)](https://aur.archlinux.org/packages/proji/)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/643b7cce9fd2491e9fde38de6e1c58ad)](https://www.codacy.com/manual/nikoksr/proji?utm_source=github.com&utm_medium=referral&utm_content=nikoksr/proji&utm_campaign=Badge_Grade)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nikoksr/proji)](https://goreportcard.com/report/github.com/nikoksr/proji)
-[![CircleCI](https://circleci.com/gh/nikoksr/proji.svg?style=shield)](https://github.com/nikoksr/proji)
+[![CircleCI](https://circleci.com/gh/nikoksr/proji.svg?style=shield)](https://circleci.com/gh/nikoksr/proji)
 [![codecov](https://codecov.io/gh/nikoksr/proji/branch/master/graph/badge.svg)](https://codecov.io/gh/nikoksr/proji)
 ![Platforms](https://img.shields.io/badge/platforms-Windows%2C%20macOS%20and%20Linux-blue)
 [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/nikoksr/proji)

@@ -20,7 +20,7 @@ type GitLab struct {
 }
 
 // New creates a new gitlab repo object
-func New(URL *url.URL) (*GitLab, error) {
+func New(URL *url.URL, authToken string) (*GitLab, error) {
 	if URL.Hostname() != "gitlab.com" {
 		return nil, fmt.Errorf("invalid host %s", URL.Hostname())
 	}
@@ -49,7 +49,7 @@ func New(URL *url.URL) (*GitLab, error) {
 		BranchName = "master"
 	}
 
-	glClient, err := gl.NewClient("")
+	glClient, err := gl.NewClient(authToken)
 	if err != nil {
 		return nil, err
 	}

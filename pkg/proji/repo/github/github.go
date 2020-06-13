@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/oauth2"
+
 	gh "github.com/google/go-github/v31/github"
 )
 
@@ -22,6 +24,8 @@ type GitHub struct {
 	repoSHA     string
 	client      *gh.Client
 }
+
+const defaultTimeout = time.Second * 10
 
 // setRepoSHA sets the repoSHA attribute equal to the SHA-1 of the last commit in the current branch
 func (g *GitHub) setRepoSHA(ctx context.Context) error {
@@ -47,8 +51,8 @@ func (g *GitHub) setRepoSHA(ctx context.Context) error {
 	return nil
 }
 
-// New creates a new github repo object
-func New(URL *url.URL) (*GitHub, error) {
+// New creates a new github repo instance
+func New(URL *url.URL, authToken string) (*GitHub, error) {
 	if URL.Hostname() != "github.com" {
 		return nil, fmt.Errorf("invalid host %s", URL.Hostname())
 	}
@@ -72,6 +76,9 @@ func New(URL *url.URL) (*GitHub, error) {
 		return nil, fmt.Errorf("could not extract user and/or repository name. Please check the URL")
 	}
 
+	ctx := context.Background()
+	ghClient := getGHClient(ctx, authToken)
+
 	g := &GitHub{
 		baseURI:     URL,
 		OwnerName:   OwnerName,
@@ -79,10 +86,10 @@ func New(URL *url.URL) (*GitHub, error) {
 		BranchName:  BranchName,
 		TreeEntries: make([]*gh.TreeEntry, 0),
 		repoSHA:     "",
-		client:      gh.NewClient(&http.Client{Timeout: 10 * time.Second}),
+		client:      ghClient,
 	}
 
-	err := g.setRepoSHA(context.Background())
+	err := g.setRepoSHA(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -110,6 +117,17 @@ func (g *GitHub) LoadTreeEntries() error {
 	}
 	g.TreeEntries = tree.Entries
 	return nil
+}
+
+func getGHClient(ctx context.Context, token string) *gh.Client {
+	if len(strings.Trim(token, " ")) > 0 {
+		// Create an authenticated client
+		tc := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}))
+		tc.Timeout = defaultTimeout
+		return gh.NewClient(tc)
+	}
+	// Create an unauthenticated client
+	return gh.NewClient(&http.Client{Timeout: defaultTimeout})
 }
 
 // Owner returns the name of the owner

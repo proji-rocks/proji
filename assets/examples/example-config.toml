@@ -1,8 +1,9 @@
-title = "proji main config"
-version = "0.20.0"
+[auth]
+gh_token = ""
+gl_token = ""
+
+[import]
+exclude_folders = [".git", ".env"]
 
 [sqlite3]
 path = "db/proji.sqlite3"
-
-[import]
-excludeFolders = [".git", ".env"]

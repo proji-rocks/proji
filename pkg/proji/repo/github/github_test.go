@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"os"
 	"testing"
 	"time"
 
@@ -38,13 +39,15 @@ var badURLs = []*url.URL{
 	{Scheme: "https", Host: "google.com", Path: ""},
 }
 
+var apiToken = os.Getenv("PROJI_AUTH_GH_TOKEN")
+
 // TestNew tests the creation of a new github object based on given github URLs.
 func TestNew(t *testing.T) {
 	helper.SkipNetworkBasedTests(t)
 
 	// These should work
 	for i, repo := range goodRepos {
-		g, err := New(repo.baseURI)
+		g, err := New(repo.baseURI, apiToken)
 		assert.NoError(t, err)
 		assert.NotNil(t, g)
 		assert.Equal(t, goodRepos[i].baseURI, g.baseURI)
@@ -56,7 +59,7 @@ func TestNew(t *testing.T) {
 
 	// These should fail
 	for _, URL := range badURLs {
-		_, err := New(URL)
+		_, err := New(URL, apiToken)
 		assert.Error(t, err)
 	}
 }
@@ -260,7 +263,7 @@ func TestGitHub_LoadTreeEntries(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		g, err := New(test.URL)
+		g, err := New(test.URL, apiToken)
 		assert.Equal(t, err != nil, test.wantErr, "LoadTreeEntries() error = %v, wantErr %v", err, test.wantErr)
 
 		if g == nil {
