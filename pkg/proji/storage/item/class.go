@@ -423,15 +423,15 @@ func pickLabel(className string) string {
 */
 
 // GetRepoImporterFromURL returns the most suiting importer based on the code hosting platform.
-func GetRepoImporterFromURL(URL *url.URL) (repo.Importer, error) {
+func GetRepoImporterFromURL(URL *url.URL, auth *config.APIAuthentication) (repo.Importer, error) {
 	var importer repo.Importer
 	var err error
 
 	switch URL.Hostname() {
 	case "github.com":
-		importer, err = github.New(URL)
+		importer, err = github.New(URL, auth.GHToken)
 	case "gitlab.com":
-		importer, err = gitlab.New(URL)
+		importer, err = gitlab.New(URL, auth.GLToken)
 	default:
 		return nil, fmt.Errorf("platform not supported yet")
 	}
