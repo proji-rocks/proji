@@ -58,7 +58,7 @@ jobs:
       - run:
           name: Install snapcraft
           command: |
-            pip3 install snapcraft
+            pip3 install snapcraft yaml
 
       - run:
           name: Login to snap store
