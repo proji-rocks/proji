@@ -43,30 +43,13 @@ jobs:
 
   release:
     docker:
-      - image: mailchain/goreleaser-xcgo:latest
+      - image: mailchain/goreleaser-xcgo:v0.9.0
+      - image: cibuilds/snapcraft:stable
 
     working_directory: /go/src/github.com/nikoksr/proji
 
     steps:
       - checkout
-
-      - run:
-          name: Add snap to path
-          command: echo "export PATH=/snap/bin:$PATH" >> $BASH_ENV
-
-      - run:
-          name: Install snapd
-          command: |
-            sudo apt update
-            sudo apt install -y snapd
-
-      - run:
-          name: Start snapd service
-          command: sudo service snapd start
-
-      - run:
-          name: Install snapcraft
-          command: sudo snap install snapcraft --classic
 
       - run:
           name: Login to snap store
