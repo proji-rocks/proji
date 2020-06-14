@@ -53,7 +53,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apt-get update && apt-get install -y squashfs-tools python3-pip
+            apt-get update && apt-get install -y squashfs-tools python3-pip libyaml-dev
 
       - run:
           name: Install snapcraft
