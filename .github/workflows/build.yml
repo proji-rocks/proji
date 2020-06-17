@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on
+      PATH: $GOPATH/bin:/usr/local/go/bin:/usr/osxcross/target/bin:$PATH
     steps:
       -
         name: Checkout
@@ -20,14 +21,33 @@ jobs:
         with:
           fetch-depth: 0
       -
-        name: Set up Snapcraft
+        name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get -yq --no-install-suggests --no-install-recommends install snapcraft
-      -
-        name: Set up sqlite3
-        run: |
-          sudo apt-get -yq --no-install-suggests --no-install-recommends install sqlite3  
+          sudo apt-get -yq --no-install-suggests --no-install-recommends install \
+            snapcraft \
+            sqlite3 \
+            ca-certificates \
+            unzip \
+            git \
+            curl \
+            make \
+            cmake \
+            gcc \
+            clang \
+            llvm \
+            yasm \
+            nasm \
+            ccache \
+            pkg-config \
+            gcc-mingw-w64 \
+            pkg-config-mingw-w64-x86-64 \
+            gcc-arm-linux-gnueabihf \
+            pkg-config-arm-linux-gnueabihf \
+            gcc-aarch64-linux-gnu \
+            pkg-config-aarch64-linux-gnu
+          sudo apt-get clean
+          curl https://media.githubusercontent.com/media/illuspas/resources/master/tar/osxcross-10.10.tar.gz | tar xvz -C /
       -
         name: Set up Go
         uses: actions/setup-go@v2

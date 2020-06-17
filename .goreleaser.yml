@@ -9,8 +9,7 @@ builds:
     binary: proji
     env:
       - CGO_ENABLED=1
-      - CC=o64-clang
-      - CXX=o64-clang++
+      - CC=x86_64-apple-darwin14-cc
     main: ./cmd/proji/main.go
     goos:
       - darwin
@@ -32,7 +31,6 @@ builds:
     env:
       - CGO_ENABLED=1
       - CC=x86_64-w64-mingw32-gcc
-      - CXX=x86_64-w64-mingw32-g++
     main: ./cmd/proji/main.go
     goos:
       - windows
@@ -90,7 +88,6 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
-      - 'README'
       - Merge pull request
       - Merge branch
 
