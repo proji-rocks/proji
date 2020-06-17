@@ -9,7 +9,7 @@ on:
   pull_request:
 
 jobs:
-  goreleaser:
+  build:
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on
