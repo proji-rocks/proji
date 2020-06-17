@@ -23,7 +23,7 @@ jobs:
         name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get -yq --no-install-suggests --no-install-recommends install \
+          sudo apt-get -yq install \
             snapcraft \
             sqlite3 \
             ca-certificates \
@@ -41,7 +41,12 @@ jobs:
             ccache \
             pkg-config \
             gcc-mingw-w64 \
-            pkg-config-mingw-w64-x86-64
+            pkg-config-mingw-w64-i686 \
+            pkg-config-mingw-w64-x86-64 \
+            gcc-arm-linux-gnueabihf \
+            pkg-config-arm-linux-gnueabihf \
+            gcc-aarch64-linux-gnu \
+            pkg-config-aarch64-linux-gnu
           sudo apt-get clean
           sudo curl https://media.githubusercontent.com/media/illuspas/resources/master/tar/osxcross-10.10.tar.gz | sudo tar xvz -C /
       -
