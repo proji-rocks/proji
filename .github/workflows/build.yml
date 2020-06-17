@@ -39,6 +39,7 @@ jobs:
             yasm \
             nasm \
             ccache \
+            gcc-multilib \
             pkg-config \
             gcc-mingw-w64 \
             pkg-config-mingw-w64-x86-64 \
