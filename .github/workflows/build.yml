@@ -23,7 +23,7 @@ jobs:
         name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get -yq --reinstall install \
+          sudo apt-get --no-install-recommends install --yes \
             snapcraft \
             sqlite3 \
             ca-certificates \
