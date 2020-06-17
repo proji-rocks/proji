@@ -140,6 +140,6 @@ snapcrafts:
       *   Boosts your **productivity** and simplifies your **workflow**
       *   Works on **Windows**, **macOS** and **Linux**
     summary: A powerful cross-platform CLI project templating tool.
-    confinement: classic
+    confinement: strict
     license: MIT
     base: bare
