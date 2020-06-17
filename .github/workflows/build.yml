@@ -35,6 +35,7 @@ jobs:
             gcc \
             clang \
             llvm \
+            llvm-libs \
             yasm \
             nasm \
             ccache \
