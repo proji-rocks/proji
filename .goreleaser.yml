@@ -36,21 +36,6 @@ builds:
       - windows
     goarch:
       - amd64
-  - id: proji-linux-arm64
-    ldflags: -s -w -X github.com/proji/proji.Version={{.Version}} -X github.com/proji/proji.BuildDate={{.Date}} -X github.com/proji/proji.CommitHash={{ .ShortCommit }}
-    binary: proji
-    env:
-      - CGO_ENABLED=1
-      - CC=aarch64-linux-gnu-gcc
-    main: ./cmd/proji/main.go
-    goos:
-      - linux
-    goarch:
-      - arm64
-      - arm
-    goarm:
-      - 6
-      - 7
 archives:
   - name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
     replacements:
