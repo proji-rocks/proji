@@ -25,20 +25,6 @@ builds:
       - linux
     goarch:
       - amd64
-  - id: proji-linux-arm64
-      ldflags: -s -w -X github.com/proji/proji.Version={{.Version}} -X github.com/proji/proji.BuildDate={{.Date}} -X github.com/proji/proji.CommitHash={{ .ShortCommit }}
-      binary: proji
-      env:
-        - CGO_ENABLED=1
-        - CC=aarch64-linux-gnu-gcc
-      main: ./cmd/proji/main.go
-      goos:
-        - linux
-      goarch:
-        - arm64
-      goarm:
-        - 6
-        - 7
   - id: proji-windows-amd64
     ldflags: -s -w -X github.com/proji/proji.Version={{.Version}} -X github.com/proji/proji.BuildDate={{.Date}} -X github.com/proji/proji.CommitHash={{ .ShortCommit }}
     binary: proji
@@ -50,30 +36,44 @@ builds:
       - windows
     goarch:
       - amd64
+  - id: proji-linux-arm64
+    ldflags: -s -w -X github.com/proji/proji.Version={{.Version}} -X github.com/proji/proji.BuildDate={{.Date}} -X github.com/proji/proji.CommitHash={{ .ShortCommit }}
+    binary: proji
+    env:
+      - CGO_ENABLED=1
+      - CC=aarch64-linux-gnu-gcc
+    main: ./cmd/proji/main.go
+    goos:
+      - linux
+    goarch:
+      - arm64
+    goarm:
+      - 6
+      - 7
 archives:
-  - format: tar.gz
+  - name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+    replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
     format_overrides:
       - goos: windows
         format: zip
-    name_template: "{{.ProjectName}}-{{.Os}}-{{.Arch}}"
-    replacements:
-      amd64: 64bit
-      386: 32bit
-      arm: ARM
-      arm64: ARM64
-      darwin: macOS
-      linux: Linux
-      windows: Windows
-      openbsd: OpenBSD
-      netbsd: NetBSD
-      freebsd: FreeBSD
-      dragonfly: DragonFlyBSD
     files:
       - LICENSE
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - Merge pull request
+      - Merge branch
 checksum:
-  name_template: 'checksums.txt'
-snapshot:
-  name_template: "{{ .Tag }}-next"
+  name_template: '{{ .ProjectName }}_checksums.txt'
 brews:
   - github:
       owner: nikoksr
@@ -96,16 +96,6 @@ scoop:
   homepage: "https://github.com/nikoksr/proji"
   description: "A powerful cross-platform CLI project templating tool."
   license: MIT
-changelog:
-  sort: asc
-  filters:
-    exclude:
-      - '^docs:'
-      - '^test:'
-      - '^ci:'
-      - Merge pull request
-      - Merge branch
-
 nfpms:
   -
     id: proji-linux-amd64 
@@ -125,8 +115,6 @@ nfpms:
       - deb
       - rpm
     bindir: /usr/bin
-
-
 snapcrafts: 
   -
     id: proji-linux-amd64 
