@@ -46,7 +46,7 @@ jobs:
             gcc-aarch64-linux-gnu \
             pkg-config-aarch64-linux-gnu
           sudo apt-get clean
-          curl https://media.githubusercontent.com/media/illuspas/resources/master/tar/osxcross-10.10.tar.gz | tar xvz -C /
+          sudo curl https://media.githubusercontent.com/media/illuspas/resources/master/tar/osxcross-10.10.tar.gz | sudo tar xvz -C /
       -
         name: Set up path
         run: |
