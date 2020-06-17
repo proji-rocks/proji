@@ -41,7 +41,10 @@ jobs:
             ccache \
             pkg-config \
             gcc-mingw-w64 \
-            gcc-multilib \
+            gcc-7-aarch64-linux-gnu \
+            gcc-6-aarch64-linux-gnu \
+            gcc-7-arm-linux-gnueabihf \
+            gcc-6-arm-linux-gnueabihf \
             pkg-config-mingw-w64-x86-64 \
             gcc-arm-linux-gnueabihf \
             pkg-config-arm-linux-gnueabihf \
