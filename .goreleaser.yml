@@ -10,7 +10,7 @@ builds:
     env:
       - CGO_ENABLED=1
       - CC=x86_64-apple-darwin14-cc
-    main: ./cmd/proji/main.go
+    main: ./main.go
     goos:
       - darwin
     goarch:
@@ -20,7 +20,7 @@ builds:
     binary: proji
     env:
       - CGO_ENABLED=1
-    main: ./cmd/proji/main.go
+    main: ./main.go
     goos:
       - linux
     goarch:
@@ -31,7 +31,7 @@ builds:
     env:
       - CGO_ENABLED=1
       - CC=x86_64-w64-mingw32-gcc
-    main: ./cmd/proji/main.go
+    main: ./main.go
     goos:
       - windows
     goarch:
