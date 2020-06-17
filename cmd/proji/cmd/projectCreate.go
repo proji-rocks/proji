@@ -26,7 +26,7 @@ var createCmd = &cobra.Command{
 			return err
 		}
 
-		// Load class and status once for all projects
+		// Load class once for all projects
 		classID, err := projiEnv.Svc.LoadClassIDByLabel(label)
 		if err != nil {
 			return err
@@ -37,16 +37,10 @@ var createCmd = &cobra.Command{
 			return err
 		}
 
-		// Load status active by default
-		status, err := projiEnv.Svc.LoadStatus(1)
-		if err != nil {
-			return err
-		}
-
 		for _, name := range projects {
 			fmt.Printf("\n> Creating project %s\n", name)
 
-			err := createProject(name, cwd, projiEnv.ConfigFolderPath, class, status)
+			err := createProject(name, cwd, projiEnv.ConfigFolderPath, class)
 			if err != nil {
 				fmt.Printf(" -> Failed: %v\n", err)
 
@@ -54,7 +48,7 @@ var createCmd = &cobra.Command{
 					if !helper.WantTo("> Do you want to replace it?") {
 						continue
 					}
-					err := replaceProject(name, cwd, projiEnv.ConfigFolderPath, class, status)
+					err := replaceProject(name, cwd, projiEnv.ConfigFolderPath, class)
 					if err != nil {
 						fmt.Printf("> Replacing project %s failed: %v\n", name, err)
 						continue
@@ -73,8 +67,8 @@ func init() {
 	rootCmd.AddCommand(createCmd)
 }
 
-func createProject(name, cwd, configPath string, class *item.Class, status *item.Status) error {
-	proj := item.NewProject(0, name, filepath.Join(cwd, name), class, status)
+func createProject(name, cwd, configPath string, class *item.Class) error {
+	proj := item.NewProject(0, name, filepath.Join(cwd, name), class)
 
 	// Save it first to see if it already exists in the database
 	err := projiEnv.Svc.SaveProject(proj)
@@ -89,7 +83,7 @@ func createProject(name, cwd, configPath string, class *item.Class, status *item
 	return nil
 }
 
-func replaceProject(name, cwd, configPath string, class *item.Class, status *item.Status) error {
+func replaceProject(name, cwd, configPath string, class *item.Class) error {
 	id, err := projiEnv.Svc.LoadProjectID(filepath.Join(cwd, "/", name))
 	if err != nil {
 		return err
@@ -100,5 +94,5 @@ func replaceProject(name, cwd, configPath string, class *item.Class, status *ite
 	if err != nil {
 		return err
 	}
-	return createProject(name, cwd, configPath, class, status)
+	return createProject(name, cwd, configPath, class)
 }

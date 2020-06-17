@@ -28,7 +28,7 @@ func listProjects() error {
 	// Table header
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"ID", "Name", "Install Path", "Class", "Status"})
+	t.AppendHeader(table.Row{"ID", "Name", "Install Path", "Class"})
 
 	// Fill table
 	for _, project := range projects {
@@ -37,7 +37,6 @@ func listProjects() error {
 			project.Name,
 			project.InstallPath,
 			project.Class.Name,
-			project.Status.Title,
 		})
 	}
 

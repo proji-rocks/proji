@@ -11,21 +11,19 @@ import (
 
 // Project struct represents a proji project
 type Project struct {
-	ID          uint    // The project ID
-	Name        string  // The project name
-	InstallPath string  // The install path for the project
-	Class       *Class  // The template class
-	Status      *Status // The current project status
+	ID          uint   // The project ID
+	Name        string // The project name
+	InstallPath string // The install path for the project
+	Class       *Class // The template class
 }
 
 // NewProject returns a new project
-func NewProject(projectID uint, name, installPath string, class *Class, status *Status) *Project {
+func NewProject(projectID uint, name, installPath string, class *Class) *Project {
 	return &Project{
 		ID:          projectID,
 		Name:        name,
 		InstallPath: installPath,
 		Class:       class,
-		Status:      status,
 	}
 }
 

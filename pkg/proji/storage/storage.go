@@ -14,13 +14,6 @@ type Service interface {
 	LoadAllProjects() ([]*item.Project, error)                      // LoadAllProjects returns a list of all projects in storage.
 	LoadProjectID(installPath string) (uint, error)                 // LoadProjectID loads the ID of a project.
 	LoadClassIDByLabel(label string) (uint, error)                  // LoadClassIDByLabel loads the ID of a class by its label.
-	UpdateProjectStatus(projectID, statusID uint) error             // UpdateProjectStatus updates the status of a given project in storage.
 	UpdateProjectLocation(projectID uint, installPath string) error // UpdateProjectLocation updates the location of a project in storage.
 	RemoveProject(projectID uint) error                             // RemoveProject removes a project from storage.
-	SaveStatus(status *item.Status) error                           // SaveStatus adds a new status to storage.
-	UpdateStatus(statusID uint, title, comment string) error        // UpdateStatus updates a status in storage.
-	LoadStatus(statusID uint) (*item.Status, error)                 // LoadStatus loads a status from storage by its ID.
-	LoadAllStatuses() ([]*item.Status, error)                       // LoadAllStatuses returns a list of all statuses in storage.
-	LoadStatusID(title string) (uint, error)                        // LoadStatusID loads the ID of a given status from storage.
-	RemoveStatus(statusID uint) error                               // RemoveStatus removes an existing status from storage.
 }
