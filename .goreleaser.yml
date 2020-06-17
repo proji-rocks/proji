@@ -45,8 +45,6 @@ builds:
     main: ./cmd/proji/main.go
     goos:
       - linux
-    goarch:
-      - arm64
     goarm:
       - 6
       - 7
