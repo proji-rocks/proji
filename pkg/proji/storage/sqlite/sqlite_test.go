@@ -123,14 +123,10 @@ func TestProject(t *testing.T) {
 	err = svc.SaveClass(class)
 	assert.NoError(t, err)
 
-	// Load the default status 'active'
-	status, err := svc.LoadStatus(1)
-	assert.NoError(t, err)
-
 	projectName := "test-proj1"
 	basePath := os.TempDir()
 	projectPath := filepath.Join(basePath, projectName)
-	proj := item.NewProject(0, projectName, filepath.Join(projectPath, projectName), class, status)
+	proj := item.NewProject(0, projectName, filepath.Join(projectPath, projectName), class)
 
 	// Test SaveProject
 	err = svc.SaveProject(proj)
@@ -152,23 +148,17 @@ func TestProject(t *testing.T) {
 	assert.Equal(t, proj, loadedProj)
 	proj = nil
 
-	// Update the status and location of the project
-	newStatusID := uint(1)
-	err = svc.UpdateProjectStatus(loadedProj.ID, newStatusID)
-	assert.NoError(t, err)
-
 	newProjPath := "/test"
 	err = svc.UpdateProjectLocation(loadedProj.ID, newProjPath)
 	assert.NoError(t, err)
 
 	loadedProj, err = svc.LoadProject(loadedProj.ID)
 	assert.NoError(t, err)
-	assert.Equal(t, newStatusID, loadedProj.Status.ID)
 	assert.Equal(t, newProjPath, loadedProj.InstallPath)
 	projectsInMem = append(projectsInMem, loadedProj)
 
 	// Add another project and try to load both of them
-	proj2 := item.NewProject(0, "test-proj2", filepath.Join(basePath, "test-proj2"), class, status)
+	proj2 := item.NewProject(0, "test-proj2", filepath.Join(basePath, "test-proj2"), class)
 	err = svc.SaveProject(proj2)
 	assert.NoError(t, err)
 
@@ -187,70 +177,6 @@ func TestProject(t *testing.T) {
 
 		// Try to remove the project
 		err = svc.RemoveProject(proj.ID)
-		assert.NoError(t, err)
-	}
-}
-
-func TestStatus(t *testing.T) {
-	dbPath := filepath.Join(os.TempDir(), "/proji.sqlite3")
-	svc, err := New(dbPath)
-	defer os.Remove(dbPath)
-	assert.NoError(t, err)
-	assert.NotNil(t, svc)
-
-	status := item.NewStatus(0, "test", "This is a test status.", false)
-	badStatus := item.NewStatus(1, "active", "This status should already exist.", false)
-
-	// Try to save the new status; should be successful
-	err = svc.SaveStatus(status)
-	assert.NoError(t, err)
-
-	// Try to save a status that already exists; should fail
-	err = svc.SaveStatus(badStatus)
-	assert.Error(t, err)
-
-	// Load the status ID
-	id, err := svc.LoadStatusID(status.Title)
-	assert.NoError(t, err)
-	status.ID = id
-
-	// Load and compare the status
-	loadedStatus, err := svc.LoadStatus(status.ID)
-	assert.NoError(t, err)
-	assert.Equal(t, status, loadedStatus)
-
-	// Update a status
-	newTitle := "updated-test"
-	newComment := "This is an updated test."
-	err = svc.UpdateStatus(status.ID, newTitle, newComment)
-	assert.NoError(t, err)
-
-	// Reload and compare again
-	status, err = svc.LoadStatus(status.ID)
-	assert.NoError(t, err)
-	assert.NotEqual(t, loadedStatus, status)
-	assert.Equal(t, newTitle, status.Title)
-	assert.Equal(t, newComment, status.Comment)
-	status.ID = id
-
-	// Add another status, then try to load and remove all
-	status2 := item.NewStatus(0, "test2", "This is the second test status.", false)
-	err = svc.SaveStatus(status2)
-	assert.NoError(t, err)
-	id, err = svc.LoadStatusID(status2.Title)
-	assert.NoError(t, err)
-	status2.ID = id
-
-	statusesInMem := []*item.Status{status, status2}
-	statuses, err := svc.LoadAllStatuses()
-	assert.NoError(t, err)
-
-	// Exclude the 5 default statuses
-	for idx, s := range statuses[5:] {
-		assert.Equal(t, statusesInMem[idx], s)
-
-		// Try to remove the status
-		err = svc.RemoveStatus(s.ID)
 		assert.NoError(t, err)
 	}
 }

@@ -63,35 +63,19 @@ func New(path string) (storage.Service, error) {
 				'name' TEXT NOT NULL,
 				class_id INTEGER REFERENCES class(class_id),
 				install_path TEXT,
-				install_date TEXT,
-				project_status_id INTEGER REFERENCES project_status(project_status_id)
-		  	);
-		  	CREATE TABLE IF NOT EXISTS project_status(
-				project_status_id INTEGER PRIMARY KEY,
-				title TEXT NOT NULL,
-				is_default INTEGER NOT NULL,
-				comment TEXT
-			);
+				install_date TEXT				
+		  	);		  	
 			INSERT INTO
 				class(name, label, is_default)
 			VALUES
-				("unknown", "ukwn", 1);
-			INSERT INTO
-				project_status(title, is_default, comment)
-			VALUES
-				("active", 1, "Actively working on this project."),
-				("inactive", 1, "Stopped working on this project for now."),
-				("done", 1, "There is nothing left to do."),
-				("dead", 1, "This project is dead."),
-				("unknown", 1, "Status of this project is unknown.");
+				("unknown", "ukwn", 1);			
 			CREATE UNIQUE INDEX u_class_name_idx ON class('name');
 			CREATE UNIQUE INDEX u_class_label_idx ON class(label);
 			CREATE UNIQUE INDEX u_class_folder_idx ON class_folder(class_id, 'target');
 			CREATE UNIQUE INDEX u_class_file_idx ON class_file(class_id, 'target');
 			CREATE UNIQUE INDEX u_class_script_id_name_idx ON class_script(class_id, 'name');
 			CREATE UNIQUE INDEX u_class_script_type_exec_num_idx ON class_script(class_id, type, exec_num);
-			CREATE UNIQUE INDEX u_project_path_idx ON project(install_path);
-			CREATE UNIQUE INDEX u_status_title_idx ON project_status(title);`,
+			CREATE UNIQUE INDEX u_project_path_idx ON project(install_path);`,
 		)
 		if err != nil {
 			_ = db.Close()
@@ -469,7 +453,7 @@ func (s *sqlite) removeScripts(classID uint) error {
 func (s *sqlite) SaveProject(proj *item.Project) error {
 	t := time.Now().Local()
 	_, err := s.db.Exec(
-		"INSERT INTO project(name, class_id, install_path, install_date, project_status_id) VALUES(?, ?, ?, ?, ?)",
+		"INSERT INTO project(name, class_id, install_path, install_date) VALUES(?, ?, ?, ?)",
 		proj.Name,
 		proj.Class.ID,
 		proj.InstallPath,
@@ -486,22 +470,17 @@ func (s *sqlite) SaveProject(proj *item.Project) error {
 	return err
 }
 
-func (s *sqlite) UpdateProjectStatus(projectID, statusID uint) error {
-	_, err := s.db.Exec("UPDATE project SET project_status_id = ? WHERE project_id = ?", statusID, projectID)
-	return err
-}
-
 func (s *sqlite) UpdateProjectLocation(projectID uint, installPath string) error {
 	_, err := s.db.Exec("UPDATE project SET install_path = ? WHERE project_id = ?", installPath, projectID)
 	return err
 }
 
 func (s *sqlite) LoadProject(projectID uint) (*item.Project, error) {
-	query := "SELECT name, class_id, install_path, project_status_id FROM project WHERE project_id = ?"
+	query := "SELECT name, class_id, install_path FROM project WHERE project_id = ?"
 
 	var name, installPath sql.NullString
-	var classID, statusID sql.NullInt64
-	err := s.db.QueryRow(query, projectID).Scan(&name, &classID, &installPath, &statusID)
+	var classID sql.NullInt64
+	err := s.db.QueryRow(query, projectID).Scan(&name, &classID, &installPath)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("project '%d' does not exist", projectID)
@@ -518,17 +497,7 @@ func (s *sqlite) LoadProject(projectID uint) (*item.Project, error) {
 		}
 	}
 
-	var status *item.Status
-	status, err = s.LoadStatus(uint(statusID.Int64))
-	if err != nil {
-		// Load status 'unknown'
-		status, err = s.LoadStatus(5)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return item.NewProject(projectID, name.String, installPath.String, class, status), nil
+	return item.NewProject(projectID, name.String, installPath.String, class), nil
 }
 
 func (s *sqlite) LoadAllProjects() ([]*item.Project, error) {
@@ -574,88 +543,5 @@ func (s *sqlite) LoadProjectID(installPath string) (uint, error) {
 
 func (s *sqlite) RemoveProject(projectID uint) error {
 	_, err := s.db.Exec("DELETE FROM project WHERE project_id = ?", projectID)
-	return err
-}
-
-func (s *sqlite) SaveStatus(status *item.Status) error {
-	_, err := s.db.Exec(
-		"INSERT INTO project_status(title, is_default, comment) VALUES(?, ?, ?)",
-		strings.ToLower(status.Title),
-		status.IsDefault,
-		status.Comment,
-	)
-
-	if sqliteErr, ok := err.(sqlite3.Error); ok {
-		if sqliteErr.Code == sqlite3.ErrConstraint {
-			return fmt.Errorf("status '%s' already exists", status.Title)
-		}
-	}
-	return err
-}
-
-func (s *sqlite) UpdateStatus(statusID uint, title, comment string) error {
-	_, err := s.db.Exec("UPDATE project_status SET title = ?, comment = ? WHERE project_status_id = ?",
-		strings.ToLower(title),
-		comment,
-		statusID,
-	)
-	return err
-}
-
-func (s *sqlite) LoadStatus(statusID uint) (*item.Status, error) {
-	query := "SELECT title, is_default, comment FROM project_status WHERE project_status_id = ?"
-	var title, comment sql.NullString
-	var isDefault sql.NullBool
-	err := s.db.QueryRow(query, statusID).Scan(&title, &isDefault, &comment)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("status '%d' does not exist", statusID)
-		}
-		return nil, err
-	}
-	return item.NewStatus(statusID, title.String, comment.String, isDefault.Bool), nil
-}
-
-func (s *sqlite) LoadStatusID(title string) (uint, error) {
-	query := "SELECT project_status_id FROM project_status WHERE title = ?"
-	var statusID sql.NullInt64
-	err := s.db.QueryRow(query, title).Scan(&statusID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return 0, fmt.Errorf("status '%s' does not exist", title)
-		}
-		return 0, err
-	}
-	return uint(statusID.Int64), nil
-}
-
-func (s *sqlite) LoadAllStatuses() ([]*item.Status, error) {
-	query := "SELECT project_status_id FROM project_status ORDER BY project_status_id"
-
-	statusRows, err := s.db.Query(query)
-	if err != nil {
-		return nil, err
-	}
-	defer statusRows.Close()
-
-	var statuses []*item.Status
-
-	for statusRows.Next() {
-		var statusID sql.NullInt64
-		err = statusRows.Scan(&statusID)
-		if err != nil {
-			return nil, err
-		}
-		status, err := s.LoadStatus(uint(statusID.Int64))
-		if err != nil {
-			return nil, err
-		}
-		statuses = append(statuses, status)
-	}
-	return statuses, nil
-}
-
-func (s *sqlite) RemoveStatus(statusID uint) error {
-	_, err := s.db.Exec("DELETE FROM project_status WHERE project_status_id = ?", statusID)
 	return err
 }

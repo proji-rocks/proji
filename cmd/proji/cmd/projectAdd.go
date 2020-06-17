@@ -11,11 +11,11 @@ import (
 )
 
 var addCmd = &cobra.Command{
-	Use:   "add LABEL PATH STATUS",
+	Use:   "add LABEL PATH",
 	Short: "Add an existing project",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) < 3 {
-			return fmt.Errorf("missing label, path or status")
+		if len(args) < 2 {
+			return fmt.Errorf("missing label or path")
 		}
 
 		path, err := filepath.Abs(args[1])
@@ -27,9 +27,8 @@ var addCmd = &cobra.Command{
 		}
 
 		label := strings.ToLower(args[0])
-		status := strings.ToLower(args[2])
 
-		err = addProject(label, path, status)
+		err = addProject(label, path)
 		if err != nil {
 			return err
 		}
@@ -42,14 +41,9 @@ func init() {
 	rootCmd.AddCommand(addCmd)
 }
 
-func addProject(label, path, statusTitle string) error {
+func addProject(label, path string) error {
 	name := filepath.Base(path)
 	classID, err := projiEnv.Svc.LoadClassIDByLabel(label)
-	if err != nil {
-		return err
-	}
-
-	statusID, err := projiEnv.Svc.LoadStatusID(statusTitle)
 	if err != nil {
 		return err
 	}
@@ -59,16 +53,6 @@ func addProject(label, path, statusTitle string) error {
 		return err
 	}
 
-	var status *item.Status
-	status, err = projiEnv.Svc.LoadStatus(statusID)
-	if err != nil {
-		// Load status unknown
-		status, err = projiEnv.Svc.LoadStatus(5)
-		if err != nil {
-			return err
-		}
-	}
-
-	proj := item.NewProject(0, name, path, class, status)
+	proj := item.NewProject(0, name, path, class)
 	return projiEnv.Svc.SaveProject(proj)
 }

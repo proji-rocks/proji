@@ -29,33 +29,13 @@ func cleanProjects() error {
 		if !helper.DoesPathExist(project.InstallPath) {
 			pathGood = false
 		}
-
-		// Check status
-		statusGood := true
-		if project.Status.Title == "" {
-			statusGood = false
+		if pathGood {
+			continue
 		}
-
-		// Overall health
-		overallGood := pathGood && statusGood
-
-		if !overallGood {
-			if !pathGood {
-				// Remove the project
-				err := projiEnv.Svc.RemoveProject(project.ID)
-				if err != nil {
-					return err
-				}
-				continue
-			}
-			if !statusGood {
-				// Update projects status to unknown (ID 5 in storage)
-				err = projiEnv.Svc.UpdateProjectStatus(project.ID, 5)
-				if err != nil {
-					return err
-				}
-				continue
-			}
+		// Remove the project
+		err := projiEnv.Svc.RemoveProject(project.ID)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
