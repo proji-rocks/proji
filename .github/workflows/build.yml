@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on
-      PATH: $GOPATH/bin:/usr/local/go/bin:/usr/osxcross/target/bin:$PATH
     steps:
       -
         name: Checkout
@@ -48,6 +47,10 @@ jobs:
             pkg-config-aarch64-linux-gnu
           sudo apt-get clean
           curl https://media.githubusercontent.com/media/illuspas/resources/master/tar/osxcross-10.10.tar.gz | tar xvz -C /
+      -
+        name: Set up path
+        run: |
+          echo "::add-path::/usr/osxcross/target/bin"
       -
         name: Set up Go
         uses: actions/setup-go@v2
