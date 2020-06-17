@@ -47,10 +47,16 @@ jobs:
           go mod download
           go generate -v ./...
       -
-        name: CI
+        name: Build proji
         run: |
           go build ./cmd/proji
+      -
+        name: Init proji
+        run: |
           ./proji init
+      -
+        name: Run tests
+        run: |
           go vet ./...
           go test -failfast -race -covermode=atomic -coverprofile=coverage.txt -timeout=5m ./pkg/...          
       -
@@ -58,7 +64,11 @@ jobs:
         uses: codecov/codecov-action@v1
         with:          
           version: latest
-          file: ./coverage.txt 
+          file: ./coverage.txt
+      -
+        name: Clean up
+        run: |
+          rm ./proji ./coverage.txt
       -
         name: Snapcraft Login
         if: success() && startsWith(github.ref, 'refs/tags/v')
