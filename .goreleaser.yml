@@ -25,6 +25,20 @@ builds:
       - linux
     goarch:
       - amd64
+  - id: proji-linux-arm64
+      ldflags: -s -w -X github.com/proji/proji.Version={{.Version}} -X github.com/proji/proji.BuildDate={{.Date}} -X github.com/proji/proji.CommitHash={{ .ShortCommit }}
+      binary: proji
+      env:
+        - CGO_ENABLED=1
+        - CC=aarch64-linux-gnu-gcc
+      main: ./cmd/proji/main.go
+      goos:
+        - linux
+      goarch:
+        - arm64
+      goarm:
+        - 6
+        - 7
   - id: proji-windows-amd64
     ldflags: -s -w -X github.com/proji/proji.Version={{.Version}} -X github.com/proji/proji.BuildDate={{.Date}} -X github.com/proji/proji.CommitHash={{ .ShortCommit }}
     binary: proji
@@ -88,6 +102,7 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+      - '^ci:'
       - Merge pull request
       - Merge branch
 
