@@ -74,7 +74,7 @@ jobs:
       -
         name: Build proji
         run: |
-          go build ./cmd/proji
+          go build .
       -
         name: Init proji
         run: |

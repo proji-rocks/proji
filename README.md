@@ -120,7 +120,7 @@ or
 
     cd $GOPATH/src/github.com/nikoksr/proji
 
-    go install ./cmd/proji
+    go install .
 
 <h1></h1>
 
