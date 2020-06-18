@@ -13,17 +13,15 @@ import (
 
 func TestNewProject(t *testing.T) {
 	class := NewClass("testclass", "tc", false)
-	status := NewStatus(9999, "test", "This is a test status.", false)
 
 	projExp := &Project{
 		ID:          99,
 		Name:        "test",
 		InstallPath: "./local/",
 		Class:       class,
-		Status:      status,
 	}
 
-	projAct := NewProject(99, "test", "./local/", class, status)
+	projAct := NewProject(99, "test", "./local/", class)
 	assert.Equal(t, projExp, projAct)
 }
 
@@ -67,11 +65,6 @@ func TestProject_Create(t *testing.T) {
 						{Destination: "exampleFolder/test.txt", Template: ""},
 					},
 					Scripts: make([]*Script, 0),
-				},
-				Status: &Status{
-					ID:      1,
-					Title:   "active",
-					Comment: "This project is active.",
 				},
 			},
 			err: nil,
