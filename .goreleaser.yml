@@ -4,8 +4,7 @@ before:
   hooks:
     - go mod download
 builds:
-  - id: proji-darwin-amd64
-    ldflags: -s -w -X github.com/proji/proji.Version={{.Version}} -X github.com/proji/proji.BuildDate={{.Date}} -X github.com/proji/proji.CommitHash={{ .ShortCommit }}
+  - id: darwin-amd64
     binary: proji
     env:
       - CGO_ENABLED=1
@@ -15,8 +14,7 @@ builds:
       - darwin
     goarch:
       - amd64
-  - id: proji-linux-amd64
-    ldflags: -s -w -X github.com/proji/proji.Version={{.Version}} -X github.com/proji/proji.BuildDate={{.Date}} -X github.com/proji/proji.CommitHash={{ .ShortCommit }}
+  - id: linux-amd64
     binary: proji
     env:
       - CGO_ENABLED=1
@@ -25,8 +23,7 @@ builds:
       - linux
     goarch:
       - amd64
-  - id: proji-windows-amd64
-    ldflags: -s -w -X github.com/proji/proji.Version={{.Version}} -X github.com/proji/proji.BuildDate={{.Date}} -X github.com/proji/proji.CommitHash={{ .ShortCommit }}
+  - id: windows-amd64
     binary: proji
     env:
       - CGO_ENABLED=1
@@ -36,19 +33,42 @@ builds:
       - windows
     goarch:
       - amd64
+  - id: linux-arm
+    binary: proji
+    env:
+      - CGO_ENABLED=1
+      - CC=arm-linux-gnueabihf-gcc
+    main: ./main.go
+    goos:
+      - linux
+    goarch:
+      - arm
+    goarm:
+      - 6
+      - 7
+  - id: linux-arm64
+    binary: proji
+    env:
+      - CGO_ENABLED=1
+      - CC=aarch64-linux-gnu-gcc
+    main: ./main.go
+    goos:
+      - linux
+    goarch:
+      - arm64
 archives:
   - name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
     replacements:
       darwin: Darwin
       linux: Linux
       windows: Windows
-      386: i386
-      amd64: x86_64
+      amd64: 64bit
+      386: 32bit
+      arm: ARM
+      arm64: ARM64
     format_overrides:
       - goos: windows
         format: zip
-    files:
-      - LICENSE
 changelog:
   sort: asc
   filters:
@@ -103,11 +123,7 @@ nfpms:
     bindir: /usr/bin
 snapcrafts: 
   -
-    id: proji-linux-amd64 
-    builds:
-      - proji-linux-amd64
-    name: proji
-    name_template: "{{.ProjectName}}-{{.Os}}-{{.Arch}}"
+    name_template: '{{ .ProjectName }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
     replacements:
       amd64: 64bit
       386: 32bit
