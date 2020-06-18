@@ -8,7 +8,7 @@ builds:
     binary: proji
     env:
       - CGO_ENABLED=1
-      - CC=x86_64-apple-darwin14-cc
+      - CC=o64-clang
     main: ./main.go
     goos:
       - darwin
@@ -33,29 +33,6 @@ builds:
       - windows
     goarch:
       - amd64
-  - id: linux-arm
-    binary: proji
-    env:
-      - CGO_ENABLED=1
-      - CC=arm-linux-gnueabihf-gcc
-    main: ./main.go
-    goos:
-      - linux
-    goarch:
-      - arm
-    goarm:
-      - 6
-      - 7
-  - id: linux-arm64
-    binary: proji
-    env:
-      - CGO_ENABLED=1
-      - CC=aarch64-linux-gnu-gcc
-    main: ./main.go
-    goos:
-      - linux
-    goarch:
-      - arm64
 archives:
   - name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
     replacements:
