@@ -65,7 +65,7 @@ jobs:
 
       - run:
           name: Run GoReleaser
-          command: sudo docker run --rm --privileged -e GITHUB_TOKEN=${GITHUB_TOKEN} -v ${CIRCLE_WORKING_DIRECTORY}/.snapcraft.login:/.snapcraft.login -v ${CIRCLE_WORKING_DIRECTORY}:/go/src/github.com/nikoksr/proji -v /var/run/docker.sock:/var/run/docker.sock -w /go/src/github.com/nikoksr/proji neilotoole/xcgo:latest goreleaser --rm-dist
+          command: sudo docker run --rm --privileged -e GITHUB_TOKEN=${PROJI_GH_TOKEN} -v ${CIRCLE_WORKING_DIRECTORY}/.snapcraft.login:/.snapcraft.login -v ${CIRCLE_WORKING_DIRECTORY}:/go/src/github.com/nikoksr/proji -v /var/run/docker.sock:/var/run/docker.sock -w /go/src/github.com/nikoksr/proji neilotoole/xcgo:latest goreleaser --rm-dist
 
 workflows:
   version: 2
