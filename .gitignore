@@ -14,3 +14,4 @@ dist/
 # Files
 Gopkg.lock
 Gopkg.toml
+.snapcraft.login
