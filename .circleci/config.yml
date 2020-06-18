@@ -1,0 +1,85 @@
+version: 2.1
+
+jobs:
+  build_and_test:
+    docker:
+      - image: cimg/go:1.14.4
+    environment:
+      GO111MODULE: "on"
+    working_directory: /home/circleci/go/src/github.com/nikoksr/proji
+
+    steps:
+      - checkout
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+
+      - run:
+          name: Get dependencies
+          command: |
+            go mod download
+            go generate -v ./...
+
+      - run:
+          name: Build proji
+          command: go build -v .
+
+      - run:
+          name: Initialize proji
+          command: proji init
+
+      - run:
+          name: Run go vet
+          command: go vet ./...
+
+      - run:
+          name: Run go test
+          command: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./pkg/...
+
+      - run:
+          name: Upload results to codecov
+          command: bash <(curl -s https://codecov.io/bash)
+
+      - store_test_results:
+          path: test-results-proji
+
+      - store_artifacts:
+          path: test-results-proji
+          destination: trp
+
+  release:
+    machine: true
+    environment:
+      SNAPCRAFT_LOGIN_FILE: /home/circleci/go/src/github.com/nikoksr/proji/snap.login
+    working_directory: /home/circleci/go/src/github.com/nikoksr/proji
+
+    steps:
+      - attach_workspace:
+          at: .
+
+      - run:
+          name: Create Snapcraft Login File
+          command: |
+            echo $SNAPCRAFT_LOGIN | base64 --decode --ignore-garbage > .snapcraft.login
+
+      - run:
+          name: Run GoReleaser
+          command: sudo docker run --rm --privileged -e GITHUB_TOKEN=${GITHUB_TOKEN} -v ${CIRCLE_WORKING_DIRECTORY}/.snapcraft.login:/.snapcraft.login -v ${CIRCLE_WORKING_DIRECTORY}:/go/src/github.com/nikoksr/proji -v /var/run/docker.sock:/var/run/docker.sock -w /go/src/github.com/nikoksr/proji neilotoole/xcgo:latest goreleaser --rm-dist
+
+workflows:
+  version: 2
+  default:
+    jobs:
+      - build_and_test:
+          filters:
+            tags:
+              only: /.*/
+      - release:
+          requires:
+            - build_and_test
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
