@@ -1,0 +1,18 @@
+name: discord_notification
+
+on: [push, pull_request, release]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Discord Notify
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        uses: Ilshidur/action-discord@master
+        with:
+          args: |
+            '[![Avatar not found]({{ EVENT_PAYLOAD.sender.avatar_url }})]({{ EVENT_PAYLOAD.sender.html_url }}) [{{ EVENT_PAYLOAD.sender.login }}]({{ EVENT_PAYLOAD.sender.html_url }})'
+            '`{{ EVENT_PAYLOAD.action }}`: {{ EVENT_PAYLOAD.name }}'
+            '`[{{ EVENT_PAYLOAD.check_run.head_sha }}]({{ EVENT_PAYLOAD.check_run.html_url }})`'
+            '{{ EVENT_PAYLOAD.check_run.status }} {{ EVENT_PAYLOAD.check_run.completed_at }}'

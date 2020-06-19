@@ -11,6 +11,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/nikoksr/proji)](https://goreportcard.com/report/github.com/nikoksr/proji)
 [![CircleCI](https://circleci.com/gh/nikoksr/proji.svg?style=shield)](https://circleci.com/gh/nikoksr/proji)
 [![codecov](https://codecov.io/gh/nikoksr/proji/branch/master/graph/badge.svg)](https://codecov.io/gh/nikoksr/proji)
+[![Discord](https://img.shields.io/discord/723332758579183718?color=blue&label=discord)](https://discord.gg/gWM9Vr)
 ![Platforms](https://img.shields.io/badge/platforms-Windows%2C%20macOS%20and%20Linux-blue)
 [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/nikoksr/proji)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
