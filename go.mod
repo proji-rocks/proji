@@ -25,7 +25,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.6.1
-	github.com/xanzy/go-gitlab v0.32.1
+	github.com/xanzy/go-gitlab v0.33.0
 	go.mongodb.org/mongo-driver v1.3.4 // indirect
 	golang.org/x/crypto v0.0.0-20200604202706-70a84ac30bf9 // indirect
 	golang.org/x/net v0.0.0-20200602114024-627f9648deb9 // indirect
