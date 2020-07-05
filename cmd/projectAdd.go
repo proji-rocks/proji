@@ -5,8 +5,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/nikoksr/proji/pkg/proji/storage/models"
+
 	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage/item"
 	"github.com/spf13/cobra"
 )
 
@@ -43,16 +44,11 @@ func init() {
 
 func addProject(label, path string) error {
 	name := filepath.Base(path)
-	classID, err := projiEnv.Svc.LoadClassIDByLabel(label)
+	class, err := projiEnv.Svc.LoadClass(label)
 	if err != nil {
 		return err
 	}
 
-	class, err := projiEnv.Svc.LoadClass(classID)
-	if err != nil {
-		return err
-	}
-
-	proj := item.NewProject(0, name, path, class)
-	return projiEnv.Svc.SaveProject(proj)
+	project := models.NewProject(name, path, class)
+	return projiEnv.Svc.SaveProject(project)
 }

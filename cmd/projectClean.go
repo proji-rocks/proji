@@ -26,14 +26,14 @@ func cleanProjects() error {
 	for _, project := range projects {
 		// Check path
 		pathGood := true
-		if !helper.DoesPathExist(project.InstallPath) {
+		if !helper.DoesPathExist(project.Path) {
 			pathGood = false
 		}
 		if pathGood {
 			continue
 		}
 		// Remove the project
-		err := projiEnv.Svc.RemoveProject(project.ID)
+		err := projiEnv.Svc.RemoveProject(project.Path)
 		if err != nil {
 			return err
 		}

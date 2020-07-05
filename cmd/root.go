@@ -9,7 +9,6 @@ import (
 	"github.com/nikoksr/proji/pkg/config"
 
 	"github.com/nikoksr/proji/pkg/proji/storage"
-	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -40,12 +39,6 @@ var rootCmd = &cobra.Command{
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		if projiEnv == nil {
 			log.Fatalf("Error: Env struct is not defined.\n")
-		}
-	},
-	PersistentPostRun: func(cmd *cobra.Command, args []string) {
-		if projiEnv.Svc != nil {
-			_ = projiEnv.Svc.Close()
-			projiEnv.Svc = nil
 		}
 	},
 }
@@ -110,7 +103,13 @@ func initConfig() {
 
 func initStorageService() {
 	var err error
-	projiEnv.Svc, err = sqlite.New(projiEnv.DBPath)
+	/*
+		projiEnv.Svc, err = sqlite.New(projiEnv.DBPath)
+		if err != nil {
+			log.Fatalf("Error: could not connect to sqlite db. %v\n%s\n", err, projiEnv.DBPath)
+		}
+	*/
+	projiEnv.Svc, err = storage.NewService("sqlite3", "/home/niko/tmp.db")
 	if err != nil {
 		log.Fatalf("Error: could not connect to sqlite db. %v\n%s\n", err, projiEnv.DBPath)
 	}

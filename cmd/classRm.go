@@ -4,8 +4,7 @@ import (
 	"fmt"
 
 	"github.com/nikoksr/proji/pkg/helper"
-
-	"github.com/nikoksr/proji/pkg/proji/storage/item"
+	"github.com/nikoksr/proji/pkg/proji/storage/models"
 
 	"github.com/spf13/cobra"
 )
@@ -18,7 +17,7 @@ var classRmCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		// Collect classes that will be removed
-		var classes []*item.Class
+		var classes []*models.Class
 
 		if removeAllClasses {
 			var err error
@@ -32,11 +31,7 @@ var classRmCmd = &cobra.Command{
 			}
 
 			for _, label := range args {
-				classID, err := projiEnv.Svc.LoadClassIDByLabel(label)
-				if err != nil {
-					return err
-				}
-				class, err := projiEnv.Svc.LoadClass(classID)
+				class, err := projiEnv.Svc.LoadClass(label)
 				if err != nil {
 					return err
 				}
@@ -58,7 +53,7 @@ var classRmCmd = &cobra.Command{
 					continue
 				}
 			}
-			err := projiEnv.Svc.RemoveClass(class.ID)
+			err := projiEnv.Svc.RemoveClass(class.Label)
 			if err != nil {
 				fmt.Printf("> Removing '%s' failed: %v\n", class.Label, err)
 				return err

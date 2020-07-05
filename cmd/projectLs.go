@@ -1,9 +1,12 @@
 package cmd
 
 import (
+	"io"
 	"os"
 
-	"github.com/jedib0t/go-pretty/table"
+	"github.com/nikoksr/proji/pkg/helper"
+
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
@@ -11,7 +14,7 @@ var lsCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List projects",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return listProjects()
+		return listProjects(os.Stdout)
 	},
 }
 
@@ -19,28 +22,24 @@ func init() {
 	rootCmd.AddCommand(lsCmd)
 }
 
-func listProjects() error {
+func listProjects(out io.Writer) error {
 	projects, err := projiEnv.Svc.LoadAllProjects()
 	if err != nil {
 		return err
 	}
 
-	// Table header
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"ID", "Name", "Install Path", "Class"})
+	projectsTable := helper.NewInfoTable(out)
+	projectsTable.AppendHeader(table.Row{"ID", "Name", "Install Path", "Class"})
 
-	// Fill table
 	for _, project := range projects {
-		t.AppendRow([]interface{}{
+		projectsTable.AppendRow(table.Row{
 			project.ID,
 			project.Name,
-			project.InstallPath,
+			project.Path,
 			project.Class.Name,
 		})
 	}
 
-	// Print the table
-	t.Render()
+	projectsTable.Render()
 	return nil
 }

@@ -2,12 +2,14 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
-	"strings"
 
-	"github.com/nikoksr/proji/pkg/proji/storage/item"
+	"github.com/nikoksr/proji/pkg/helper"
 
-	"github.com/jedib0t/go-pretty/table"
+	"github.com/nikoksr/proji/pkg/proji/storage/models"
+
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
@@ -30,8 +32,8 @@ var classShowCmd = &cobra.Command{
 			return fmt.Errorf("missing class label")
 		}
 
-		for _, name := range args {
-			err := showClass(name)
+		for _, label := range args {
+			err := showClass(nil, label)
 			if err != nil {
 				return err
 			}
@@ -45,23 +47,18 @@ func init() {
 	classShowCmd.Flags().BoolVarP(&showAll, "all", "a", false, "Show all classes")
 }
 
-func showClass(label string) error {
-	classID, err := projiEnv.Svc.LoadClassIDByLabel(label)
-	if err != nil {
-		return err
+func showClass(preloadedClass *models.Class, label string) error {
+	var err error
+	if preloadedClass == nil {
+		preloadedClass, err = projiEnv.Svc.LoadClass(label)
+		if err != nil {
+			return nil
+		}
 	}
-	class, err := projiEnv.Svc.LoadClass(classID)
-	if err != nil {
-		return nil
-	}
-	if class.IsDefault {
-		return fmt.Errorf("default classes can not be shown")
-	}
-
-	showInfo(class.Name, class.Label)
-	showFolders(class.Folders)
-	showFiles(class.Files)
-	showScripts(class.Scripts)
+	output := os.Stdout
+	showNameAndLabel(preloadedClass.Name, preloadedClass.Label)
+	showTemplates(output, preloadedClass.Templates)
+	showPlugins(output, preloadedClass.Plugins)
 	return nil
 }
 
@@ -75,61 +72,35 @@ func showAllClasses() error {
 		if class.IsDefault {
 			continue
 		}
-		showInfo(class.Name, class.Label)
-		showFolders(class.Folders)
-		showFiles(class.Files)
-		showScripts(class.Scripts)
+		err = showClass(class, class.Label)
+		if err != nil {
+			fmt.Printf("failed printing table for class %s, %s\n", class.Name, err.Error())
+		}
 	}
 	return nil
 }
 
-func showInfo(name, label string) {
-	fmt.Println("\nName: " + name)
-	fmt.Println("Label: " + label)
-	fmt.Println()
+func showNameAndLabel(name, label string) {
+	fmt.Printf("\nName:  %s\n", name)
+	fmt.Printf("Label: %s\n\n", label)
 }
 
-func showFolders(folders []*item.Folder) {
-	// Table header
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"Folder", "Template"})
-
-	// Fill table
-	for _, folder := range folders {
-		t.AppendRow([]interface{}{folder.Destination, folder.Template})
+func showTemplates(out io.Writer, templates []*models.Template) {
+	templatesTable := helper.NewInfoTable(out)
+	templatesTable.SetTitle("TEMPLATES")
+	templatesTable.AppendHeader(table.Row{"Destination", "Template Path", "Is File"})
+	for _, template := range templates {
+		templatesTable.AppendRow(table.Row{template.Destination, template.Path, template.IsFile})
 	}
-
-	// Print the table
-	t.Render()
+	templatesTable.Render()
 }
 
-func showFiles(files []*item.File) {
-	// Table header
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"File", "Template"})
-
-	// Fill table
-	for _, file := range files {
-		t.AppendRow([]interface{}{file.Destination, file.Template})
+func showPlugins(out io.Writer, plugins []*models.Plugin) {
+	pluginsTable := helper.NewInfoTable(out)
+	pluginsTable.SetTitle("PLUGINS")
+	pluginsTable.AppendHeader(table.Row{"Name", "Path", "Execution Number"})
+	for _, plugin := range plugins {
+		pluginsTable.AppendRow(table.Row{plugin.Name, plugin.Path, plugin.ExecNumber})
 	}
-
-	// Print the table
-	t.Render()
-}
-
-func showScripts(scripts []*item.Script) {
-	// Table header
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"#", "Script", "Type", "As sudo", "Args"})
-
-	// Fill table
-	for _, script := range scripts {
-		t.AppendRow([]interface{}{script.ExecNumber, script.Name, script.Type, script.RunAsSudo, strings.Join(script.Args, ", ")})
-	}
-
-	// Print the table
-	t.Render()
+	pluginsTable.Render()
 }

@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/nikoksr/proji/pkg/proji/storage/item"
+	"github.com/nikoksr/proji/pkg/proji/storage/models"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -37,7 +37,7 @@ var classExportCmd = &cobra.Command{
 		}
 
 		// Collect classes that will be exported
-		var classes []*item.Class
+		var classes []*models.Class
 
 		if exportAll {
 			var err error
@@ -51,11 +51,7 @@ var classExportCmd = &cobra.Command{
 			}
 
 			for _, label := range args {
-				classID, err := projiEnv.Svc.LoadClassIDByLabel(label)
-				if err != nil {
-					return err
-				}
-				class, err := projiEnv.Svc.LoadClass(classID)
+				class, err := projiEnv.Svc.LoadClass(label)
 				if err != nil {
 					return err
 				}

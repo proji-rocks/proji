@@ -3,21 +3,20 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/nikoksr/proji/pkg/proji/storage/item"
-
 	"github.com/nikoksr/proji/pkg/helper"
+	"github.com/nikoksr/proji/pkg/proji/storage/models"
 	"github.com/spf13/cobra"
 )
 
 var removeAllProjects, forceRemoveProjects bool
 
 var rmCmd = &cobra.Command{
-	Use:   "rm ID [ID...]",
+	Use:   "rm PATH [PATH...]",
 	Short: "Remove one or more projects",
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		// Collect projects that will be removed
-		var projects []*item.Project
+		var projects []*models.Project
 
 		if removeAllProjects {
 			var err error
@@ -27,15 +26,11 @@ var rmCmd = &cobra.Command{
 			}
 		} else {
 			if len(args) < 1 {
-				return fmt.Errorf("missing project id")
+				return fmt.Errorf("missing project paths")
 			}
 
-			for _, idStr := range args {
-				id, err := helper.StrToUInt(idStr)
-				if err != nil {
-					return err
-				}
-				project, err := projiEnv.Svc.LoadProject(id)
+			for _, path := range args {
+				project, err := projiEnv.Svc.LoadProject(path)
 				if err != nil {
 					return err
 				}
@@ -53,12 +48,12 @@ var rmCmd = &cobra.Command{
 					continue
 				}
 			}
-			err := projiEnv.Svc.RemoveProject(project.ID)
+			err := projiEnv.Svc.RemoveProject(project.Path)
 			if err != nil {
-				fmt.Printf("> Removing project '%d' failed: %v\n", project.ID, err)
+				fmt.Printf("> Removing project '%d' failed: %v\n", project.Path, err)
 				return err
 			}
-			fmt.Printf("> Project '%d' was successfully removed\n", project.ID)
+			fmt.Printf("> Project '%d' was successfully removed\n", project.Path)
 		}
 		return nil
 	},

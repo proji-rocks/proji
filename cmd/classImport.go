@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/nikoksr/proji/pkg/proji/storage/models"
+
 	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/proji/repo"
-	"github.com/nikoksr/proji/pkg/proji/storage/item"
-
 	"github.com/spf13/cobra"
 )
 
@@ -77,7 +77,7 @@ func importClass(path, importType string, excludes []string) (string, error) {
 		return "", nil
 	}
 
-	class := item.NewClass("", "", false)
+	class := models.NewClass("", "", false)
 	var err error
 	var confName, msg string
 	var URL *url.URL
@@ -90,7 +90,7 @@ func importClass(path, importType string, excludes []string) (string, error) {
 			return "", err
 		}
 
-		importer, err = item.GetRepoImporterFromURL(URL, projiEnv.Auth)
+		importer, err = models.GetRepoImporterFromURL(URL, projiEnv.Auth)
 		if err != nil {
 			return "", err
 		}
@@ -126,8 +126,8 @@ func importClass(path, importType string, excludes []string) (string, error) {
 			msg = fmt.Sprintf("> Successfully imported class '%s' from '%s'", class.Name, path)
 		}
 	case "collection":
-		classList := make([]*item.Class, 0)
-		classList, err = item.ImportClassesFromCollection(URL, importer)
+		classList := make([]*models.Class, 0)
+		classList, err = models.ImportClassesFromCollection(URL, importer)
 		if err != nil {
 			return "", err
 		}

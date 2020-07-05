@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage/item"
+	"github.com/nikoksr/proji/pkg/proji/storage/models"
 	"github.com/spf13/cobra"
 )
 
@@ -27,12 +27,7 @@ var createCmd = &cobra.Command{
 		}
 
 		// Load class once for all projects
-		classID, err := projiEnv.Svc.LoadClassIDByLabel(label)
-		if err != nil {
-			return err
-		}
-
-		class, err := projiEnv.Svc.LoadClass(classID)
+		class, err := projiEnv.Svc.LoadClass(label)
 		if err != nil {
 			return err
 		}
@@ -67,32 +62,27 @@ func init() {
 	rootCmd.AddCommand(createCmd)
 }
 
-func createProject(name, cwd, configPath string, class *item.Class) error {
-	proj := item.NewProject(0, name, filepath.Join(cwd, name), class)
+func createProject(name, cwd, configPath string, class *models.Class) error {
+	project := models.NewProject(name, filepath.Join(cwd, name), class)
 
 	// Save it first to see if it already exists in the database
-	err := projiEnv.Svc.SaveProject(proj)
+	err := projiEnv.Svc.SaveProject(project)
 	if err != nil {
 		return err
 	}
 	// Create the project
-	err = proj.Create(cwd, configPath)
+	err = project.Create(cwd, configPath)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func replaceProject(name, cwd, configPath string, class *item.Class) error {
-	id, err := projiEnv.Svc.LoadProjectID(filepath.Join(cwd, "/", name))
-	if err != nil {
-		return err
-	}
-
+func replaceProject(name, path, configPath string, class *models.Class) error {
 	// Replace it
-	err = projiEnv.Svc.RemoveProject(id)
+	err := projiEnv.Svc.RemoveProject(filepath.Join(path, name))
 	if err != nil {
 		return err
 	}
-	return createProject(name, cwd, configPath, class)
+	return createProject(name, path, configPath, class)
 }
