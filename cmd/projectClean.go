@@ -25,11 +25,7 @@ func cleanProjects() error {
 
 	for _, project := range projects {
 		// Check path
-		pathGood := true
-		if !util.DoesPathExist(project.Path) {
-			pathGood = false
-		}
-		if pathGood {
+		if util.DoesPathExist(project.Path) {
 			continue
 		}
 		// Remove the project
