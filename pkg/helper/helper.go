@@ -2,12 +2,14 @@ package helper
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/cavaliercoder/grab"
+	"github.com/jedib0t/go-pretty/v6/table"
 )
 
 // DoesPathExist checks if a given path exists in the filesystem.
@@ -93,4 +95,14 @@ func DownloadFileIfNotExists(dst, src string) error {
 		err = DownloadFile(dst, src)
 	}
 	return err
+}
+
+// NewInfoTable returns a new table.Writer interface bound to the given io.Writer. It sets some sane defaults
+// for table styles and behaviour that are used in the cmd package.
+func NewInfoTable(out io.Writer) table.Writer {
+	infoTable := table.NewWriter()
+	infoTable.SetOutputMirror(out)
+	infoTable.SuppressEmptyColumns()
+	infoTable.SetStyle(table.StyleRounded)
+	return infoTable
 }
