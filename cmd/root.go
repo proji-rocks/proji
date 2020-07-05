@@ -8,7 +8,7 @@ import (
 
 	"github.com/nikoksr/proji/pkg/config"
 
-	"github.com/nikoksr/proji/pkg/proji/storage"
+	"github.com/nikoksr/proji/pkg/storage"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

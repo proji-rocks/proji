@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/nikoksr/proji/pkg/proji/storage/models"
+	"github.com/nikoksr/proji/pkg/storage/models"
 
 	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/spf13/cobra"

@@ -7,7 +7,7 @@ import (
 
 	"github.com/nikoksr/proji/pkg/helper"
 
-	"github.com/nikoksr/proji/pkg/proji/storage/models"
+	"github.com/nikoksr/proji/pkg/storage/models"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/nikoksr/proji/pkg/proji/storage/models"
+	"github.com/nikoksr/proji/pkg/storage/models"
 )
 
 // Service interface describes the behaviour of a storage service.

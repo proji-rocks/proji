@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage/models"
+	"github.com/nikoksr/proji/pkg/storage/models"
 	"github.com/spf13/cobra"
 )
 

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/nikoksr/proji/pkg/proji/storage/models"
+	"github.com/nikoksr/proji/pkg/storage/models"
 
 	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/repo"
+	"github.com/nikoksr/proji/pkg/repo"
 	"github.com/spf13/cobra"
 )
 

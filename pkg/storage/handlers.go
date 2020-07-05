@@ -3,7 +3,7 @@ package storage
 import (
 	"fmt"
 
-	"github.com/nikoksr/proji/pkg/proji/storage/models"
+	"github.com/nikoksr/proji/pkg/storage/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
