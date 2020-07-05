@@ -4,7 +4,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/nikoksr/proji/pkg/helper"
+	"github.com/nikoksr/proji/pkg/util"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
@@ -28,7 +28,7 @@ func listProjects(out io.Writer) error {
 		return err
 	}
 
-	projectsTable := helper.NewInfoTable(out)
+	projectsTable := util.NewInfoTable(out)
 	projectsTable.AppendHeader(table.Row{"ID", "Name", "Install Path", "Class"})
 
 	for _, project := range projects {

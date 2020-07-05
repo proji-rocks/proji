@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/nikoksr/proji/pkg/helper"
+	"github.com/nikoksr/proji/pkg/util"
 )
 
 type APIAuthentication struct {
@@ -82,7 +82,7 @@ func InitConfig(path, version, fallbackVersion string, forceUpdate bool) error {
 // Create subfolders if they do not exist.
 func (mcf *mainConfigFolder) createSubFolders() error {
 	for _, subFolder := range mcf.subFolders {
-		err := helper.CreateFolderIfNotExists(filepath.Join(mcf.basePath, subFolder))
+		err := util.CreateFolderIfNotExists(filepath.Join(mcf.basePath, subFolder))
 		if err != nil {
 			return err
 		}
@@ -102,9 +102,9 @@ func (mcf *mainConfigFolder) downloadConfigFiles(version, fallbackVersion string
 			src := rawURLPrefix + version + conf.src
 			dst := filepath.Join(mcf.basePath, conf.dst)
 			if forceUpdate {
-				errs <- helper.DownloadFile(dst, src)
+				errs <- util.DownloadFile(dst, src)
 			} else {
-				errs <- helper.DownloadFileIfNotExists(dst, src)
+				errs <- util.DownloadFileIfNotExists(dst, src)
 			}
 		}(conf)
 	}

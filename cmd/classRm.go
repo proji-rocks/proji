@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/storage/models"
+	"github.com/nikoksr/proji/pkg/util"
 
 	"github.com/spf13/cobra"
 )
@@ -47,7 +47,7 @@ var classRmCmd = &cobra.Command{
 			}
 			// Ask for confirmation if force flag was not passed
 			if !forceRemoveClasses {
-				if !helper.WantTo(
+				if !util.WantTo(
 					fmt.Sprintf("Do you really want to remove class '%s (%s)'?", class.Name, class.Label),
 				) {
 					continue

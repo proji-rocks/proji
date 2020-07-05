@@ -4,7 +4,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/nikoksr/proji/pkg/helper"
+	"github.com/nikoksr/proji/pkg/util"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
@@ -29,7 +29,7 @@ func listClasses(out io.Writer) error {
 		return err
 	}
 
-	classesTable := helper.NewInfoTable(out)
+	classesTable := util.NewInfoTable(out)
 	classesTable.AppendHeader(table.Row{"Name", "Label"})
 
 	for _, class := range classes {

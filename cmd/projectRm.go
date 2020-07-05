@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/storage/models"
+	"github.com/nikoksr/proji/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -42,7 +42,7 @@ var rmCmd = &cobra.Command{
 		for _, project := range projects {
 			// Ask for confirmation if force flag was not passed
 			if !forceRemoveProjects {
-				if !helper.WantTo(
+				if !util.WantTo(
 					fmt.Sprintf("Do you really want to remove project '%s (%d)'?", project.Name, project.ID),
 				) {
 					continue

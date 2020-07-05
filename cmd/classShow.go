@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/nikoksr/proji/pkg/helper"
+	"github.com/nikoksr/proji/pkg/util"
 
 	"github.com/nikoksr/proji/pkg/storage/models"
 
@@ -86,7 +86,7 @@ func showNameAndLabel(name, label string) {
 }
 
 func showTemplates(out io.Writer, templates []*models.Template) {
-	templatesTable := helper.NewInfoTable(out)
+	templatesTable := util.NewInfoTable(out)
 	templatesTable.SetTitle("TEMPLATES")
 	templatesTable.AppendHeader(table.Row{"Destination", "Template Path", "Is File"})
 	for _, template := range templates {
@@ -96,7 +96,7 @@ func showTemplates(out io.Writer, templates []*models.Template) {
 }
 
 func showPlugins(out io.Writer, plugins []*models.Plugin) {
-	pluginsTable := helper.NewInfoTable(out)
+	pluginsTable := util.NewInfoTable(out)
 	pluginsTable.SetTitle("PLUGINS")
 	pluginsTable.AppendHeader(table.Row{"Name", "Path", "Execution Number"})
 	for _, plugin := range plugins {

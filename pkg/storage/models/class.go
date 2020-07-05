@@ -15,10 +15,10 @@ import (
 
 	gh "github.com/google/go-github/v31/github"
 	"github.com/nikoksr/proji/pkg/config"
-	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/repo"
 	"github.com/nikoksr/proji/pkg/repo/github"
 	"github.com/nikoksr/proji/pkg/repo/gitlab"
+	"github.com/nikoksr/proji/pkg/util"
 	"github.com/pelletier/go-toml"
 	gl "github.com/xanzy/go-gitlab"
 	"gorm.io/gorm"
@@ -101,7 +101,7 @@ func (c *Class) ImportConfig(path string) error {
 // structure and content of the directory and create a class based on it.
 func (c *Class) ImportFolderStructure(path string, excludeDirs []string) error {
 	// Validate that the directory exists
-	if !helper.DoesPathExist(path) {
+	if !util.DoesPathExist(path) {
 		return fmt.Errorf("given directory does not exist")
 	}
 
@@ -124,7 +124,7 @@ func (c *Class) ImportFolderStructure(path string, excludeDirs []string) error {
 		// Add file or folder to class
 		isFile := true
 		if info.IsDir() {
-			if helper.IsInSlice(excludeDirs, info.Name()) {
+			if util.IsInSlice(excludeDirs, info.Name()) {
 				return filepath.SkipDir
 			}
 			isFile = false
@@ -173,7 +173,7 @@ func (c *Class) ImportPackage(URL *url.URL, importer repo.Importer) error {
 	// Download config
 	f := filepath.Join(os.TempDir(), "/proji/configs/", filepath.Base(URL.Path))
 	dwn := importer.FilePathToRawURI(filepath.Join("configs/", filepath.Base(URL.Path)))
-	err := helper.DownloadFileIfNotExists(f, dwn)
+	err := util.DownloadFileIfNotExists(f, dwn)
 	if err != nil {
 		return err
 	}
@@ -247,7 +247,7 @@ func (c *Class) ImportPackage(URL *url.URL, importer repo.Importer) error {
 				defer wg.Done()
 				src := importer.FilePathToRawURI(filepath.Join(fileType, file))
 				dst := filepath.Join(downloadDestination, fileType, file)
-				err = helper.DownloadFileIfNotExists(dst, src)
+				err = util.DownloadFileIfNotExists(dst, src)
 				if err != nil {
 					errs <- err
 				}

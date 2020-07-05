@@ -6,8 +6,8 @@ import (
 
 	"github.com/nikoksr/proji/pkg/storage/models"
 
-	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/repo"
+	"github.com/nikoksr/proji/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -73,7 +73,7 @@ func init() {
 }
 
 func importClass(path, importType string, excludes []string) (string, error) {
-	if helper.IsInSlice(excludes, path) {
+	if util.IsInSlice(excludes, path) {
 		return "", nil
 	}
 

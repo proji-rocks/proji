@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/nikoksr/proji/pkg/helper"
+	"github.com/nikoksr/proji/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +26,7 @@ func cleanProjects() error {
 	for _, project := range projects {
 		// Check path
 		pathGood := true
-		if !helper.DoesPathExist(project.Path) {
+		if !util.DoesPathExist(project.Path) {
 			pathGood = false
 		}
 		if pathGood {

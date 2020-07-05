@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/nikoksr/proji/pkg/helper"
 	"github.com/nikoksr/proji/pkg/storage/models"
+	"github.com/nikoksr/proji/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -40,7 +40,7 @@ var createCmd = &cobra.Command{
 				fmt.Printf(" -> Failed: %v\n", err)
 
 				if err.Error() == "Project already exists" {
-					if !helper.WantTo("> Do you want to replace it?") {
+					if !util.WantTo("> Do you want to replace it?") {
 						continue
 					}
 					err := replaceProject(name, cwd, projiEnv.ConfigFolderPath, class)

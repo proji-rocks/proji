@@ -7,7 +7,7 @@ import (
 
 	"github.com/nikoksr/proji/pkg/storage/models"
 
-	"github.com/nikoksr/proji/pkg/helper"
+	"github.com/nikoksr/proji/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -23,7 +23,7 @@ var addCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		if !helper.DoesPathExist(path) {
+		if !util.DoesPathExist(path) {
 			return fmt.Errorf("path '%s' does not exist", path)
 		}
 
