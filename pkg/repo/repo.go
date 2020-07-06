@@ -6,13 +6,6 @@ import (
 	"strings"
 )
 
-// domainAbbreviations defines a map of domain abbreviations like 'gh:' and their associated full domains like
-// 'https://github.com'.
-var domainAbbreviations = map[string]string{
-	"gh:": "https://github.com",
-	"gl:": "https://gitlab.com",
-}
-
 // Importer describes the behaviour of repo objects (github, gitlab).
 type Importer interface {
 	FilePathToRawURI(filePath string) string // Returns raw URI of a file
@@ -39,6 +32,12 @@ func ParseURL(repoURL string) (*url.URL, error) {
 		repoURL = repoURL[:len(repoURL)-len(".git")]
 	}
 
+	// domainAbbreviations defines a map of domain abbreviations like 'gh:' and their associated full domains like
+	// 'https://github.com'.
+	var domainAbbreviations = map[string]string{
+		"gh:": "https://github.com",
+		"gl:": "https://gitlab.com",
+	}
 	// Replace domain abbreviations like 'gh:' with the actual domain of the host
 	for abbreviation, fullDomain := range domainAbbreviations {
 		if strings.HasPrefix(repoURL, abbreviation) {

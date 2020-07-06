@@ -31,9 +31,21 @@ const (
 	rawURLPrefix = "https://raw.githubusercontent.com/nikoksr/proji/v"
 )
 
-var (
-	// Representation of the proji's main config folder
-	defaultConfigFolder = &mainConfigFolder{
+// InitConfig is the main function for projis config initialization. It determines the OS' preferred config location, creates
+// proji's config folders and downloads the required configs from GitHub to the local config folder.
+func InitConfig(path, version, fallbackVersion string, forceUpdate bool) error {
+	var err error
+
+	// Set base config path if not given
+	if strings.Trim(path, " ") == "" {
+		path, err = GetBaseConfigPath()
+		if err != nil {
+			return err
+		}
+	}
+
+	// Representation of proji's main config folder
+	defaultConfigFolder := &mainConfigFolder{
 		basePath: "",
 		configs: []*configFile{
 			{
@@ -46,20 +58,6 @@ var (
 			},
 		},
 		subFolders: []string{"db", "examples", "scripts", "templates"},
-	}
-)
-
-// InitConfig is the main function for projis config initialization. It determines the OS' preferred config location, creates
-// proji's config folders and downloads the required configs from GitHub to the local config folder.
-func InitConfig(path, version, fallbackVersion string, forceUpdate bool) error {
-	var err error
-
-	// Set base config path if not given
-	if strings.Trim(path, " ") == "" {
-		path, err = GetBaseConfigPath()
-		if err != nil {
-			return err
-		}
 	}
 
 	defaultConfigFolder.basePath = path

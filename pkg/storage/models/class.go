@@ -38,10 +38,6 @@ type Class struct {
 	IsDefault bool           `gorm:"not null" toml:"-"`
 }
 
-// labelSeparators defines a list of rues that are used to split class names and transform them to labels.
-// '%20' is for escaped paths.
-var labelSeparators = []string{"-", "_", ".", " ", "%20"}
-
 const (
 	templatesKey = "templates" // Map key for template files.
 	pluginsKey   = "plugins"   // Map key for plugins.
@@ -375,6 +371,9 @@ func pickLabel(className string) string {
 	maxLabelLen := 4
 
 	// Try to create label by separators
+	// labelSeparators defines a list of rues that are used to split class names and transform them to labels.
+	// '%20' is for escaped paths.
+	labelSeparators := []string{"-", "_", ".", " ", "%20"}
 	parts := make([]string, 0)
 	for _, d := range labelSeparators {
 		parts = strings.Split(className, d)
