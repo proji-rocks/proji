@@ -10,7 +10,7 @@ type ClassNotFoundError struct {
 
 //
 func (e *ClassNotFoundError) Error() string {
-	return fmt.Sprintf("class with label %s not found\n", e.Label)
+	return fmt.Sprintf("class with label %s not found", e.Label)
 }
 
 // NewClassNotFoundError returns a pointer to an initialized ClassNotFoundError object.
@@ -22,7 +22,7 @@ func NewClassNotFoundError(label string) *ClassNotFoundError {
 type NoClassesFoundError struct{}
 
 func (e *NoClassesFoundError) Error() string {
-	return fmt.Sprintf("no classes were found\n")
+	return "no classes were found"
 }
 
 // NewNoClassesFoundError returns a pointer to an initialized NoClassesFoundError object.
@@ -37,7 +37,7 @@ type ClassExistsError struct {
 }
 
 func (e *ClassExistsError) Error() string {
-	return fmt.Sprintf("class %s(%s) already exists\n", e.Name, e.Label)
+	return fmt.Sprintf("class %s(%s) already exists", e.Name, e.Label)
 }
 
 // NewClassExistsError returns a pointer to an initialized ClassExistsError object.
@@ -52,7 +52,7 @@ type ProjectNotFoundError struct {
 }
 
 func (e *ProjectNotFoundError) Error() string {
-	return fmt.Sprintf("project at path %s not found\n", e.Path)
+	return fmt.Sprintf("project at path %s not found", e.Path)
 }
 
 // NewProjectNotFoundError returns a pointer to an initialized ProjectNotFoundError object.
@@ -64,7 +64,7 @@ func NewProjectNotFoundError(path string) *ProjectNotFoundError {
 type NoProjectsFoundError struct{}
 
 func (e *NoProjectsFoundError) Error() string {
-	return fmt.Sprintf("no projects were found\n")
+	return "no projects were found"
 }
 
 // NewNoProjectsFoundError returns a pointer to an initialized NoProjectsFoundError object.
@@ -78,7 +78,7 @@ type ProjectExistsError struct {
 }
 
 func (e *ProjectExistsError) Error() string {
-	return fmt.Sprintf("a project is already assigned to the path %s\n", e.Path)
+	return fmt.Sprintf("a project is already assigned to the path %s", e.Path)
 }
 
 // NewProjectExistsError returns a pointer to an initialized ProjectExistsError object.
