@@ -27,15 +27,16 @@ import (
 // Class represents a proji class; the central item of proji's project creation mechanism. It holds tags for gorm and
 // toml defining its storage and export/import behaviour.
 type Class struct {
-	ID        uint           `gorm:"primarykey" toml:"-"`
-	CreatedAt time.Time      `toml:"-"`
-	UpdatedAt time.Time      `toml:"-"`
-	DeletedAt gorm.DeletedAt `gorm:"index:idx_unq_class_label_deletedat,unique;" toml:"-"`
-	Name      string         `gorm:"not null;size:64" toml:"name"`
-	Label     string         `gorm:"index:idx_unq_class_label_deletedat,unique;not null;size:16" toml:"label"`
-	Templates []*Template    `gorm:"many2many:class_templates;ForeignKey:ID;References:ID" toml:"template"`
-	Plugins   []*Plugin      `gorm:"many2many:class_plugins;ForeignKey:ID;References:ID" toml:"plugin"`
-	IsDefault bool           `gorm:"not null" toml:"-"`
+	ID          uint           `gorm:"primarykey" toml:"-"`
+	CreatedAt   time.Time      `toml:"-"`
+	UpdatedAt   time.Time      `toml:"-"`
+	DeletedAt   gorm.DeletedAt `gorm:"index:idx_unq_class_label_deletedat,unique;" toml:"-"`
+	Name        string         `gorm:"not null;size:64" toml:"name"`
+	Label       string         `gorm:"index:idx_unq_class_label_deletedat,unique;not null;size:16" toml:"label"`
+	Description string         `gorm:"size:255" toml:"description"`
+	Templates   []*Template    `gorm:"many2many:class_templates;ForeignKey:ID;References:ID" toml:"template"`
+	Plugins     []*Plugin      `gorm:"many2many:class_plugins;ForeignKey:ID;References:ID" toml:"plugin"`
+	IsDefault   bool           `gorm:"not null" toml:"-"`
 }
 
 const (

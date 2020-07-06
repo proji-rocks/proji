@@ -16,4 +16,5 @@ type Template struct {
 	IsFile      bool           `gorm:"not null" toml:"is_file"`
 	Path        string         `gorm:"index:idx_template_path_destination,unique;not null" toml:"path"`
 	Destination string         `gorm:"index:idx_template_path_destination,unique;not null" toml:"destination"`
+	Description string         `gorm:"size:255" toml:"description"`
 }
