@@ -43,9 +43,9 @@ func initHelp() string {
 
 	// OS specific help command.
 	helpMsg := "It is possible to set up the config folder manually.\n\n"
-	goos := runtime.GOOS
 
-	if goos == "linux" || goos == "darwin" {
+	switch runtime.GOOS {
+	case "darwin", "linux":
 		helpMsg += fmt.Sprintf(
 			" mkdir -p %s/db %s/examples %s/scripts %s/templates\n\n",
 			confPath,
@@ -61,7 +61,7 @@ func initHelp() string {
 			" curl -o %s/examples/proji-class.toml https://raw.githubusercontent.com/nikoksr/proji/master/assets/examples/example-class-export.toml\n\n",
 			confPath,
 		)
-	} else if goos == "windows" {
+	case "windows":
 		helpMsg += fmt.Sprintf(
 			" md %s\\db %s\\examples %s\\scripts %s\\templates\n\n",
 			confPath,
@@ -77,11 +77,9 @@ func initHelp() string {
 			" Download https://github.com/nikoksr/proji/blob/master/assets/examples/example-class-export.toml to %s\\examples\\proji-class.toml\n\n",
 			confPath,
 		)
-	} else {
+	default:
 		helpMsg = "Your platform is not supported, so no help is available at the moment.\n\n"
 	}
-
 	helpMsg += "\nFor more help visit: https://github.com/nikoksr/proji\n\n"
-
 	return helpMsg
 }

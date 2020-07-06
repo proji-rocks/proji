@@ -79,6 +79,7 @@ func getTemplates(reader *bufio.Reader) ([]*models.Template, error) {
 	templates := make([]*models.Template, 0)
 	destinations := make(map[string]bool)
 
+InputLoop:
 	for {
 		// Read in folders
 		// Syntax: IsFile Destination [template]
@@ -92,27 +93,28 @@ func getTemplates(reader *bufio.Reader) ([]*models.Template, error) {
 		lenInput := len(splittedInput)
 
 		// End if no input given
-		if lenInput < 1 {
-			break
-		} else if lenInput < 2 {
+		switch {
+		case lenInput < 1:
+			break InputLoop
+		case lenInput < 2:
 			fmt.Println("> Warning: At least 2 arguments needed.")
-			continue
-		} else if lenInput > 3 {
+			continue InputLoop
+		case lenInput > 3:
 			fmt.Println("> Warning: More than three arguments were given.")
-			continue
+			continue InputLoop
 		}
 
 		isFile, err := strconv.ParseBool(splittedInput[0])
 		if err != nil {
 			fmt.Println("> Warning: Value given for 'IsFile' field is not a boolean (true|false).")
-			continue
+			continue InputLoop
 		}
 		destination := splittedInput[1]
 
 		// Check if dest exists
 		if _, ok := destinations[destination]; ok {
 			fmt.Printf("> Warning: Destination path '%s' was already defined.\n", destination)
-			continue
+			continue InputLoop
 		}
 
 		path := ""
