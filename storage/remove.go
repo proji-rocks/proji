@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"github.com/nikoksr/proji/pkg/storage/models"
+	"github.com/nikoksr/proji/storage/models"
 	"gorm.io/gorm"
 )
 

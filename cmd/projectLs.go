@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/nikoksr/proji/pkg/util"
+	"github.com/nikoksr/proji/util"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"

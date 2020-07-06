@@ -3,7 +3,7 @@ package storage
 import (
 	"fmt"
 
-	"github.com/nikoksr/proji/pkg/storage/models"
+	"github.com/nikoksr/proji/storage/models"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"

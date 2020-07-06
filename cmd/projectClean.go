@@ -2,7 +2,7 @@
 package cmd
 
 import (
-	"github.com/nikoksr/proji/pkg/util"
+	"github.com/nikoksr/proji/util"
 	"github.com/spf13/cobra"
 )
 

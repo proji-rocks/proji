@@ -10,7 +10,7 @@ import (
 
 	gh "github.com/google/go-github/v31/github"
 
-	"github.com/nikoksr/proji/pkg/util"
+	"github.com/nikoksr/proji/util"
 	"github.com/stretchr/testify/assert"
 )
 

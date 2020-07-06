@@ -6,7 +6,7 @@ import (
 	"log"
 	"runtime"
 
-	"github.com/nikoksr/proji/pkg/config"
+	"github.com/nikoksr/proji/config"
 	"github.com/spf13/cobra"
 )
 

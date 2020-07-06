@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/nikoksr/proji/pkg/storage/models"
+	"github.com/nikoksr/proji/storage/models"
 
-	"github.com/nikoksr/proji/pkg/util"
+	"github.com/nikoksr/proji/util"
 	"github.com/spf13/cobra"
 )
 

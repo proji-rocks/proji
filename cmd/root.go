@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/nikoksr/proji/pkg/config"
+	"github.com/nikoksr/proji/config"
 
-	"github.com/nikoksr/proji/pkg/storage"
+	"github.com/nikoksr/proji/storage"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

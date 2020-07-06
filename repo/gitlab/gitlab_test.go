@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/nikoksr/proji/pkg/util"
+	"github.com/nikoksr/proji/util"
 	"github.com/stretchr/testify/assert"
 )
 

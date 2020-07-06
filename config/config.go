@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/nikoksr/proji/pkg/util"
+	"github.com/nikoksr/proji/util"
 )
 
 type APIAuthentication struct {
