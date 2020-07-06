@@ -16,7 +16,8 @@ import (
 // Env represents central resources and information the app uses.
 type Env struct {
 	Auth             *config.APIAuthentication
-	DBPath           string
+	DatabaseDriver   string
+	DatabaseDSN      string
 	Svc              storage.Service
 	ConfigFolderPath string
 	ExcludedPaths    []string
@@ -28,7 +29,8 @@ var projiEnv *Env
 
 const (
 	configExcludeFoldersKey = "import.exclude_folders"
-	configDBKey             = "sqlite3.path"
+	configDBDriverKey       = "database.driver"
+	configDBDsnKey          = "database.dsn"
 	configGHTokenKey        = "auth.gh_token" //nolint:gosec
 	configGLTokenKey        = "auth.gl_token" //nolint:gosec
 )
@@ -56,7 +58,8 @@ func init() {
 	if projiEnv == nil {
 		projiEnv = &Env{
 			Auth:             &config.APIAuthentication{},
-			DBPath:           "",
+			DatabaseDriver:   "",
+			DatabaseDSN:      "",
 			ExcludedPaths:    make([]string, 0),
 			ConfigFolderPath: "",
 			Svc:              nil,
@@ -103,15 +106,14 @@ func initConfig() {
 
 func initStorageService() {
 	var err error
-	/*
-		projiEnv.Svc, err = sqlite.New(projiEnv.DBPath)
-		if err != nil {
-			log.Fatalf("Error: could not connect to sqlite db. %v\n%s\n", err, projiEnv.DBPath)
-		}
-	*/
-	projiEnv.Svc, err = storage.NewService("sqlite3", "/home/niko/tmp.db")
+	projiEnv.Svc, err = storage.NewService(projiEnv.DatabaseDriver, projiEnv.DatabaseDSN)
 	if err != nil {
-		log.Fatalf("Error: could not connect to sqlite db. %v\n%s\n", err, projiEnv.DBPath)
+		log.Fatalf(
+			"Error: could not connect to %s database with dsn %s, %s\n",
+			projiEnv.DatabaseDriver,
+			projiEnv.DatabaseDSN,
+			err.Error(),
+		)
 	}
 }
 
@@ -119,12 +121,20 @@ func setDefaultConfigValues() {
 	viper.SetDefault(configGHTokenKey, "")
 	viper.SetDefault(configGLTokenKey, "")
 	viper.SetDefault(configExcludeFoldersKey, make([]string, 0))
-	viper.SetDefault(configDBKey, filepath.Join(projiEnv.ConfigFolderPath, "/db/proji.sqlite3"))
+	viper.SetDefault(configDBDriverKey, "sqlite3")
+	viper.SetDefault(configDBDsnKey, filepath.Join(projiEnv.ConfigFolderPath, "/db/proji.sqlite3"))
 }
 
 func setAllEnvValues() {
 	projiEnv.Auth.GHToken = viper.GetString(configGHTokenKey)
 	projiEnv.Auth.GLToken = viper.GetString(configGLTokenKey)
 	projiEnv.ExcludedPaths = viper.GetStringSlice(configExcludeFoldersKey)
-	projiEnv.DBPath = config.ParsePathFromConfig(projiEnv.ConfigFolderPath, viper.GetString(configDBKey))
+	projiEnv.DatabaseDriver = viper.GetString(configDBDriverKey)
+
+	// Special case for sqlite.
+	if projiEnv.DatabaseDriver == "sqlite3" {
+		projiEnv.DatabaseDSN = config.ParsePathFromConfig(projiEnv.ConfigFolderPath, viper.GetString(configDBDsnKey))
+	} else {
+		projiEnv.DatabaseDSN = viper.GetString(configDBDsnKey)
+	}
 }
