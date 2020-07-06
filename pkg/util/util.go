@@ -65,7 +65,7 @@ func IsInSlice(slice []string, val string) bool {
 	return false
 }
 
-// SkipNetworkBasedTests skips network/internet dependent tests when the env variable PROJI_SKIP_NETWORK_TESTS is set to 1
+// SkipNetworkBasedTests skips network/internet dependent tests when the env variable PROJI_SKIP_NETWORK_TESTS is set to 1.
 func SkipNetworkBasedTests(t *testing.T) {
 	env := os.Getenv("PROJI_SKIP_NETWORK_TESTS")
 	if env == "1" {
