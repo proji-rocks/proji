@@ -7,10 +7,10 @@ import (
 )
 
 type LoadService interface {
-	LoadClass(label string) (*models.Class, error)    // LoadClass loads a class from storage by its label.
-	LoadAllClasses() ([]*models.Class, error)         // LoadAllClasses loads all available classes from storage.
-	LoadProject(path string) (*models.Project, error) // LoadProject loads a project from storage by its path.
-	LoadAllProjects() ([]*models.Project, error)      // LoadAllProjects returns a list of all projects in storage.
+	LoadClass(label string) (*models.Class, error)           // LoadClass loads a class from storage by its label.
+	LoadClasses(labels ...string) ([]*models.Class, error)   // LoadClasses returns classes by the given labels. If no labels are given, all classes are loaded.
+	LoadProject(path string) (*models.Project, error)        // LoadProject loads a project from storage by its path.
+	LoadProjects(paths ...string) ([]*models.Project, error) // LoadProjects returns projects by the given paths. If no paths are given, all projects are loaded.
 }
 
 // LoadClass loads a class from storage by its label.
@@ -23,8 +23,25 @@ func (db *Database) LoadClass(label string) (*models.Class, error) {
 	return &class, err
 }
 
-// LoadAllClasses loads all available classes from storage.
-func (db *Database) LoadAllClasses() ([]*models.Class, error) {
+// LoadClasses loads classes by the given labels. If not labels are given, all classes are loaded.
+func (db *Database) LoadClasses(labels ...string) ([]*models.Class, error) {
+	lenLabels := len(labels)
+	if lenLabels < 1 {
+		return db.loadAllClasses()
+	}
+	classes := make([]*models.Class, 0, lenLabels)
+	for _, label := range labels {
+		class, err := db.LoadClass(label)
+		if err != nil {
+			return nil, err
+		}
+		classes = append(classes, class)
+	}
+	return classes, nil
+}
+
+// loadAllClasses loads and returns all classes found in the database.
+func (db *Database) loadAllClasses() ([]*models.Class, error) {
 	var classes []*models.Class
 	err := db.Connection.Preload(clause.Associations).Find(&classes).Error
 	if err == gorm.ErrRecordNotFound {
@@ -43,8 +60,25 @@ func (db *Database) LoadProject(path string) (*models.Project, error) {
 	return &project, err
 }
 
-// LoadAllProjects returns a list of all projects in storage.
-func (db *Database) LoadAllProjects() ([]*models.Project, error) {
+// LoadProjects returns projects by the given paths. If no paths are given, all projects are loaded.
+func (db *Database) LoadProjects(paths ...string) ([]*models.Project, error) {
+	numPaths := len(paths)
+	if numPaths < 1 {
+		return db.loadAllProjects()
+	}
+	projects := make([]*models.Project, 0, numPaths)
+	for _, path := range paths {
+		project, err := db.LoadProject(path)
+		if err != nil {
+			return nil, err
+		}
+		projects = append(projects, project)
+	}
+	return projects, nil
+}
+
+// loadAllProjects loads and returns all projects found in the database.
+func (db *Database) loadAllProjects() ([]*models.Project, error) {
 	var projects []*models.Project
 	err := db.Connection.Preload(clause.Associations).Find(&projects).Error
 	if err == gorm.ErrRecordNotFound {
