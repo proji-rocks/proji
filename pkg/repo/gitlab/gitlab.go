@@ -20,9 +20,9 @@ type GitLab struct {
 }
 
 // New creates a new gitlab repo object
-func New(URL *url.URL, authToken string) (*GitLab, error) {
-	if URL.Hostname() != "gitlab.com" {
-		return nil, fmt.Errorf("invalid host %s", URL.Hostname())
+func New(repoURL *url.URL, authToken string) (*GitLab, error) {
+	if repoURL.Hostname() != "gitlab.com" {
+		return nil, fmt.Errorf("invalid host %s", repoURL.Hostname())
 	}
 
 	// Parse URL
@@ -30,7 +30,7 @@ func New(URL *url.URL, authToken string) (*GitLab, error) {
 	//  - /[inkscape]/[inkscape]                 	-> extracts owner and repo name; no branch name
 	//  - /[inkscape]/[inkscape]/-/tree/[master]	-> extracts owner, repo and branch name
 	r := regexp.MustCompile(`/([^/]+)/([^/]+)(?:/(?:tree|blob)/([^/]+))?`)
-	specs := r.FindStringSubmatch(URL.Path)
+	specs := r.FindStringSubmatch(repoURL.Path)
 
 	if specs == nil {
 		return nil, fmt.Errorf("could not parse url path")
@@ -55,7 +55,7 @@ func New(URL *url.URL, authToken string) (*GitLab, error) {
 	}
 
 	return &GitLab{
-		baseURI:    URL,
+		baseURI:    repoURL,
 		OwnerName:  OwnerName,
 		RepoName:   RepoName,
 		BranchName: BranchName,

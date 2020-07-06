@@ -52,9 +52,9 @@ func (g *GitHub) setRepoSHA(ctx context.Context) error {
 }
 
 // New creates a new github repo instance
-func New(URL *url.URL, authToken string) (*GitHub, error) {
-	if URL.Hostname() != "github.com" {
-		return nil, fmt.Errorf("invalid host %s", URL.Hostname())
+func New(repoURL *url.URL, authToken string) (*GitHub, error) {
+	if repoURL.Hostname() != "github.com" {
+		return nil, fmt.Errorf("invalid host %s", repoURL.Hostname())
 	}
 
 	// Extract owner, repo and branch if given
@@ -62,7 +62,7 @@ func New(URL *url.URL, authToken string) (*GitHub, error) {
 	//  - /[nikoksr]/[proji]				-> extracts owner and repo name; no branch name
 	//  - /[nikoksr]/[proji]/tree/[master]	-> extracts owner, repo and branch name
 	r := regexp.MustCompile(`/([^/]+)/([^/]+)(?:/tree/([^/]+))?`)
-	specs := r.FindStringSubmatch(URL.Path)
+	specs := r.FindStringSubmatch(repoURL.Path)
 
 	if specs == nil {
 		return nil, fmt.Errorf("could not parse url")
@@ -80,7 +80,7 @@ func New(URL *url.URL, authToken string) (*GitHub, error) {
 	ghClient := getGHClient(ctx, authToken)
 
 	g := &GitHub{
-		baseURI:     URL,
+		baseURI:     repoURL,
 		OwnerName:   OwnerName,
 		RepoName:    RepoName,
 		BranchName:  BranchName,

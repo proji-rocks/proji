@@ -172,10 +172,10 @@ func (c *Class) ImportRepoStructure(importer repo.Importer, filters []*regexp.Re
 // ImportPackage imports a package from a given URL. The URL should point directly to a class config in a remote repo
 // of one of the following code platforms: github, gitlab. Proji will import the class config and download its
 // dependencies if necessary.
-func (c *Class) ImportPackage(URL *url.URL, importer repo.Importer) error {
+func (c *Class) ImportPackage(packageURL *url.URL, importer repo.Importer) error {
 	// Download config
-	f := filepath.Join(os.TempDir(), "/proji/configs/", filepath.Base(URL.Path))
-	dwn := importer.FilePathToRawURI(filepath.Join("configs/", filepath.Base(URL.Path)))
+	f := filepath.Join(os.TempDir(), "/proji/configs/", filepath.Base(packageURL.Path))
+	dwn := importer.FilePathToRawURI(filepath.Join("configs/", filepath.Base(packageURL.Path)))
 	err := util.DownloadFileIfNotExists(f, dwn)
 	if err != nil {
 		return err
@@ -277,7 +277,8 @@ func (c *Class) ImportPackage(URL *url.URL, importer repo.Importer) error {
 // ImportClassesFromCollection imports all classes from a given URL. A collection is a repo with multiple classes. It must include
 // a folder called configs, which holds the class configs. If the classes have scripts or templates as dependencies,
 // they should be put into the folders scripts/ and templates/ respectively.
-func ImportClassesFromCollection(URL *url.URL, importer repo.Importer) ([]*Class, error) {
+//nolint:interfacer
+func ImportClassesFromCollection(collectionURL *url.URL, importer repo.Importer) ([]*Class, error) {
 	// Get list of class configs and loop through them
 	re := regexp.MustCompile(`configs/.*`)
 	c := NewClass("", "", false)
@@ -306,7 +307,7 @@ func ImportClassesFromCollection(URL *url.URL, importer repo.Importer) ([]*Class
 		go func(template *Template) {
 			defer wg.Done()
 			class := NewClass("", "", false)
-			packageURL, err := repo.ParseURL(URL.String() + "/" + template.Destination)
+			packageURL, err := repo.ParseURL(collectionURL.String() + "/" + template.Destination)
 			if err != nil {
 				errs <- err
 				return
@@ -422,15 +423,15 @@ func pickLabel(className string) string {
 */
 
 // GetRepoImporterFromURL returns the most suiting importer based on the code hosting platform.
-func GetRepoImporterFromURL(URL *url.URL, auth *config.APIAuthentication) (repo.Importer, error) {
+func GetRepoImporterFromURL(repoURL *url.URL, auth *config.APIAuthentication) (repo.Importer, error) {
 	var importer repo.Importer
 	var err error
 
-	switch URL.Hostname() {
+	switch repoURL.Hostname() {
 	case "github.com":
-		importer, err = github.New(URL, auth.GHToken)
+		importer, err = github.New(repoURL, auth.GHToken)
 	case "gitlab.com":
-		importer, err = gitlab.New(URL, auth.GLToken)
+		importer, err = gitlab.New(repoURL, auth.GLToken)
 	default:
 		return nil, fmt.Errorf("platform not supported yet")
 	}
