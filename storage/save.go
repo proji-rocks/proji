@@ -12,9 +12,9 @@ type SaveService interface {
 
 // SaveClass saves a class to storage.
 func (db *Database) SaveClass(class *models.Class) error {
-	err := db.Connection.First(class).Error
+	err := db.Connection.First(class, "label = ?", class.Label).Error
 	if err == nil {
-		return NewClassExistsError(class.Label, class.Name)
+		return NewClassExistsError(class.Label)
 	}
 	if err == gorm.ErrRecordNotFound {
 		return db.Connection.Create(class).Error
@@ -24,7 +24,7 @@ func (db *Database) SaveClass(class *models.Class) error {
 
 // SaveProject saves a project to storage.
 func (db *Database) SaveProject(project *models.Project) error {
-	err := db.Connection.First(project).Error
+	err := db.Connection.First(project, "path = ?", project.Path).Error
 	if err == nil {
 		return NewProjectExistsError(project.Path)
 	}
