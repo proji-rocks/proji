@@ -13,6 +13,15 @@ import (
 
 var remoteRepos, directories, configs, excludes, packages, collections []string
 
+const (
+	flagCollection = "collection"
+	flagConfig     = "config"
+	flagDirectory  = "directory"
+	flagExclude    = "exclude"
+	flagPackage    = "package"
+	flagRemoteRepo = "remote-repo"
+)
+
 var classImportCmd = &cobra.Command{
 	Use:   "import FILE [FILE...]",
 	Short: "Import one or more classes",
@@ -29,11 +38,11 @@ var classImportCmd = &cobra.Command{
 		// them as intended with the '*'.
 		configs = append(configs, args...)
 		importTypes := map[string][]string{
-			"config":     configs,
-			"dir":        directories,
-			"repo":       remoteRepos,
-			"package":    packages,
-			"collection": collections,
+			flagConfig:     configs,
+			"dir":          directories,
+			"repo":         remoteRepos,
+			flagPackage:    packages,
+			flagCollection: collections,
 		}
 
 		// Import configs
@@ -53,23 +62,23 @@ var classImportCmd = &cobra.Command{
 func init() {
 	classCmd.AddCommand(classImportCmd)
 
-	classImportCmd.Flags().StringSliceVar(&remoteRepos, "remote-repo", make([]string, 0), "create an importable config based on on the structure of a remote repository")
-	_ = classImportCmd.MarkFlagDirname("remote-repo")
+	classImportCmd.Flags().StringSliceVar(&remoteRepos, flagRemoteRepo, make([]string, 0), "create an importable config based on on the structure of a remote repository")
+	_ = classImportCmd.MarkFlagDirname(flagRemoteRepo)
 
-	classImportCmd.Flags().StringSliceVar(&directories, "directory", make([]string, 0), "create an importable config based on the structure of a local directory")
-	_ = classImportCmd.MarkFlagDirname("directory")
+	classImportCmd.Flags().StringSliceVar(&directories, flagDirectory, make([]string, 0), "create an importable config based on the structure of a local directory")
+	_ = classImportCmd.MarkFlagDirname(flagDirectory)
 
-	classImportCmd.Flags().StringSliceVar(&configs, "config", make([]string, 0), "import a class from a config file")
-	_ = classImportCmd.MarkFlagFilename("config")
+	classImportCmd.Flags().StringSliceVar(&configs, flagConfig, make([]string, 0), "import a class from a config file")
+	_ = classImportCmd.MarkFlagFilename(flagConfig)
 
-	classImportCmd.Flags().StringSliceVar(&packages, "package", make([]string, 0), "import a package (EXPERIMENTAL)")
-	_ = classImportCmd.MarkFlagFilename("package")
+	classImportCmd.Flags().StringSliceVar(&packages, flagPackage, make([]string, 0), "import a package (EXPERIMENTAL)")
+	_ = classImportCmd.MarkFlagFilename(flagPackage)
 
-	classImportCmd.Flags().StringSliceVar(&collections, "collection", make([]string, 0), "import a collection of packages (EXPERIMENTAL)")
-	_ = classImportCmd.MarkFlagFilename("collection")
+	classImportCmd.Flags().StringSliceVar(&collections, flagCollection, make([]string, 0), "import a collection of packages (EXPERIMENTAL)")
+	_ = classImportCmd.MarkFlagFilename(flagCollection)
 
-	classImportCmd.Flags().StringSliceVar(&excludes, "exclude", make([]string, 0), "folder to exclude from local directory import")
-	_ = classImportCmd.MarkFlagFilename("exclude")
+	classImportCmd.Flags().StringSliceVar(&excludes, flagExclude, make([]string, 0), "folder to exclude from local directory import")
+	_ = classImportCmd.MarkFlagFilename(flagExclude)
 }
 
 func importClass(path, importType string, excludes []string) (string, error) {
@@ -84,7 +93,7 @@ func importClass(path, importType string, excludes []string) (string, error) {
 	var importer repo.Importer
 
 	// In case of a repo, package or collection try to parse the path to a URL structure
-	if importType == "repo" || importType == "package" || importType == "collection" {
+	if importType == "repo" || importType == flagPackage || importType == flagCollection {
 		URL, err = repo.ParseURL(path)
 		if err != nil {
 			return "", err
@@ -97,7 +106,7 @@ func importClass(path, importType string, excludes []string) (string, error) {
 	}
 
 	switch importType {
-	case "config":
+	case flagConfig:
 		err = class.ImportConfig(path)
 		if err != nil {
 			return "", err
@@ -116,7 +125,7 @@ func importClass(path, importType string, excludes []string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-	case "package":
+	case flagPackage:
 		err = class.ImportPackage(URL, importer)
 		if err != nil {
 			return "", err
@@ -125,7 +134,7 @@ func importClass(path, importType string, excludes []string) (string, error) {
 		if err == nil {
 			msg = fmt.Sprintf("> Successfully imported class '%s' from '%s'", class.Name, path)
 		}
-	case "collection":
+	case flagCollection:
 		classList, err := models.ImportClassesFromCollection(URL, importer)
 		if err != nil {
 			return "", err
@@ -144,7 +153,7 @@ func importClass(path, importType string, excludes []string) (string, error) {
 
 	// Classes that are generated from directories or repos (structure, package and collection) should be exported to a config file first
 	// so that the user can fine tune them
-	if importType != "config" && importType != "package" && importType != "collection" {
+	if importType != flagConfig && importType != flagPackage && importType != flagCollection {
 		confName, err = class.Export(".")
 		if err == nil {
 			msg = fmt.Sprintf("> '%s' was successfully exported to '%s'", path, confName)
