@@ -4,7 +4,10 @@ package cmd
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
+
+	"github.com/jedib0t/go-pretty/v6/text"
 
 	"github.com/nikoksr/proji/util"
 
@@ -19,27 +22,19 @@ var showAll bool
 var classShowCmd = &cobra.Command{
 	Use:   "show LABEL [LABEL...]",
 	Short: "Show details about one or more classes",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		setMaxColumnWidth()
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if showAll {
-			err := showAllClasses()
-			if err != nil {
-				fmt.Printf("> Showing of all classes failed: %v\n", err)
-				return err
-			}
-			return nil
-		}
-
-		if len(args) < 1 {
+		if !showAll && len(args) < 1 {
 			return fmt.Errorf("missing class label")
 		}
 
-		for _, label := range args {
-			err := showClass(nil, label)
-			if err != nil {
-				return err
-			}
+		var labels []string
+		if !showAll {
+			labels = args
 		}
-		return nil
+		return showClasses(labels...)
 	},
 }
 
@@ -53,45 +48,42 @@ func showClass(preloadedClass *models.Class, label string) error {
 	if preloadedClass == nil {
 		preloadedClass, err = projiEnv.StorageService.LoadClass(label)
 		if err != nil {
-			return nil
+			return err
 		}
 	}
 	output := os.Stdout
-	showNameAndLabel(preloadedClass.Name, preloadedClass.Label)
+	showBasicInfo(preloadedClass.Name, preloadedClass.Label, preloadedClass.Description)
 	showTemplates(output, preloadedClass.Templates)
 	showPlugins(output, preloadedClass.Plugins)
 	return nil
 }
 
-func showAllClasses() error {
-	classes, err := projiEnv.StorageService.LoadAllClasses()
+func showClasses(labels ...string) error {
+	classes, err := projiEnv.StorageService.LoadClasses(labels...)
 	if err != nil {
 		return err
 	}
-
 	for _, class := range classes {
-		if class.IsDefault {
-			continue
-		}
 		err = showClass(class, class.Label)
 		if err != nil {
-			fmt.Printf("failed printing table for class %s, %s\n", class.Name, err.Error())
+			log.Printf("failed show class with label '%s', %s", class.Label, err.Error())
 		}
 	}
 	return nil
 }
 
-func showNameAndLabel(name, label string) {
+func showBasicInfo(name, label, description string) {
 	fmt.Printf("\nName:  %s\n", name)
-	fmt.Printf("Label: %s\n\n", label)
+	fmt.Printf("Label: %s\n", label)
+	fmt.Printf("Description: %s\n\n", text.WrapSoft(description, maxColumnWidth))
 }
 
 func showTemplates(out io.Writer, templates []*models.Template) {
 	templatesTable := util.NewInfoTable(out)
 	templatesTable.SetTitle("TEMPLATES")
-	templatesTable.AppendHeader(table.Row{"Destination", "Template Path", "Is File"})
+	templatesTable.AppendHeader(table.Row{"Destination", "Template Path", "Is File", "Description"})
 	for _, template := range templates {
-		templatesTable.AppendRow(table.Row{template.Destination, template.Path, template.IsFile})
+		templatesTable.AppendRow(table.Row{template.Destination, template.Path, template.IsFile, template.Description})
 	}
 	templatesTable.Render()
 }
@@ -99,9 +91,9 @@ func showTemplates(out io.Writer, templates []*models.Template) {
 func showPlugins(out io.Writer, plugins []*models.Plugin) {
 	pluginsTable := util.NewInfoTable(out)
 	pluginsTable.SetTitle("PLUGINS")
-	pluginsTable.AppendHeader(table.Row{"Name", "Path", "Execution Number"})
+	pluginsTable.AppendHeader(table.Row{"Path", "Execution Number", "Description"})
 	for _, plugin := range plugins {
-		pluginsTable.AppendRow(table.Row{plugin.Name, plugin.Path, plugin.ExecNumber})
+		pluginsTable.AppendRow(table.Row{plugin.Path, plugin.ExecNumber, text.WrapSoft(plugin.Description, maxColumnWidth)})
 	}
 	pluginsTable.Render()
 }
