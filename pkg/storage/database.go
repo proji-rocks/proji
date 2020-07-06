@@ -80,7 +80,7 @@ func getDatabaseDialector(driver, connectionString string) (gorm.Dialector, erro
 	case postgresDriver:
 		dialector = postgres.Open(connectionString)
 	default:
-		dialector = nil
+		err = NewUnsupportedDatabaseDialectError(driver)
 	}
 	return dialector, err
 }
