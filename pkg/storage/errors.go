@@ -2,6 +2,23 @@ package storage
 
 import "fmt"
 
+// UnsupportedDatabaseDialectError represents an error for the case that the user passed a db driver for a
+// unsupported database dialect. Proji uses Gorm under the hood so take a look at its docs for a list of
+// documented dialects.
+// https://gorm.io/docs/connecting_to_the_database.html#Supported-Databases
+type UnsupportedDatabaseDialectError struct {
+	Dialect string
+}
+
+func (e *UnsupportedDatabaseDialectError) Error() string {
+	return fmt.Sprintf("%s is not in the list of supported database dialects", e.Dialect)
+}
+
+// NewUnsupportedDatabaseDialectError returns a pointer to an initialized UnsupportedDatabaseDialectError object.
+func NewUnsupportedDatabaseDialectError(dialect string) *UnsupportedDatabaseDialectError {
+	return &UnsupportedDatabaseDialectError{Dialect: dialect}
+}
+
 // ClassNotFoundError represents an error for the case that a query for a class returns a
 // gorm.ErrRecordNotFound error.
 type ClassNotFoundError struct {
