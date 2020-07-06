@@ -44,7 +44,7 @@ var rmCmd = &cobra.Command{
 			// Ask for confirmation if force flag was not passed
 			if !forceRemoveProjects {
 				if !util.WantTo(
-					fmt.Sprintf("Do you really want to remove project '%s (%d)'?", project.Name, project.ID),
+					fmt.Sprintf("Do you really want to remove the path '%s' from your projects?", project.Path),
 				) {
 					continue
 				}

@@ -17,7 +17,6 @@ type Project struct {
 	CreatedAt time.Time      `toml:"-"`
 	UpdatedAt time.Time      `toml:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" toml:"-"`
-	Name      string         `gorm:"size:64"`
 	Path      string         `gorm:"index:idx_project_path,unique;not null"`
 	Class     *Class         `gorm:"ForeignKey:ID;References:ID"`
 }
@@ -25,7 +24,6 @@ type Project struct {
 // NewProject returns a new project.
 func NewProject(name, path string, class *Class) *Project {
 	return &Project{
-		Name:  name,
 		Path:  path,
 		Class: class,
 	}
@@ -39,7 +37,7 @@ func (p *Project) Create(cwd, configPath string) (err error) {
 	}
 
 	// Chdir into the new project folder and defer chdir back to old cwd
-	err = os.Chdir(p.Name)
+	err = os.Chdir(p.Path)
 	if err != nil {
 		return err
 	}
@@ -70,7 +68,7 @@ func (p *Project) Create(cwd, configPath string) (err error) {
 
 // createProjectFolder tries to create the main project folder.
 func (p *Project) createProjectFolder() error {
-	return os.Mkdir(p.Name, os.ModePerm)
+	return os.Mkdir(p.Path, os.ModePerm)
 }
 
 func (p *Project) createFilesAndFolders(configPath string) error {
