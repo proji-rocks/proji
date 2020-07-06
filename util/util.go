@@ -100,6 +100,7 @@ func NewInfoTable(out io.Writer) table.Writer {
 	infoTable := table.NewWriter()
 	infoTable.SetOutputMirror(out)
 	infoTable.SuppressEmptyColumns()
+	infoTable.SetAutoIndex(true)
 	infoTable.SetStyle(table.StyleRounded)
 	return infoTable
 }
