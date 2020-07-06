@@ -102,7 +102,7 @@ func importClass(path, importType string, excludes []string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		err = projiEnv.Svc.SaveClass(class)
+		err = projiEnv.StorageService.SaveClass(class)
 		if err == nil {
 			msg = fmt.Sprintf("> Successfully imported class '%s' from '%s'", class.Name, path)
 		}
@@ -121,7 +121,7 @@ func importClass(path, importType string, excludes []string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		err = projiEnv.Svc.SaveClass(class)
+		err = projiEnv.StorageService.SaveClass(class)
 		if err == nil {
 			msg = fmt.Sprintf("> Successfully imported class '%s' from '%s'", class.Name, path)
 		}
@@ -131,7 +131,7 @@ func importClass(path, importType string, excludes []string) (string, error) {
 			return "", err
 		}
 		for _, class := range classList {
-			err = projiEnv.Svc.SaveClass(class)
+			err = projiEnv.StorageService.SaveClass(class)
 			if err == nil {
 				msg += fmt.Sprintf("> Successfully imported class '%s' from '%s'\n", class.Name, path)
 			} else {

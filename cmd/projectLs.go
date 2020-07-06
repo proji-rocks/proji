@@ -23,7 +23,7 @@ func init() {
 }
 
 func listProjects(out io.Writer) error {
-	projects, err := projiEnv.Svc.LoadAllProjects()
+	projects, err := projiEnv.StorageService.LoadAllProjects()
 	if err != nil {
 		return err
 	}

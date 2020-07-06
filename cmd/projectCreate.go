@@ -27,7 +27,7 @@ var createCmd = &cobra.Command{
 		}
 
 		// Load class once for all projects
-		class, err := projiEnv.Svc.LoadClass(label)
+		class, err := projiEnv.StorageService.LoadClass(label)
 		if err != nil {
 			return err
 		}
@@ -66,7 +66,7 @@ func createProject(name, cwd, configPath string, class *models.Class) error {
 	project := models.NewProject(name, filepath.Join(cwd, name), class)
 
 	// Save it first to see if it already exists in the database
-	err := projiEnv.Svc.SaveProject(project)
+	err := projiEnv.StorageService.SaveProject(project)
 	if err != nil {
 		return err
 	}
@@ -80,7 +80,7 @@ func createProject(name, cwd, configPath string, class *models.Class) error {
 
 func replaceProject(name, path, configPath string, class *models.Class) error {
 	// Replace it
-	err := projiEnv.Svc.RemoveProject(filepath.Join(path, name))
+	err := projiEnv.StorageService.RemoveProject(filepath.Join(path, name))
 	if err != nil {
 		return err
 	}

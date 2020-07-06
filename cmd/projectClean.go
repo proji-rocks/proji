@@ -18,7 +18,7 @@ func init() {
 }
 
 func cleanProjects() error {
-	projects, err := projiEnv.Svc.LoadAllProjects()
+	projects, err := projiEnv.StorageService.LoadAllProjects()
 	if err != nil {
 		return err
 	}
@@ -29,7 +29,7 @@ func cleanProjects() error {
 			continue
 		}
 		// Remove the project
-		err := projiEnv.Svc.RemoveProject(project.Path)
+		err := projiEnv.StorageService.RemoveProject(project.Path)
 		if err != nil {
 			return err
 		}

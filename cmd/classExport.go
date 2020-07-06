@@ -41,7 +41,7 @@ var classExportCmd = &cobra.Command{
 
 		if exportAll {
 			var err error
-			classes, err = projiEnv.Svc.LoadAllClasses()
+			classes, err = projiEnv.StorageService.LoadAllClasses()
 			if err != nil {
 				return err
 			}
@@ -51,7 +51,7 @@ var classExportCmd = &cobra.Command{
 			}
 
 			for _, label := range args {
-				class, err := projiEnv.Svc.LoadClass(label)
+				class, err := projiEnv.StorageService.LoadClass(label)
 				if err != nil {
 					return err
 				}

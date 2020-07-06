@@ -18,7 +18,7 @@ type Env struct {
 	Auth             *config.APIAuthentication
 	DatabaseDriver   string
 	DatabaseDSN      string
-	Svc              storage.Service
+	StorageService   storage.Service
 	ConfigFolderPath string
 	ExcludedPaths    []string
 	FallbackVersion  string
@@ -62,7 +62,7 @@ func init() {
 			DatabaseDSN:      "",
 			ExcludedPaths:    make([]string, 0),
 			ConfigFolderPath: "",
-			Svc:              nil,
+			StorageService:   nil,
 			FallbackVersion:  "0.19.2",
 			Version:          "0.20.0",
 		}
@@ -106,7 +106,7 @@ func initConfig() {
 
 func initStorageService() {
 	var err error
-	projiEnv.Svc, err = storage.NewService(projiEnv.DatabaseDriver, projiEnv.DatabaseDSN)
+	projiEnv.StorageService, err = storage.NewService(projiEnv.DatabaseDriver, projiEnv.DatabaseDSN)
 	if err != nil {
 		log.Fatalf(
 			"Error: could not connect to %s database with dsn %s, %s\n",

@@ -24,7 +24,7 @@ func init() {
 }
 
 func listClasses(out io.Writer) error {
-	classes, err := projiEnv.Svc.LoadAllClasses()
+	classes, err := projiEnv.StorageService.LoadAllClasses()
 	if err != nil {
 		return err
 	}

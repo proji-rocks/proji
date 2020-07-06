@@ -20,7 +20,7 @@ var rmCmd = &cobra.Command{
 
 		if removeAllProjects {
 			var err error
-			projects, err = projiEnv.Svc.LoadAllProjects()
+			projects, err = projiEnv.StorageService.LoadAllProjects()
 			if err != nil {
 				return err
 			}
@@ -30,7 +30,7 @@ var rmCmd = &cobra.Command{
 			}
 
 			for _, path := range args {
-				project, err := projiEnv.Svc.LoadProject(path)
+				project, err := projiEnv.StorageService.LoadProject(path)
 				if err != nil {
 					return err
 				}
@@ -48,7 +48,7 @@ var rmCmd = &cobra.Command{
 					continue
 				}
 			}
-			err := projiEnv.Svc.RemoveProject(project.Path)
+			err := projiEnv.StorageService.RemoveProject(project.Path)
 			if err != nil {
 				fmt.Printf("> Removing project '%s' failed: %v\n", project.Path, err)
 				return err
