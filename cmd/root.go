@@ -2,16 +2,17 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/nikoksr/proji/config"
-
 	"github.com/nikoksr/proji/storage"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 // Env represents central resources and information the app uses.
@@ -27,6 +28,7 @@ type Env struct {
 }
 
 var projiEnv *Env
+var terminalWidth, maxColumnWidth int
 
 const (
 	configExcludeFoldersKey = "import.exclude_folders"
@@ -34,6 +36,7 @@ const (
 	configDBDsnKey          = "database.dsn"
 	configGHTokenKey        = "auth.gh_token" //nolint:gosec
 	configGLTokenKey        = "auth.gl_token" //nolint:gosec
+	defaultMaxColumnWidth   = 50
 )
 
 var rootCmd = &cobra.Command{
@@ -137,5 +140,25 @@ func setAllEnvValues() {
 		projiEnv.DatabaseDSN = config.ParsePathFromConfig(projiEnv.ConfigFolderPath, viper.GetString(configDBDsnKey))
 	} else {
 		projiEnv.DatabaseDSN = viper.GetString(configDBDsnKey)
+	}
+}
+
+func getTerminalWidth() (int, error) {
+	w, _, err := terminal.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		return 0, err
+	}
+	return w, nil
+}
+
+func setMaxColumnWidth() {
+	//Load terminal width and set max column width for dynamic rendering
+	var err error
+	terminalWidth, err = getTerminalWidth()
+	if err != nil {
+		fmt.Printf("Warning: Couldn't get terminal width, %s", err.Error())
+		maxColumnWidth = defaultMaxColumnWidth
+	} else {
+		maxColumnWidth = terminalWidth / 2
 	}
 }
