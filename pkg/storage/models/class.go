@@ -111,6 +111,9 @@ func (c *Class) ImportFolderStructure(path string, excludeDirs []string) error {
 	c.Label = pickLabel(c.Name)
 
 	err := filepath.Walk(path, func(currentPath string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 		// Skip base directory
 		if path == currentPath {
 			return nil
