@@ -1,6 +1,9 @@
 package storage
 
 import (
+	"fmt"
+
+	"github.com/nikoksr/proji/pkg/storage/models"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
@@ -8,6 +11,28 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
+
+// Database represents a storage database. Uses gorm internally and supports sqlite, mysql, mssql and postgres
+// natively.
+type Database struct {
+	Connection *gorm.DB
+}
+
+func (db *Database) Migrate() error {
+	modelList := []interface{}{
+		&models.Class{},
+		&models.Plugin{},
+		&models.Project{},
+		&models.Template{},
+	}
+	for _, model := range modelList {
+		err := db.Connection.AutoMigrate(model)
+		if err != nil {
+			return fmt.Errorf("failed to auto-migrate model, %s", err.Error())
+		}
+	}
+	return nil
+}
 
 // isDatabaseDriver checks if a given database driver is actually a valid one.
 func isDatabaseDriver(driver string) bool {
@@ -25,12 +50,6 @@ func isDatabaseDriver(driver string) bool {
 		isValid = false
 	}
 	return isValid
-}
-
-// Database represents a storage database. Uses gorm internally and supports sqlite, mysql, mssql and postgres
-// natively.
-type Database struct {
-	Connection *gorm.DB
 }
 
 // newDatabaseService creates a new service instance.

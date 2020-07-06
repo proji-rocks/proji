@@ -3,24 +3,15 @@ package storage
 import (
 	"fmt"
 	"strings"
-
-	"github.com/nikoksr/proji/pkg/storage/models"
 )
 
 // Service interface describes the behaviour of a storage service.
 type Service interface {
-	Migrate() error                                      // Migrate models to storage.
-	SaveClass(class *models.Class) error                 // SaveClass saves a class to storage.
-	LoadClass(label string) (*models.Class, error)       // LoadClass loads a class from storage by its label.
-	LoadAllClasses() ([]*models.Class, error)            // LoadAllClasses loads all available classes from storage.
-	RemoveClass(label string) error                      // RemoveClass removes a class from storage.
-	PurgeClass(label string) error                       // PurgeClass removes a soft-deleted class finally from storage.
-	SaveProject(project *models.Project) error           // SaveProject saves a project to storage.
-	LoadProject(path string) (*models.Project, error)    // LoadProject loads a project from storage by its path.
-	LoadAllProjects() ([]*models.Project, error)         // LoadAllProjects returns a list of all projects in storage.
-	UpdateProjectLocation(oldPath, newPath string) error // UpdateProjectLocation updates the path of a project in storage.
-	RemoveProject(path string) error                     // RemoveProject removes a project from storage.
-	PurgeProject(path string) error                      // PurgeProject removes a soft-deleted project finally from storage.
+	Migrate() error // Migrate models to storage.
+	SaveService     // Service to handle save actions for the storage.
+	LoadService     // Service to handle load actions for the storage.
+	UpdateService   // Service to handle update actions for the storage.
+	RemoveService   // Service to handle remove actions for the storage.
 }
 
 // NewService returns a new storage service interface initialized with a given storage driver and connection string.
