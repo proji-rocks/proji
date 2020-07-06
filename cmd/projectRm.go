@@ -50,10 +50,10 @@ var rmCmd = &cobra.Command{
 			}
 			err := projiEnv.Svc.RemoveProject(project.Path)
 			if err != nil {
-				fmt.Printf("> Removing project '%d' failed: %v\n", project.Path, err)
+				fmt.Printf("> Removing project '%s' failed: %v\n", project.Path, err)
 				return err
 			}
-			fmt.Printf("> Project '%d' was successfully removed\n", project.Path)
+			fmt.Printf("> Project '%s' was successfully removed\n", project.Path)
 		}
 		return nil
 	},
