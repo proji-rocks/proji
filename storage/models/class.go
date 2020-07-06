@@ -30,9 +30,9 @@ type Class struct {
 	ID        uint           `gorm:"primarykey" toml:"-"`
 	CreatedAt time.Time      `toml:"-"`
 	UpdatedAt time.Time      `toml:"-"`
-	DeletedAt gorm.DeletedAt `gorm:"index:idx_class_label,unique;" toml:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index:idx_unq_class_label_deletedat,unique;" toml:"-"`
 	Name      string         `gorm:"not null;size:64" toml:"name"`
-	Label     string         `gorm:"index:idx_class_label,unique;not null;size:16" toml:"label"`
+	Label     string         `gorm:"index:idx_unq_class_label_deletedat,unique;not null;size:16" toml:"label"`
 	Templates []*Template    `gorm:"many2many:class_templates;ForeignKey:ID;References:ID" toml:"template"`
 	Plugins   []*Plugin      `gorm:"many2many:class_plugins;ForeignKey:ID;References:ID" toml:"plugin"`
 	IsDefault bool           `gorm:"not null" toml:"-"`
