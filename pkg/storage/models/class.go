@@ -445,16 +445,14 @@ func filterAndConvertTreeEntries(importer repo.Importer, filters []*regexp.Regex
 	}
 
 	var templates []*Template
-
-	switch importer.(type) {
+	switch typedImporter := importer.(type) {
 	case *github.GitHub:
-		templates = filterAndConvertGHTreeEntries(importer.(*github.GitHub).TreeEntries, filters)
+		templates = filterAndConvertGHTreeEntries(typedImporter.TreeEntries, filters)
 	case *gitlab.GitLab:
-		templates = filterAndConvertGLTreeEntries(importer.(*gitlab.GitLab).TreeEntries, filters)
+		templates = filterAndConvertGLTreeEntries(typedImporter.TreeEntries, filters)
 	default:
 		return nil
 	}
-
 	return templates
 }
 
