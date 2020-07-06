@@ -103,7 +103,7 @@ func (p *Project) preRunPlugins(configPath string) error {
 		if plugin.ExecNumber >= 0 {
 			continue
 		}
-		pluginPath := filepath.Join(configPath, "/plugins/", plugin.Name)
+		pluginPath := filepath.Join(configPath, "/plugins/", plugin.Path)
 		err := runPlugin(pluginPath)
 		if err != nil {
 			return err
@@ -117,7 +117,7 @@ func (p *Project) postRunPlugins(configPath string) error {
 		if plugin.ExecNumber <= 0 {
 			continue
 		}
-		pluginPath := filepath.Join(configPath, "/plugins/", plugin.Name)
+		pluginPath := filepath.Join(configPath, "/plugins/", plugin.Path)
 		err := runPlugin(pluginPath)
 		if err != nil {
 			return err
