@@ -15,9 +15,9 @@ import (
 type Project struct {
 	ID        uint           `gorm:"primarykey" toml:"-"`
 	CreatedAt time.Time      `toml:"-"`
-	UpdatedAt time.Time      `toml:"-"`
+	UpdatedAt time.Time      `gorm:"index:idx_unq_project_path_deletedat,unique;" toml:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" toml:"-"`
-	Path      string         `gorm:"index:idx_project_path,unique;not null"`
+	Path      string         `gorm:"index:idx_unq_project_path_deletedat,unique;not null" toml:"label"`
 	Class     *Class         `gorm:"ForeignKey:ID;References:ID"`
 }
 
