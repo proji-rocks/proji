@@ -140,7 +140,7 @@ func GetBaseConfigPath() (string, error) {
 		configPath = filepath.Join(appData, "/proji")
 	default:
 		return "", fmt.Errorf("OS %s is not supported and/or tested yet. Please create an issue at "+
-			"https://github.com/nikoksr/proji to request the support of your OS.\n", runtime.GOOS)
+			"https://github.com/nikoksr/proji to request the support of your OS", runtime.GOOS)
 	}
 	return configPath, nil
 }
