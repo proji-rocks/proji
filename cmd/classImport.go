@@ -126,8 +126,7 @@ func importClass(path, importType string, excludes []string) (string, error) {
 			msg = fmt.Sprintf("> Successfully imported class '%s' from '%s'", class.Name, path)
 		}
 	case "collection":
-		classList := make([]*models.Class, 0)
-		classList, err = models.ImportClassesFromCollection(URL, importer)
+		classList, err := models.ImportClassesFromCollection(URL, importer)
 		if err != nil {
 			return "", err
 		}

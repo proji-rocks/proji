@@ -442,7 +442,7 @@ func filterAndConvertTreeEntries(importer repo.Importer, filters []*regexp.Regex
 		filters = make([]*regexp.Regexp, 0)
 	}
 
-	templates := make([]*Template, 0)
+	var templates []*Template
 
 	switch importer.(type) {
 	case *github.GitHub:
