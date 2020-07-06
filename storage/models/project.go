@@ -13,17 +13,19 @@ import (
 // Project represents a project that was created by proji. It holds tags for gorm and toml defining its storage and
 // export/import behaviour.
 type Project struct {
-	ID        uint           `gorm:"primarykey" toml:"-"`
-	CreatedAt time.Time      `toml:"-"`
-	UpdatedAt time.Time      `gorm:"index:idx_unq_project_path_deletedat,unique;" toml:"-"`
-	DeletedAt gorm.DeletedAt `gorm:"index" toml:"-"`
-	Path      string         `gorm:"index:idx_unq_project_path_deletedat,unique;not null" toml:"label"`
+	ID        uint `gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time      `gorm:"index:idx_unq_project_path_deletedat,unique;"`
+	DeletedAt gorm.DeletedAt `gorm:"index"`
+	Name      string         `gorm:"size:64"`
+	Path      string         `gorm:"index:idx_unq_project_path_deletedat,unique;not null"`
 	Class     *Class         `gorm:"ForeignKey:ID;References:ID"`
 }
 
 // NewProject returns a new project.
 func NewProject(name, path string, class *Class) *Project {
 	return &Project{
+		Name:  name,
 		Path:  path,
 		Class: class,
 	}
