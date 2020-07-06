@@ -42,7 +42,7 @@ var classExportCmd = &cobra.Command{
 
 		if exportAll {
 			var err error
-			classes, err = projiEnv.StorageService.LoadAllClasses()
+			classes, err = projiEnv.StorageService.LoadClasses()
 			if err != nil {
 				return err
 			}

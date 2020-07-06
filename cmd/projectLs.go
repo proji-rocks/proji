@@ -14,6 +14,9 @@ import (
 var lsCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List projects",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		setMaxColumnWidth()
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return listProjects(os.Stdout)
 	},
@@ -24,17 +27,17 @@ func init() {
 }
 
 func listProjects(out io.Writer) error {
-	projects, err := projiEnv.StorageService.LoadAllProjects()
+	projects, err := projiEnv.StorageService.LoadProjects()
 	if err != nil {
 		return err
 	}
 
 	projectsTable := util.NewInfoTable(out)
-	projectsTable.AppendHeader(table.Row{"ID", "Install Path", "Class"})
+	projectsTable.AppendHeader(table.Row{"Name", "Install Path", "Class"})
 
 	for _, project := range projects {
 		projectsTable.AppendRow(table.Row{
-			project.ID,
+			project.Name,
 			project.Path,
 			project.Class.Name,
 		})

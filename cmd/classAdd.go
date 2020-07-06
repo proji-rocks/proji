@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/nikoksr/proji/storage/models"
-
 	"github.com/spf13/cobra"
 )
 
@@ -161,15 +160,14 @@ func getPlugins(reader *bufio.Reader) ([]*models.Plugin, error) {
 			continue
 		}
 
-		pluginName := splittedInput[0]
-		pluginPath := splittedInput[1]
+		pluginPath := splittedInput[0]
 		if _, ok := pluginPaths[pluginPath]; ok {
 			fmt.Printf("> Warning: Script %s is already in execution list\n", pluginPath)
 			continue
 		}
 		pluginPaths[pluginPath] = true
 
-		execNumber, err := strconv.Atoi(splittedInput[2])
+		execNumber, err := strconv.Atoi(splittedInput[1])
 		if err != nil {
 			fmt.Println("> Warning: Value given for 'ExecNumber' field is not a integer.")
 			continue
@@ -183,10 +181,16 @@ func getPlugins(reader *bufio.Reader) ([]*models.Plugin, error) {
 			continue
 		}
 		execNumbers[execNumber] = true
+
+		// Get optional description
+		var pluginDescription string
+		if len(splittedInput) == 3 {
+			pluginDescription = splittedInput[2]
+		}
 		plugins = append(plugins, &models.Plugin{
-			Name:       pluginName,
-			Path:       pluginPath,
-			ExecNumber: execNumber,
+			Path:        pluginPath,
+			ExecNumber:  execNumber,
+			Description: pluginDescription,
 		})
 	}
 	fmt.Println()

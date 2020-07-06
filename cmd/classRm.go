@@ -22,7 +22,7 @@ var classRmCmd = &cobra.Command{
 
 		if removeAllClasses {
 			var err error
-			classes, err = projiEnv.StorageService.LoadAllClasses()
+			classes, err = projiEnv.StorageService.LoadClasses()
 			if err != nil {
 				return err
 			}

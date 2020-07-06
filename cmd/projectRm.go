@@ -21,7 +21,7 @@ var rmCmd = &cobra.Command{
 
 		if removeAllProjects {
 			var err error
-			projects, err = projiEnv.StorageService.LoadAllProjects()
+			projects, err = projiEnv.StorageService.LoadProjects()
 			if err != nil {
 				return err
 			}
