@@ -29,8 +29,8 @@ var projiEnv *Env
 const (
 	configExcludeFoldersKey = "import.exclude_folders"
 	configDBKey             = "sqlite3.path"
-	configGHTokenKey        = "auth.gh_token"
-	configGLTokenKey        = "auth.gl_token"
+	configGHTokenKey        = "auth.gh_token" //nolint:gosec
+	configGLTokenKey        = "auth.gl_token" //nolint:gosec
 )
 
 var rootCmd = &cobra.Command{
