@@ -36,7 +36,7 @@ ci: build test lint
 
 # Build a beta version of goreleaser
 build:
-	go build
+	go build -o ./bin/proji .
 .PHONY: build
 
 # Show to-do items per file.
