@@ -52,7 +52,7 @@ func validateParameters(driver, connectionString string) (string, string, error)
 	if len(driver) < 1 {
 		driver = defaultDriver
 	}
-	if len(connectionString) < 0 {
+	if len(connectionString) < 1 {
 		return "", "", fmt.Errorf("storage service connection string may not be empty")
 	}
 	return driver, connectionString, nil
