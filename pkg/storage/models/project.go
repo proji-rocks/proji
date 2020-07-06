@@ -32,8 +32,8 @@ func NewProject(name, path string, class *Class) *Project {
 }
 
 // Create starts the creation of a project.
-func (p *Project) Create(cwd, configPath string) error {
-	err := p.createProjectFolder()
+func (p *Project) Create(cwd, configPath string) (err error) {
+	err = p.createProjectFolder()
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,12 @@ func (p *Project) Create(cwd, configPath string) error {
 	if cwd[:len(cwd)-1] != "/" {
 		cwd += "/"
 	}
-	defer os.Chdir(cwd)
+	defer func() {
+		newErr := os.Chdir(cwd)
+		if newErr != nil {
+			err = newErr
+		}
+	}()
 
 	err = p.preRunPlugins(configPath)
 	if err != nil {
