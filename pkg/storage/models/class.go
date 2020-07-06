@@ -189,7 +189,7 @@ func (c *Class) ImportPackage(URL *url.URL, importer repo.Importer) error {
 
 	// Download scripts and templates
 	// Create list of necessary scripts and templates
-	filesToDownload := make(map[string][]string, 0)
+	filesToDownload := make(map[string][]string)
 
 	// All templates
 	var rex *regexp.Regexp

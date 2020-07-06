@@ -15,10 +15,7 @@ import (
 // DoesPathExist checks if a given path exists in the filesystem.
 func DoesPathExist(path string) bool {
 	_, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return true
+	return !os.IsNotExist(err)
 }
 
 // StrToUInt converts a string into a uint.
