@@ -14,7 +14,7 @@ import (
 	gh "github.com/google/go-github/v31/github"
 )
 
-// GitHub struct holds important data about a github repo
+// GitHub struct holds important data about a github repo.
 type GitHub struct {
 	baseURI     *url.URL
 	OwnerName   string
@@ -27,7 +27,7 @@ type GitHub struct {
 
 const defaultTimeout = time.Second * 10
 
-// setRepoSHA sets the repoSHA attribute equal to the SHA-1 of the last commit in the current branch
+// setRepoSHA sets the repoSHA attribute equal to the SHA-1 of the last commit in the current branch.
 func (g *GitHub) setRepoSHA(ctx context.Context) error {
 	if g.BranchName == "" {
 		/*
@@ -51,7 +51,7 @@ func (g *GitHub) setRepoSHA(ctx context.Context) error {
 	return nil
 }
 
-// New creates a new github repo instance
+// New creates a new github repo instance.
 func New(repoURL *url.URL, authToken string) (*GitHub, error) {
 	if repoURL.Hostname() != "github.com" {
 		return nil, fmt.Errorf("invalid host %s", repoURL.Hostname())
@@ -104,7 +104,7 @@ func (g *GitHub) FilePathToRawURI(filePath string) string {
 	return fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s/%s", g.OwnerName, g.RepoName, g.BranchName, filePath)
 }
 
-// GetTreeEntries gets the paths and types of the repo tree
+// GetTreeEntries gets the paths and types of the repo tree.
 func (g *GitHub) LoadTreeEntries() error {
 	tree, _, err := g.client.Git.GetTree(context.Background(), g.OwnerName, g.RepoName, g.repoSHA, true)
 	if err != nil {
@@ -128,11 +128,11 @@ func getGHClient(ctx context.Context, token string) *gh.Client {
 	return gh.NewClient(&http.Client{Timeout: defaultTimeout})
 }
 
-// Owner returns the name of the owner
+// Owner returns the name of the owner.
 func (g *GitHub) Owner() string { return g.OwnerName }
 
-// Repo returns the name of the repo
+// Repo returns the name of the repo.
 func (g *GitHub) Repo() string { return g.RepoName }
 
-// Repo returns the name of the branch
+// Repo returns the name of the branch.
 func (g *GitHub) Branch() string { return g.BranchName }

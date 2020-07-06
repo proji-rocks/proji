@@ -47,7 +47,8 @@ const (
 	pluginsKey   = "plugins"   // Map key for plugins.
 )
 
-// NewClass returns a new class
+// NewClass returns a new class instance. isDefault should be false by default and only true for fallback classes
+// that should be ignored anyways.
 func NewClass(name, label string, isDefault bool) *Class {
 	return &Class{
 		Name:      name,
@@ -344,7 +345,7 @@ func ImportClassesFromCollection(collectionURL *url.URL, importer repo.Importer)
 	return classList, err
 }
 
-// Export exports a given class to a toml config file
+// Export exports a given class to a toml config file.
 func (c *Class) Export(destination string) (string, error) {
 	confName := filepath.Join(destination, "proji-"+c.Name+".toml")
 	conf, err := os.Create(confName)
@@ -355,7 +356,7 @@ func (c *Class) Export(destination string) (string, error) {
 	return confName, toml.NewEncoder(conf).Order(toml.OrderPreserve).Encode(c)
 }
 
-// isEmpty checks if the class holds no data
+// isEmpty checks if the class holds no data.
 func (c *Class) isEmpty() bool {
 	if len(c.Templates) == 0 && len(c.Plugins) == 0 {
 		return true
@@ -363,7 +364,7 @@ func (c *Class) isEmpty() bool {
 	return false
 }
 
-// pickLabel dynamically picks a label based on the class name
+// pickLabel dynamically picks a label based on the class name.
 func pickLabel(className string) string {
 	nameLen := len(className)
 	if nameLen < 2 {

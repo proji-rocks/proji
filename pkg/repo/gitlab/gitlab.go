@@ -9,7 +9,7 @@ import (
 	gl "github.com/xanzy/go-gitlab"
 )
 
-// GitLab struct holds important data about a gitlab repo
+// GitLab struct holds important data about a gitlab repo.
 type GitLab struct {
 	baseURI     *url.URL
 	OwnerName   string
@@ -19,7 +19,7 @@ type GitLab struct {
 	client      *gl.Client
 }
 
-// New creates a new gitlab repo object
+// New creates a new gitlab repo object.
 func New(repoURL *url.URL, authToken string) (*GitLab, error) {
 	if repoURL.Hostname() != "gitlab.com" {
 		return nil, fmt.Errorf("invalid host %s", repoURL.Hostname())
@@ -71,7 +71,7 @@ func (g *GitLab) FilePathToRawURI(filePath string) string {
 	return fmt.Sprintf("https://gitlab.com/%s/%s/-/raw/%s/%s", g.OwnerName, g.RepoName, g.BranchName, filePath)
 }
 
-// GetTreeEntries gets the paths and types of the repo tree
+// GetTreeEntries gets the paths and types of the repo tree.
 func (g *GitLab) LoadTreeEntries() error {
 	// Reset tree entries
 	g.TreeEntries = make([]*gl.TreeNode, 0)
@@ -102,11 +102,11 @@ func (g *GitLab) LoadTreeEntries() error {
 	return nil
 }
 
-// Owner returns the name of the owner
+// Owner returns the name of the owner.
 func (g *GitLab) Owner() string { return g.OwnerName }
 
-// Repo returns the name of the repo
+// Repo returns the name of the repo.
 func (g *GitLab) Repo() string { return g.RepoName }
 
-// Repo returns the name of the branch
+// Repo returns the name of the branch.
 func (g *GitLab) Branch() string { return g.BranchName }

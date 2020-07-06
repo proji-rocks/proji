@@ -13,7 +13,7 @@ var domainAbbreviations = map[string]string{
 	"gl:": "https://gitlab.com",
 }
 
-// Importer describes the behaviour of repo objects (github, gitlab)
+// Importer describes the behaviour of repo objects (github, gitlab).
 type Importer interface {
 	FilePathToRawURI(filePath string) string // Returns raw URI of a file
 	LoadTreeEntries() error                  // Loads a list of tree entries of a specific repo

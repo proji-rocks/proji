@@ -22,7 +22,7 @@ type Project struct {
 	Class     *Class         `gorm:"ForeignKey:ID;References:ID"`
 }
 
-// NewProject returns a new project
+// NewProject returns a new project.
 func NewProject(name, path string, class *Class) *Project {
 	return &Project{
 		Name:  name,
