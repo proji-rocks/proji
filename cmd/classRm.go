@@ -22,7 +22,7 @@ var classRmCmd = &cobra.Command{
 
 		if removeAllClasses {
 			var err error
-			classes, err = projiEnv.StorageService.LoadClasses()
+			classes, err = session.StorageService.LoadClasses()
 			if err != nil {
 				return err
 			}
@@ -32,7 +32,7 @@ var classRmCmd = &cobra.Command{
 			}
 
 			for _, label := range args {
-				class, err := projiEnv.StorageService.LoadClass(label)
+				class, err := session.StorageService.LoadClass(label)
 				if err != nil {
 					return err
 				}
@@ -54,7 +54,7 @@ var classRmCmd = &cobra.Command{
 					continue
 				}
 			}
-			err := projiEnv.StorageService.RemoveClass(class.Label)
+			err := session.StorageService.RemoveClass(class.Label)
 			if err != nil {
 				fmt.Printf("> Removing '%s' failed: %v\n", class.Label, err)
 				return err

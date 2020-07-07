@@ -229,11 +229,7 @@ func (c *Class) ImportPackage(packageURL *url.URL, importer repo.Importer) error
 	}
 
 	// Try and get default home dir
-	var downloadDestination string
-	downloadDestination, err = config.GetBaseConfigPath()
-	if err != nil {
-		return err
-	}
+	downloadDestination := config.GetBaseConfigPath()
 
 	// Download scripts and templates
 	// Sum of templates and scripts counts

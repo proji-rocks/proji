@@ -27,7 +27,7 @@ func init() {
 }
 
 func listProjects(out io.Writer) error {
-	projects, err := projiEnv.StorageService.LoadProjects()
+	projects, err := session.StorageService.LoadProjects()
 	if err != nil {
 		return err
 	}

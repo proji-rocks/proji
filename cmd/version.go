@@ -11,7 +11,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version of proji",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("v" + projiEnv.Version)
+		fmt.Println("v" + session.Version)
 	},
 }
 

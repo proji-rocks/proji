@@ -56,7 +56,7 @@ func addClass(name string) error {
 	class := models.NewClass(name, label, false)
 	class.Templates = templates
 	class.Plugins = plugins
-	return projiEnv.StorageService.SaveClass(class)
+	return session.StorageService.SaveClass(class)
 }
 
 func getLabel(reader *bufio.Reader) (string, error) {

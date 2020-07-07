@@ -45,11 +45,11 @@ func init() {
 
 func addProject(label, path string) error {
 	name := filepath.Base(path)
-	class, err := projiEnv.StorageService.LoadClass(label)
+	class, err := session.StorageService.LoadClass(label)
 	if err != nil {
 		return err
 	}
 
 	project := models.NewProject(name, path, class)
-	return projiEnv.StorageService.SaveProject(project)
+	return session.StorageService.SaveProject(project)
 }

@@ -28,7 +28,7 @@ var createCmd = &cobra.Command{
 		}
 
 		// Load class once for all projects
-		class, err := projiEnv.StorageService.LoadClass(label)
+		class, err := session.StorageService.LoadClass(label)
 		if err != nil {
 			return err
 		}
@@ -36,7 +36,7 @@ var createCmd = &cobra.Command{
 		for _, name := range projects {
 			fmt.Printf("\n> Creating project %s\n", name)
 
-			err := createProject(name, cwd, projiEnv.ConfigFolderPath, class)
+			err := createProject(name, cwd, session.Config.BasePath, class)
 			if err != nil {
 				fmt.Printf(" -> Failed: %v\n", err)
 
@@ -44,7 +44,7 @@ var createCmd = &cobra.Command{
 					if !util.WantTo("> Do you want to replace it?") {
 						continue
 					}
-					err := replaceProject(name, cwd, projiEnv.ConfigFolderPath, class)
+					err := replaceProject(name, cwd, session.Config.BasePath, class)
 					if err != nil {
 						fmt.Printf("> Replacing project %s failed: %v\n", name, err)
 						continue
@@ -67,7 +67,7 @@ func createProject(name, cwd, configPath string, class *models.Class) error {
 	project := models.NewProject(name, filepath.Join(cwd, name), class)
 
 	// Save it first to see if it already exists in the database
-	err := projiEnv.StorageService.SaveProject(project)
+	err := session.StorageService.SaveProject(project)
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func createProject(name, cwd, configPath string, class *models.Class) error {
 
 func replaceProject(name, path, configPath string, class *models.Class) error {
 	// Replace it
-	err := projiEnv.StorageService.RemoveProject(filepath.Join(path, name))
+	err := session.StorageService.RemoveProject(filepath.Join(path, name))
 	if err != nil {
 		return err
 	}

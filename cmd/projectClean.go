@@ -19,7 +19,7 @@ func init() {
 }
 
 func cleanProjects() error {
-	projects, err := projiEnv.StorageService.LoadProjects()
+	projects, err := session.StorageService.LoadProjects()
 	if err != nil {
 		return err
 	}
@@ -30,7 +30,7 @@ func cleanProjects() error {
 			continue
 		}
 		// Remove the project
-		err := projiEnv.StorageService.RemoveProject(project.Path)
+		err := session.StorageService.RemoveProject(project.Path)
 		if err != nil {
 			return err
 		}
