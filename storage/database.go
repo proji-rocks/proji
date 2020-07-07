@@ -3,13 +3,14 @@ package storage
 import (
 	"fmt"
 
+	"gorm.io/gorm/logger"
+
 	"github.com/nikoksr/proji/storage/models"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	mssql "gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 // Database represents a storage database. Uses gorm internally and supports sqlite, mysql, mssql and postgres
@@ -60,8 +61,18 @@ func newDatabaseService(driver, connectionString string) (Service, error) {
 	}
 
 	db := &Database{}
-	db.Connection, err = gorm.Open(dialector, &gorm.Config{Logger: nil})
-	db.Connection.Logger.LogMode(logger.Silent)
+	db.Connection, err = gorm.Open(
+		dialector,
+		&gorm.Config{
+			Logger: logger.New(
+				nil,
+				logger.Config{
+					Colorful: false,
+					LogLevel: logger.Silent,
+				},
+			),
+		},
+	)
 	return db, err
 }
 
