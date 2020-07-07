@@ -28,7 +28,7 @@ var classExportCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Export an example class
 		if example {
-			file, err := exportExample(destination, projiEnv.ConfigFolderPath)
+			file, err := exportExample(destination, session.Config.BasePath)
 			if err != nil {
 				fmt.Printf("> Export of example class failed: %v\n", err)
 				return err
@@ -42,7 +42,7 @@ var classExportCmd = &cobra.Command{
 
 		if exportAll {
 			var err error
-			classes, err = projiEnv.StorageService.LoadClasses()
+			classes, err = session.StorageService.LoadClasses()
 			if err != nil {
 				return err
 			}
@@ -52,7 +52,7 @@ var classExportCmd = &cobra.Command{
 			}
 
 			for _, label := range args {
-				class, err := projiEnv.StorageService.LoadClass(label)
+				class, err := session.StorageService.LoadClass(label)
 				if err != nil {
 					return err
 				}

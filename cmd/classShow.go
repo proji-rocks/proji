@@ -46,7 +46,7 @@ func init() {
 func showClass(preloadedClass *models.Class, label string) error {
 	var err error
 	if preloadedClass == nil {
-		preloadedClass, err = projiEnv.StorageService.LoadClass(label)
+		preloadedClass, err = session.StorageService.LoadClass(label)
 		if err != nil {
 			return err
 		}
@@ -59,7 +59,7 @@ func showClass(preloadedClass *models.Class, label string) error {
 }
 
 func showClasses(labels ...string) error {
-	classes, err := projiEnv.StorageService.LoadClasses(labels...)
+	classes, err := session.StorageService.LoadClasses(labels...)
 	if err != nil {
 		return err
 	}
