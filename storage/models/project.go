@@ -2,7 +2,6 @@ package models
 
 import (
 	"os"
-	"os/exec"
 	"path/filepath"
 	"time"
 
@@ -32,8 +31,14 @@ func NewProject(name, path string, class *Class) *Project {
 }
 
 // Create starts the creation of a project.
-func (p *Project) Create(cwd, configPath string) (err error) {
+func (p *Project) Create(baseConfigPath string) (err error) {
 	err = p.createProjectFolder()
+	if err != nil {
+		return err
+	}
+
+	// Get working directory. We will be changing directories, so we need to know, where we started from.
+	workingDirectory, err := os.Getwd()
 	if err != nil {
 		return err
 	}
@@ -44,28 +49,24 @@ func (p *Project) Create(cwd, configPath string) (err error) {
 		return err
 	}
 
-	// Append a slash if not exists. Out of convenience.
-	if cwd[:len(cwd)-1] != "/" {
-		cwd += "/"
-	}
 	defer func() {
-		newErr := os.Chdir(cwd)
+		newErr := os.Chdir(workingDirectory)
 		if newErr != nil {
 			err = newErr
 		}
 	}()
 
-	err = p.preRunPlugins(configPath)
+	err = p.preRunPlugins(baseConfigPath)
 	if err != nil {
 		return err
 	}
 
-	err = p.createFilesAndFolders(configPath)
+	err = p.createFilesAndFolders(baseConfigPath)
 	if err != nil {
 		return err
 	}
 
-	return p.postRunPlugins(configPath)
+	return p.postRunPlugins(baseConfigPath)
 }
 
 // createProjectFolder tries to create the main project folder.
@@ -73,12 +74,12 @@ func (p *Project) createProjectFolder() error {
 	return os.Mkdir(p.Path, os.ModePerm)
 }
 
-func (p *Project) createFilesAndFolders(configPath string) error {
-	templatePath := filepath.Join(configPath, "/templates/")
+func (p *Project) createFilesAndFolders(baseConfigPath string) error {
+	baseTemplatesPath := filepath.Join(baseConfigPath, "/templates/")
 	for _, template := range p.Class.Templates {
 		if len(template.Path) > 0 {
 			// Copy template file or folder
-			err := copy.Copy(filepath.Join(templatePath, "/", template.Path), template.Destination)
+			err := copy.Copy(filepath.Join(baseTemplatesPath, template.Path), template.Destination)
 			if err != nil {
 				return err
 			}
@@ -100,13 +101,16 @@ func (p *Project) createFilesAndFolders(configPath string) error {
 	return nil
 }
 
-func (p *Project) preRunPlugins(configPath string) error {
+func (p *Project) preRunPlugins(baseConfigPath string) error {
+	basePluginsPath := filepath.Join(baseConfigPath, "plugins")
 	for _, plugin := range p.Class.Plugins {
 		if plugin.ExecNumber >= 0 {
 			continue
 		}
-		pluginPath := filepath.Join(configPath, "/plugins/", plugin.Path)
-		err := runPlugin(pluginPath)
+		// Plugin path is relative by default to make it shareable. We have to make it an absolute path here,
+		// so that we can execute it.
+		plugin.Path = filepath.Join(basePluginsPath, plugin.Path)
+		err := plugin.Run()
 		if err != nil {
 			return err
 		}
@@ -114,24 +118,19 @@ func (p *Project) preRunPlugins(configPath string) error {
 	return nil
 }
 
-func (p *Project) postRunPlugins(configPath string) error {
+func (p *Project) postRunPlugins(baseConfigPath string) error {
+	basePluginsPath := filepath.Join(baseConfigPath, "plugins")
 	for _, plugin := range p.Class.Plugins {
 		if plugin.ExecNumber <= 0 {
 			continue
 		}
-		pluginPath := filepath.Join(configPath, "/plugins/", plugin.Path)
-		err := runPlugin(pluginPath)
+		// Plugin path is relative by default to make it shareable. We have to make it an absolute path here,
+		// so that we can execute it.
+		plugin.Path = filepath.Join(basePluginsPath, plugin.Path)
+		err := plugin.Run()
 		if err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func runPlugin(pluginPath string) error {
-	cmd := exec.Command(pluginPath)
-	cmd.Stdout = os.Stdout
-	cmd.Stdin = os.Stdin
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
 }

@@ -185,8 +185,8 @@ func (c *Class) ImportPackage(packageURL *url.URL, importer repo.Importer) error
 		return err
 	}
 
-	// Download scripts and templates
-	// Create list of necessary scripts and templates
+	// Download plugins and templates
+	// Create list of necessary plugins and templates
 	filesToDownload := make(map[string][]string)
 
 	// All templates
@@ -231,8 +231,8 @@ func (c *Class) ImportPackage(packageURL *url.URL, importer repo.Importer) error
 	// Try and get default home dir
 	downloadDestination := config.GetBaseConfigPath()
 
-	// Download scripts and templates
-	// Sum of templates and scripts counts
+	// Download plugins and templates
+	// Sum of templates and plugins counts
 	numFiles := len(filesToDownload[templatesKey]) + len(filesToDownload[pluginsKey])
 	var wg sync.WaitGroup
 	wg.Add(numFiles)
@@ -269,8 +269,8 @@ func (c *Class) ImportPackage(packageURL *url.URL, importer repo.Importer) error
 }
 
 // ImportClassesFromCollection imports all classes from a given URL. A collection is a repo with multiple classes. It must include
-// a folder called configs, which holds the class configs. If the classes have scripts or templates as dependencies,
-// they should be put into the folders scripts/ and templates/ respectively.
+// a folder called configs, which holds the class configs. If the classes have plugins or templates as dependencies,
+// they should be put into the folders plugins/ and templates/ respectively.
 //nolint:interfacer
 func ImportClassesFromCollection(collectionURL *url.URL, importer repo.Importer) ([]*Class, error) {
 	// Get list of class configs and loop through them

@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/nikoksr/proji/storage"
+
 	"github.com/nikoksr/proji/storage/models"
 	"github.com/nikoksr/proji/util"
 	"github.com/spf13/cobra"
@@ -19,10 +21,10 @@ var createCmd = &cobra.Command{
 			return fmt.Errorf("at least one label and name have to be given")
 		}
 		label := args[0]
-		projects := args[1:]
+		projectNames := args[1:]
 
 		// Get current working directory
-		cwd, err := os.Getwd()
+		workingDirectory, err := os.Getwd()
 		if err != nil {
 			return err
 		}
@@ -33,27 +35,38 @@ var createCmd = &cobra.Command{
 			return err
 		}
 
-		for _, name := range projects {
-			fmt.Printf("\n> Creating project %s\n", name)
+		for _, projectName := range projectNames {
+			fmt.Printf("\n> Creating project %s\n", projectName)
 
-			err := createProject(name, cwd, session.Config.BasePath, class)
-			if err != nil {
-				fmt.Printf(" -> Failed: %v\n", err)
-
-				if err.Error() == "Project already exists" {
-					if !util.WantTo("> Do you want to replace it?") {
-						continue
-					}
-					err := replaceProject(name, cwd, session.Config.BasePath, class)
-					if err != nil {
-						fmt.Printf("> Replacing project %s failed: %v\n", name, err)
-						continue
-					}
-					fmt.Printf("> Project %s was successfully replaced\n", name)
-				}
+			// Try to create the project
+			projectPath := filepath.Join(workingDirectory, projectName)
+			err := createProject(projectName, projectPath, class)
+			if err == nil {
+				fmt.Printf("> Project %s was successfully created\n", projectName)
 				continue
 			}
-			fmt.Printf("> Project %s was successfully created\n", name)
+
+			// Print error message
+			fmt.Printf(" > Failed: %v\n", err)
+
+			// Check if error is because of a project is already associated with this path. Continue loop if so.
+			_, projectExists := err.(*storage.ProjectExistsError)
+			if !projectExists {
+				continue
+			}
+
+			// Continue if use doesn't want to replace the project.
+			if !util.WantTo("> Do you want to replace it?") {
+				continue
+			}
+
+			// Try to replace the project
+			err = replaceProject(projectName, projectPath, class)
+			if err != nil {
+				fmt.Printf("> Replacing project %s failed: %v\n", projectName, err)
+				continue
+			}
+			fmt.Printf("> Project %s was successfully replaced\n", projectName)
 		}
 		return nil
 	},
@@ -63,27 +76,29 @@ func init() {
 	rootCmd.AddCommand(createCmd)
 }
 
-func createProject(name, cwd, configPath string, class *models.Class) error {
-	project := models.NewProject(name, filepath.Join(cwd, name), class)
-
-	// Save it first to see if it already exists in the database
-	err := session.StorageService.SaveProject(project)
+// createProject is a small wrapper function which takes a project name, path and its associated class,
+// creates the project directory and tries to save it to storage.
+func createProject(name, path string, class *models.Class) error {
+	project := models.NewProject(name, path, class)
+	err := project.Create(session.Config.BasePath)
 	if err != nil {
 		return err
 	}
-	// Create the project
-	err = project.Create(cwd, configPath)
+	err = session.StorageService.SaveProject(project)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func replaceProject(name, path, configPath string, class *models.Class) error {
-	// Replace it
-	err := session.StorageService.RemoveProject(filepath.Join(path, name))
+// replaceProject should usually be executed after a attempt to create a new project failed with an ProjectExistsError.
+// It will remove the given project from storage and save the new one, effectively replacing everything that's
+// associated with the given project path.
+func replaceProject(name, path string, class *models.Class) error {
+	err := session.StorageService.RemoveProject(path)
 	if err != nil {
 		return err
 	}
-	return createProject(name, path, configPath, class)
+	project := models.NewProject(name, path, class)
+	return session.StorageService.SaveProject(project)
 }
