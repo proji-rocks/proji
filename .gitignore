@@ -16,3 +16,4 @@ Gopkg.lock
 Gopkg.toml
 .snapcraft.login
 coverage.txt
+proji-*.toml
