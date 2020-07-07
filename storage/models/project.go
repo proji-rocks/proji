@@ -31,8 +31,14 @@ func NewProject(name, path string, class *Class) *Project {
 }
 
 // Create starts the creation of a project.
-func (p *Project) Create(cwd, baseConfigPath string) (err error) {
+func (p *Project) Create(baseConfigPath string) (err error) {
 	err = p.createProjectFolder()
+	if err != nil {
+		return err
+	}
+
+	// Get working directory. We will be changing directories, so we need to know, where we started from.
+	workingDirectory, err := os.Getwd()
 	if err != nil {
 		return err
 	}
@@ -43,12 +49,8 @@ func (p *Project) Create(cwd, baseConfigPath string) (err error) {
 		return err
 	}
 
-	// Append a slash if not exists. Out of convenience.
-	if cwd[:len(cwd)-1] != "/" {
-		cwd += "/"
-	}
 	defer func() {
-		newErr := os.Chdir(cwd)
+		newErr := os.Chdir(workingDirectory)
 		if newErr != nil {
 			err = newErr
 		}
@@ -107,7 +109,7 @@ func (p *Project) preRunPlugins(baseConfigPath string) error {
 		}
 		// Plugin path is relative by default to make it shareable. We have to make it an absolute path here,
 		// so that we can execute it.
-		p.Path = filepath.Join(basePluginsPath, p.Path)
+		plugin.Path = filepath.Join(basePluginsPath, plugin.Path)
 		err := plugin.Run()
 		if err != nil {
 			return err
@@ -124,7 +126,7 @@ func (p *Project) postRunPlugins(baseConfigPath string) error {
 		}
 		// Plugin path is relative by default to make it shareable. We have to make it an absolute path here,
 		// so that we can execute it.
-		p.Path = filepath.Join(basePluginsPath, p.Path)
+		plugin.Path = filepath.Join(basePluginsPath, plugin.Path)
 		err := plugin.Run()
 		if err != nil {
 			return err
