@@ -15,7 +15,7 @@ func TestDoesPathExist(t *testing.T) {
 		exists bool
 	}{
 		{path: "./util_test.go", exists: true},
-		{path: "../../README.md", exists: true},
+		{path: "../README.md", exists: true},
 		{path: "../../READMENOT.md", exists: false},
 		{path: "./CrYpTicFiLe.txt", exists: false},
 	}
