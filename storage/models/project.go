@@ -31,7 +31,7 @@ func NewProject(name, path string, class *Class) *Project {
 }
 
 // Create starts the creation of a project.
-func (p *Project) Create(cwd, configPath string) (err error) {
+func (p *Project) Create(cwd, baseConfigPath string) (err error) {
 	err = p.createProjectFolder()
 	if err != nil {
 		return err
@@ -54,17 +54,17 @@ func (p *Project) Create(cwd, configPath string) (err error) {
 		}
 	}()
 
-	err = p.preRunPlugins(configPath)
+	err = p.preRunPlugins(baseConfigPath)
 	if err != nil {
 		return err
 	}
 
-	err = p.createFilesAndFolders(configPath)
+	err = p.createFilesAndFolders(baseConfigPath)
 	if err != nil {
 		return err
 	}
 
-	return p.postRunPlugins(configPath)
+	return p.postRunPlugins(baseConfigPath)
 }
 
 // createProjectFolder tries to create the main project folder.
@@ -72,12 +72,12 @@ func (p *Project) createProjectFolder() error {
 	return os.Mkdir(p.Path, os.ModePerm)
 }
 
-func (p *Project) createFilesAndFolders(configPath string) error {
-	templatePath := filepath.Join(configPath, "/templates/")
+func (p *Project) createFilesAndFolders(baseConfigPath string) error {
+	baseTemplatesPath := filepath.Join(baseConfigPath, "/templates/")
 	for _, template := range p.Class.Templates {
 		if len(template.Path) > 0 {
 			// Copy template file or folder
-			err := copy.Copy(filepath.Join(templatePath, "/", template.Path), template.Destination)
+			err := copy.Copy(filepath.Join(baseTemplatesPath, template.Path), template.Destination)
 			if err != nil {
 				return err
 			}
