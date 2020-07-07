@@ -122,12 +122,12 @@ func TestGitLab_LoadTreeEntries(t *testing.T) {
 				},
 				{
 					id:        "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
-					path:      "include/util.hpp",
+					path:      "include/helper.hpp",
 					entryType: "blob",
 				},
 				{
 					id:        "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
-					path:      "src/util.cpp",
+					path:      "src/helper.cpp",
 					entryType: "blob",
 				},
 				{
@@ -193,7 +193,7 @@ func TestGitLab_LoadTreeEntries(t *testing.T) {
 				},
 				{
 					id:        "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
-					path:      "include/util.hpp",
+					path:      "include/helper.hpp",
 					entryType: "blob",
 				},
 				{
@@ -203,7 +203,7 @@ func TestGitLab_LoadTreeEntries(t *testing.T) {
 				},
 				{
 					id:        "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
-					path:      "src/util.cpp",
+					path:      "src/helper.cpp",
 					entryType: "blob",
 				},
 				{
