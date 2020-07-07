@@ -6,149 +6,210 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"sync"
 
-	"github.com/nikoksr/proji/util"
+	"github.com/spf13/viper"
 )
 
+// APIAuthentication represents the configurable and authentication related values in the main config.
 type APIAuthentication struct {
-	GHToken string
-	GLToken string
+	GHToken string `mapstructure:"gh_token"`
+	GLToken string `mapstructure:"gl_token"`
 }
 
-type configFile struct {
-	src string
-	dst string
+// DatabaseConnection represents the configurable and database related values in the main config.
+type DatabaseConnection struct {
+	Driver string `mapstructure:"driver"`
+	DSN    string `mapstructure:"dsn"`
 }
 
-type mainConfigFolder struct {
-	basePath   string
-	configs    []*configFile
-	subFolders []string
+// Config represents central resources and information the app uses.
+type Config struct {
+	Auth               *APIAuthentication  `mapstructure:"auth"`
+	BasePath           string              `mapstructure:"-"`
+	DatabaseConnection *DatabaseConnection `mapstructure:"database"`
+	ExcludedPaths      []string            `mapstructure:"import.exclude_folders"`
+	provider           *viper.Viper        `mapstructure:"-"`
 }
 
 const (
-	rawURLPrefix = "https://raw.githubusercontent.com/nikoksr/proji/v"
+	defaultDatabaseDriver = "sqlite3"
+	defaultDatabaseDSN    = "/db/proji.sqlite3"
 )
 
-// InitConfig is the main function for projis config initialization. It determines the OS' preferred config location, creates
-// proji's config folders and downloads the required configs from GitHub to the local config folder.
-func InitConfig(path, version, fallbackVersion string, forceUpdate bool) error {
-	var err error
+//nolint:gochecknoglobals
+var globalBasePath string
 
-	// Set base config path if not given
-	if strings.Trim(path, " ") == "" {
-		path, err = GetBaseConfigPath()
-		if err != nil {
-			return err
-		}
-	}
+// Setup determines the operating system specific base config path and stores it. This needs to be run before all other
+// config methods.
+func Setup() error {
+	// Load and set the config base path
+	return setGlobalBasePath()
+}
 
-	// Representation of proji's main config folder
-	defaultConfigFolder := &mainConfigFolder{
-		basePath: "",
-		configs: []*configFile{
-			{
-				src: "/assets/examples/example-config.toml",
-				dst: "config.toml",
-			},
-			{
-				src: "/assets/examples/example-class-export.toml",
-				dst: "examples/proji-class.toml",
-			},
-		},
-		subFolders: []string{"db", "examples", "scripts", "templates"},
-	}
+// New returns a new empty config instance which has its base path set to the given path.
+func New(path string) *Config {
+	// Set platform specific config path
+	conf := &Config{}
+	conf.BasePath = path
+	return conf
+}
 
-	defaultConfigFolder.basePath = path
+// Load tries to load all configuration values.
+func (c *Config) Load() error {
+	// Set config provider
+	c.setProvider()
 
-	// Create subfolders
-	err = defaultConfigFolder.createSubFolders()
+	// Set config specifications
+	c.setSpecs()
+
+	// Set default config values
+	c.setDefaultValues()
+
+	// Load config values
+	err := c.loadValues()
 	if err != nil {
 		return err
 	}
 
-	// Download config files
-	err = defaultConfigFolder.downloadConfigFiles(
-		version,
-		fallbackVersion,
-		forceUpdate,
-	)
+	// Set the loaded values as config
+	err = c.setFinalValues()
+	if err != nil {
+		return err
+	}
+
+	// Handle special case for sqlite3 database
+	c.handleDatabaseDriverSpecialCase()
+	return nil
+}
+
+// setProvider sets the configs provider to a new viper instance.
+func (c *Config) setProvider() {
+	c.provider = viper.New()
+}
+
+// setSpecs sets config provider specifications like the config path and env prefix.
+func (c *Config) setSpecs() {
+	c.provider.AddConfigPath(c.BasePath)
+	c.provider.SetConfigName("config")
+	c.provider.SetConfigType("toml")
+	c.provider.SetEnvPrefix("PROJI")
+	c.provider.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+}
+
+// setDefaultValues sets the main configs default values for all keys.
+func (c *Config) setDefaultValues() {
+	c.provider.SetDefault("auth.gh_token", "")
+	c.provider.SetDefault("auth.gl_token", "")
+	c.provider.SetDefault("import.exclude_folders", []string{})
+	c.provider.SetDefault("database.driver", defaultDatabaseDriver)
+	c.provider.SetDefault("database.dsn", filepath.Join(c.BasePath, defaultDatabaseDSN))
+}
+
+// set should run after loadFile and loadEnvironmentVariables. It sets the loaded values as the final config.
+func (c *Config) setFinalValues() error {
+	return c.provider.Unmarshal(c)
+}
+
+// loadValues loads config values from file and environment variables.
+func (c *Config) loadValues() error {
+	err := c.loadFile()
+	if err != nil {
+		return err
+	}
+	c.loadEnvironmentVariables()
+	return nil
+}
+
+// loadConfigFile tries to load the settings relevant values from the default config file. Skips if config file not found.
+func (c *Config) loadFile() error {
+	err := c.provider.ReadInConfig()
+	_, ok := err.(viper.ConfigFileNotFoundError)
+	if ok {
+		// Config file not found; ignore error and return empty settings
+		return nil
+	}
 	return err
 }
 
-// Create subfolders if they do not exist.
-func (mcf *mainConfigFolder) createSubFolders() error {
-	for _, subFolder := range mcf.subFolders {
-		err := util.CreateFolderIfNotExists(filepath.Join(mcf.basePath, subFolder))
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+// loadSettingsFromConfig tries to load the settings from the default config file. Skips if config file not found.
+func (c *Config) loadEnvironmentVariables() {
+	c.provider.AutomaticEnv()
 }
 
-func (mcf *mainConfigFolder) downloadConfigFiles(version, fallbackVersion string, forceUpdate bool) error {
-	var wg sync.WaitGroup
-	numConfigs := len(mcf.configs)
-	wg.Add(numConfigs)
-	errs := make(chan error, numConfigs)
-
-	for _, conf := range mcf.configs {
-		go func(conf *configFile) {
-			defer wg.Done()
-			src := rawURLPrefix + version + conf.src
-			dst := filepath.Join(mcf.basePath, conf.dst)
-			if forceUpdate {
-				errs <- util.DownloadFile(dst, src)
-			} else {
-				errs <- util.DownloadFileIfNotExists(dst, src)
-			}
-		}(conf)
+func (c *Config) handleDatabaseDriverSpecialCase() {
+	// Special case for sqlite.
+	if c.DatabaseConnection.Driver == "sqlite3" {
+		c.DatabaseConnection.DSN = RelativePathToAbsoluteConfigPath(c.BasePath, c.DatabaseConnection.DSN)
 	}
-
-	wg.Wait()
-	close(errs)
-	for err := range errs {
-		if err != nil {
-			if version != fallbackVersion {
-				// Try with fallback version. This may help regular users but is manly for CI, which
-				// fails when new versions are pushed. When a new version is pushed the corresponding github tag
-				// doesn't exist, proji init fails.
-				return mcf.downloadConfigFiles(fallbackVersion, fallbackVersion, true)
-			}
-			return err
-		}
-	}
-	return nil
 }
 
-// GetBaseConfigPath returns the OS specific path of the config folder.
-func GetBaseConfigPath() (string, error) {
-	configPath := ""
+// GetBaseConfigPath returns the OS specific base path of the config folder.
+func GetBaseConfigPath() string {
+	return globalBasePath
+}
+
+// setGlobalBasePath sets the variable globalBasePath to the OS specific base path of the config folder.
+func setGlobalBasePath() error {
+	if globalBasePath != "" {
+		return nil
+	}
+	var path string
+	var err error
 	switch runtime.GOOS {
 	case "linux":
-		home := os.Getenv("HOME")
-		configPath = filepath.Join(home, "/.config/proji")
+		path, err = getLinuxConfigBasePath()
 	case "darwin":
-		home := os.Getenv("HOME")
-		configPath = filepath.Join(home, "/Library/Application Support/proji")
+		path, err = getDarwinConfigBasePath()
 	case "windows":
-		appData := os.Getenv("APPDATA")
-		configPath = filepath.Join(appData, "/proji")
+		path, err = getWindowsConfigBasePath()
 	default:
-		return "", fmt.Errorf("OS %s is not supported and/or tested yet. Please create an issue at "+
+		err = fmt.Errorf("OS %s is not supported and/or tested yet. Please create an issue at "+
 			"https://github.com/nikoksr/proji to request the support of your OS", runtime.GOOS)
 	}
-	return configPath, nil
+	if err != nil {
+		return err
+	}
+	// No errors, set the global base path
+	globalBasePath = path
+	return nil
 }
 
-func ParsePathFromConfig(configFolderPath, pathToParse string) string {
-	if filepath.IsAbs(pathToParse) {
+// getLinuxConfigBasePath tries to read the HOME env variable. Returns proji's home path on linux systems on success.
+func getLinuxConfigBasePath() (string, error) {
+	home, exists := os.LookupEnv("HOME")
+	if !exists {
+		return "", fmt.Errorf("could not find environment variable HOME")
+	}
+	return filepath.Join(home, "/.config/proji"), nil
+}
+
+// getDarwinConfigBasePath tries to read the HOME env variable. Returns proji's home path on darwin systems on success.
+func getDarwinConfigBasePath() (string, error) {
+	home, exists := os.LookupEnv("HOME")
+	if !exists {
+		return "", fmt.Errorf("could not find environment variable HOME")
+	}
+	return filepath.Join(home, "/Library/Application Support/proji"), nil
+}
+
+// getWindowsConfigBasePath tries to read the APPDATA env variable. Returns proji's home path on windows systems on success.
+func getWindowsConfigBasePath() (string, error) {
+	appData, exists := os.LookupEnv("APPDATA")
+	if !exists {
+		return "", fmt.Errorf("could not find environment variable APPDATA")
+	}
+	return filepath.Join(appData, "/proji"), nil
+}
+
+// RelativePathToAbsoluteConfigPath takes a relative path and a config folder path (usually proji's main config folder)
+// and returns the absolute path of the relative path in relation to the config folder path. Returns the relative path
+// unchanged if it was already an absolute path.
+func RelativePathToAbsoluteConfigPath(configFolderPath, relativePath string) string {
+	if filepath.IsAbs(relativePath) {
 		// Either user defined path like '/my/custom/db/path' or default value was loaded
-		return pathToParse
+		return relativePath
 	}
 	// User defined path like 'db/proji.sqlite3'. Gets prefixed with config folder path. This has to be a relative
 	// path or else the above will trigger.
-	return filepath.Join(configFolderPath, pathToParse)
+	return filepath.Join(configFolderPath, relativePath)
 }

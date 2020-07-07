@@ -5,46 +5,34 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/nikoksr/proji/config"
 	"github.com/nikoksr/proji/storage"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-// Env represents central resources and information the app uses.
-type Env struct {
-	Auth             *config.APIAuthentication
-	DatabaseDriver   string
-	DatabaseDSN      string
-	StorageService   storage.Service
-	ConfigFolderPath string
-	ExcludedPaths    []string
-	FallbackVersion  string
-	Version          string
+// Session represents central resources and information the app uses.
+type Session struct {
+	Config          *config.Config
+	StorageService  storage.Service
+	FallbackVersion string
+	Version         string
 }
 
-var projiEnv *Env
+var session *Session
 var terminalWidth, maxColumnWidth int
 
 const (
-	configExcludeFoldersKey = "import.exclude_folders"
-	configDBDriverKey       = "database.driver"
-	configDBDsnKey          = "database.dsn"
-	configGHTokenKey        = "auth.gh_token" //nolint:gosec
-	configGLTokenKey        = "auth.gl_token" //nolint:gosec
-	defaultMaxColumnWidth   = 50
+	defaultMaxColumnWidth = 50
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "proji",
 	Short: "A powerful cross-platform CLI project templating tool.",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		if projiEnv == nil {
-			log.Fatalf("Error: Env struct is not defined.\n")
+		if session == nil {
+			log.Fatalln("session is not defined")
 		}
 	},
 }
@@ -56,87 +44,77 @@ func Execute() {
 }
 
 func init() {
-	if projiEnv == nil {
-		projiEnv = &Env{
-			Auth:             &config.APIAuthentication{},
-			DatabaseDriver:   "",
-			DatabaseDSN:      "",
-			ExcludedPaths:    make([]string, 0),
-			ConfigFolderPath: "",
-			StorageService:   nil,
-			FallbackVersion:  "0.19.2",
-			Version:          "0.20.0",
+	if session == nil {
+		session = &Session{
+			Config:          nil,
+			StorageService:  nil,
+			FallbackVersion: "0.19.2",
+			Version:         "0.20.0",
 		}
 	}
 
-	if len(os.Args) > 1 && os.Args[1] != "init" && os.Args[1] != "version" && os.Args[1] != "help" {
-		cobra.OnInitialize(initConfig, initStorageService)
+	// Skip initialization if no args were given
+	if len(os.Args) < 2 {
+		return
+	}
+
+	// Evaluate initialization behaviour
+	var initFunctions []func()
+	switch os.Args[1] {
+	case "version", "help":
+		// Don't init config or storage on version or help. It's just not necessary.
+		return
+	case "init":
+		// Setup the config because init needs a barebone config to deploy the base config folder.
+		initFunctions = append(initFunctions, setupConfig)
+	default:
+		// On default load the main config and initialize the storage service
+		initFunctions = []func(){
+			initConfig,
+			initStorageService,
+		}
+	}
+	cobra.OnInitialize(initFunctions...)
+}
+
+func setupConfig() {
+	err := config.Setup()
+	if err != nil {
+		log.Fatalf("failed to setup config, %s", err.Error())
 	}
 }
 
 func initConfig() {
-	// Set platform specific config path
-	var err error
-	projiEnv.ConfigFolderPath, err = config.GetBaseConfigPath()
-	if err != nil {
-		log.Fatalf("Error: %v\n", err)
-	}
-	viper.AddConfigPath(projiEnv.ConfigFolderPath)
-
-	// Config name
-	viper.SetConfigName("config")
-	viper.SetConfigType("toml")
-
-	// Set default values as fallback
-	setDefaultConfigValues()
-
-	// Read config
-	err = viper.ReadInConfig()
-	if err != nil {
-		log.Fatalf("Error: %v\n\nTry and execute: proji init\n", err)
+	if session == nil {
+		log.Fatalf("couldn't set config, environment struct is nil")
 	}
 
-	// Read environment variables
-	viper.SetEnvPrefix("PROJI")
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	viper.AutomaticEnv()
+	// Run config setup
+	setupConfig()
 
-	// Set all proji relevant environmental values
-	setAllEnvValues()
+	// Create the config
+	session.Config = config.New(config.GetBaseConfigPath())
+
+	// Load the config
+	err := session.Config.Load()
+	if err != nil {
+		log.Fatalf("loading config failed, %s", err.Error())
+	}
 }
 
 func initStorageService() {
 	var err error
-	projiEnv.StorageService, err = storage.NewService(projiEnv.DatabaseDriver, projiEnv.DatabaseDSN)
+	session.StorageService, err = storage.NewService(
+		session.Config.DatabaseConnection.Driver,
+		session.Config.DatabaseConnection.DSN,
+	)
 	if err != nil {
 		log.Fatalf(
 			"Error: could not connect to %s database with dsn %s, %s\n",
-			projiEnv.DatabaseDriver,
-			projiEnv.DatabaseDSN,
+			session.Config.DatabaseConnection.Driver,
+			session.Config.DatabaseConnection.DSN,
 			err.Error(),
 		)
-	}
-}
-
-func setDefaultConfigValues() {
-	viper.SetDefault(configGHTokenKey, "")
-	viper.SetDefault(configGLTokenKey, "")
-	viper.SetDefault(configExcludeFoldersKey, make([]string, 0))
-	viper.SetDefault(configDBDriverKey, "sqlite3")
-	viper.SetDefault(configDBDsnKey, filepath.Join(projiEnv.ConfigFolderPath, "/db/proji.sqlite3"))
-}
-
-func setAllEnvValues() {
-	projiEnv.Auth.GHToken = viper.GetString(configGHTokenKey)
-	projiEnv.Auth.GLToken = viper.GetString(configGLTokenKey)
-	projiEnv.ExcludedPaths = viper.GetStringSlice(configExcludeFoldersKey)
-	projiEnv.DatabaseDriver = viper.GetString(configDBDriverKey)
-
-	// Special case for sqlite.
-	if projiEnv.DatabaseDriver == "sqlite3" {
-		projiEnv.DatabaseDSN = config.ParsePathFromConfig(projiEnv.ConfigFolderPath, viper.GetString(configDBDsnKey))
-	} else {
-		projiEnv.DatabaseDSN = viper.GetString(configDBDsnKey)
 	}
 }
 
