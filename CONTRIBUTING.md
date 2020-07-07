@@ -8,6 +8,63 @@ We love your input! We want to make contributing to this project as easy and tra
 -   Proposing new features
 -   Becoming a maintainer
 
+By participating to this project, you agree to abide our [code of
+conduct](/CODE_OF_CONDUCT.md).
+
+## Setup your machine
+
+`proji` is written in [Go](https://golang.org/).
+
+Prerequisites:
+
+- `make`
+- [Go 1.14+](https://golang.org/doc/install)
+
+Clone `proji` anywhere:
+
+```sh
+$ git clone https://github.com/nikoksr/proji
+```
+
+Install the build and lint dependencies:
+
+```sh
+$ make setup
+```
+
+A good way of making sure everything is all right is running the test suite:
+
+```sh
+$ make test
+```
+
+## Use a consistent coding style
+
+Before commiting any changes, please run:
+
+```sh
+$ make fmt
+```
+
+Which runs `gofmt` and `goimports` and enforces a consistent coding style.
+
+## Test your change
+
+You can create a branch for your changes and try to build from the source as you go:
+
+```sh
+$ make build
+```
+
+When you are satisfied with the changes, we suggest you run:
+
+```sh
+$ make ci
+```
+
+Which runs all the linters and tests.
+
+
 ## We Develop with Github
 
 We use github to host code, to track issues and feature requests, as well as accept pull requests.
@@ -38,10 +95,6 @@ Use the [bug report template](https://github.com/nikoksr/proji/blob/master/.gith
 ## Request features or changes
 
 Use the [feature request template](https://github.com/nikoksr/proji/blob/master/.github/ISSUE_TEMPLATE/feature_request.md) to request a new feature using a Github's issues.
-
-## Use a Consistent Coding Style
-
-Use [go fmt](https://golang.org/pkg/fmt/) to format your code.
 
 ## License
 
