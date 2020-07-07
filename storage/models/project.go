@@ -2,7 +2,6 @@ package models
 
 import (
 	"os"
-	"os/exec"
 	"path/filepath"
 	"time"
 
@@ -100,13 +99,16 @@ func (p *Project) createFilesAndFolders(configPath string) error {
 	return nil
 }
 
-func (p *Project) preRunPlugins(configPath string) error {
+func (p *Project) preRunPlugins(baseConfigPath string) error {
+	basePluginsPath := filepath.Join(baseConfigPath, "plugins")
 	for _, plugin := range p.Class.Plugins {
 		if plugin.ExecNumber >= 0 {
 			continue
 		}
-		pluginPath := filepath.Join(configPath, "/plugins/", plugin.Path)
-		err := runPlugin(pluginPath)
+		// Plugin path is relative by default to make it shareable. We have to make it an absolute path here,
+		// so that we can execute it.
+		p.Path = filepath.Join(basePluginsPath, p.Path)
+		err := plugin.Run()
 		if err != nil {
 			return err
 		}
@@ -114,24 +116,19 @@ func (p *Project) preRunPlugins(configPath string) error {
 	return nil
 }
 
-func (p *Project) postRunPlugins(configPath string) error {
+func (p *Project) postRunPlugins(baseConfigPath string) error {
+	basePluginsPath := filepath.Join(baseConfigPath, "plugins")
 	for _, plugin := range p.Class.Plugins {
 		if plugin.ExecNumber <= 0 {
 			continue
 		}
-		pluginPath := filepath.Join(configPath, "/plugins/", plugin.Path)
-		err := runPlugin(pluginPath)
+		// Plugin path is relative by default to make it shareable. We have to make it an absolute path here,
+		// so that we can execute it.
+		p.Path = filepath.Join(basePluginsPath, p.Path)
+		err := plugin.Run()
 		if err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func runPlugin(pluginPath string) error {
-	cmd := exec.Command(pluginPath)
-	cmd.Stdout = os.Stdout
-	cmd.Stdin = os.Stdin
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
 }

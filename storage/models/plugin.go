@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	lua "github.com/yuin/gopher-lua"
 	"gorm.io/gorm"
 )
 
@@ -16,4 +17,10 @@ type Plugin struct {
 	Path        string         `gorm:"index:idx_plugin_path,unique;not null" toml:"path"`
 	ExecNumber  int            `gorm:"check:(exec_number != 0);not null;size:4" toml:"exec_number"`
 	Description string         `gorm:"size:255" toml:"description"`
+}
+
+func (p *Plugin) Run() error {
+	L := lua.NewState()
+	defer L.Close()
+	return L.DoFile(p.Path)
 }
