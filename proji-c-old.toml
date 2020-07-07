@@ -1,0 +1,66 @@
+label = "c"
+name = "c-lang"
+description = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et."
+
+[[template]]
+  is_file = true
+  destination = "CMakeLists.txt"
+  path = "CMakeLists-c.txt"
+
+[[template]]
+  is_file = true
+  destination = "README.md"
+  path = "README.md"
+  description = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et."
+
+[[template]]
+  is_file = true
+  destination = "src/main.c"
+  path = "main.c"
+
+[[template]]
+  is_file = false
+  destination = ".vscode"
+  path = "vscode-cpp"
+
+[[template]]
+  is_file = false
+  destination = "build/debug/bin"
+  path = ""
+  description = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et."
+
+[[template]]
+  is_file = false
+  destination = "build/release/bin"
+  path = ""
+
+[[template]]
+  is_file = false
+  destination = "include"
+  path = ""
+
+[[template]]
+  is_file = false
+  destination = "src"
+  path = ""
+  description = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et."
+
+[[template]]
+  is_file = false
+  destination = "test"
+  path = ""
+
+[[plugin]]
+  path = "init_something_else.sh"
+  exec_number = -1
+  description = "Lorem ipsu"
+
+[[plugin]]
+  path = "init_git.sh"
+  exec_number = 1
+  description = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata"
+
+[[plugin]]
+  path = "init_something.sh"
+  exec_number = 2
+  description = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lore"

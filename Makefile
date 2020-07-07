@@ -11,7 +11,7 @@ setup:
 
 # Run all the tests
 test:
-	LC_ALL=C go test -failfast -race -coverpkg=./... -covermode=atomic -coverprofile=coverage.txt -timeout=5m ./pkg/...
+	LC_ALL=C go test -failfast -race -coverpkg=./... -covermode=atomic -coverprofile=coverage.txt -timeout=5m ./...
 .PHONY: test
 
 # Run all the tests and opens the coverage report
