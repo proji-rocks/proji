@@ -1,4 +1,4 @@
-package item
+package models
 
 import (
 	"errors"
@@ -10,51 +10,49 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 	"unicode"
 
-	gl "github.com/xanzy/go-gitlab"
-
 	gh "github.com/google/go-github/v31/github"
-
-	"github.com/nikoksr/proji/pkg/config"
-
-	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/repo"
-	"github.com/nikoksr/proji/pkg/proji/repo/github"
-	"github.com/nikoksr/proji/pkg/proji/repo/gitlab"
-
-	"github.com/BurntSushi/toml"
+	"github.com/nikoksr/proji/config"
+	"github.com/nikoksr/proji/repo"
+	"github.com/nikoksr/proji/repo/github"
+	"github.com/nikoksr/proji/repo/gitlab"
+	"github.com/nikoksr/proji/util"
+	"github.com/pelletier/go-toml"
+	gl "github.com/xanzy/go-gitlab"
+	"gorm.io/gorm"
 )
 
-// Class struct represents a proji class
+// Class represents a proji class; the central item of proji's project creation mechanism. It holds tags for gorm and
+// toml defining its storage and export/import behaviour.
 type Class struct {
-	ID        uint      // Class ID in storage. Not exported/imported.
-	IsDefault bool      // Is this a default class? Not exported/imported.
-	Name      string    `toml:"name"`   // Class name
-	Label     string    `toml:"label"`  // Class label
-	Folders   []*Folder `toml:"folder"` // Class folders
-	Files     []*File   `toml:"file"`   // Class files
-	Scripts   []*Script `toml:"script"` // Class scripts
+	ID          uint           `gorm:"primarykey" toml:"-"`
+	CreatedAt   time.Time      `toml:"-"`
+	UpdatedAt   time.Time      `toml:"-"`
+	DeletedAt   gorm.DeletedAt `gorm:"index:idx_unq_class_label_deletedat,unique;" toml:"-"`
+	Name        string         `gorm:"not null;size:64" toml:"name"`
+	Label       string         `gorm:"index:idx_unq_class_label_deletedat,unique;not null;size:16" toml:"label"`
+	Description string         `gorm:"size:255" toml:"description"`
+	Templates   []*Template    `gorm:"many2many:class_templates;ForeignKey:ID;References:ID" toml:"template"`
+	Plugins     []*Plugin      `gorm:"many2many:class_plugins;ForeignKey:ID;References:ID" toml:"plugin"`
+	IsDefault   bool           `gorm:"not null" toml:"-"`
 }
 
-// '%20' is for escaped paths.
-var labelSeparators = []string{"-", "_", ".", " ", "%20"}
-
 const (
-	templatesKey = "templates"
-	scriptsKey   = "scripts"
+	templatesKey = "templates" // Map key for template files.
+	pluginsKey   = "plugins"   // Map key for plugins.
 )
 
-// NewClass returns a new class
+// NewClass returns a new class instance. isDefault should be false by default and only true for fallback classes
+// that should be ignored anyways.
 func NewClass(name, label string, isDefault bool) *Class {
 	return &Class{
-		ID:        0,
-		IsDefault: isDefault,
 		Name:      name,
 		Label:     label,
-		Folders:   make([]*Folder, 0),
-		Files:     make([]*File, 0),
-		Scripts:   make([]*Script, 0),
+		Templates: nil,
+		Plugins:   nil,
+		IsDefault: isDefault,
 	}
 }
 
@@ -75,7 +73,11 @@ func (c *Class) ImportConfig(path string) error {
 	}
 
 	// Decode the file
-	_, err = toml.DecodeFile(path, &c)
+	file, err := toml.LoadFile(path)
+	if err != nil {
+		return err
+	}
+	err = file.Unmarshal(c)
 	if err != nil {
 		return err
 	}
@@ -97,7 +99,7 @@ func (c *Class) ImportConfig(path string) error {
 // structure and content of the directory and create a class based on it.
 func (c *Class) ImportFolderStructure(path string, excludeDirs []string) error {
 	// Validate that the directory exists
-	if !helper.DoesPathExist(path) {
+	if !util.DoesPathExist(path) {
 		return fmt.Errorf("given directory does not exist")
 	}
 
@@ -107,6 +109,9 @@ func (c *Class) ImportFolderStructure(path string, excludeDirs []string) error {
 	c.Label = pickLabel(c.Name)
 
 	err := filepath.Walk(path, func(currentPath string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 		// Skip base directory
 		if path == currentPath {
 			return nil
@@ -118,14 +123,14 @@ func (c *Class) ImportFolderStructure(path string, excludeDirs []string) error {
 		}
 
 		// Add file or folder to class
+		isFile := true
 		if info.IsDir() {
-			if helper.IsInSlice(excludeDirs, info.Name()) {
+			if util.IsInSlice(excludeDirs, info.Name()) {
 				return filepath.SkipDir
 			}
-			c.Folders = append(c.Folders, &Folder{Destination: relPath, Template: ""})
-		} else {
-			c.Files = append(c.Files, &File{Destination: relPath, Template: ""})
+			isFile = false
 		}
+		c.Templates = append(c.Templates, &Template{IsFile: isFile, Path: "", Destination: relPath})
 		return nil
 	})
 
@@ -148,7 +153,7 @@ func (c *Class) ImportRepoStructure(importer repo.Importer, filters []*regexp.Re
 	if err != nil {
 		return err
 	}
-	c.Files, c.Folders = filterAndConvertTreeEntries(importer, filters)
+	c.Templates = filterAndConvertTreeEntries(importer, filters)
 
 	// Check if any data was loaded
 	if c.isEmpty() {
@@ -165,11 +170,11 @@ func (c *Class) ImportRepoStructure(importer repo.Importer, filters []*regexp.Re
 // ImportPackage imports a package from a given URL. The URL should point directly to a class config in a remote repo
 // of one of the following code platforms: github, gitlab. Proji will import the class config and download its
 // dependencies if necessary.
-func (c *Class) ImportPackage(URL *url.URL, importer repo.Importer) error {
+func (c *Class) ImportPackage(packageURL *url.URL, importer repo.Importer) error {
 	// Download config
-	f := filepath.Join(os.TempDir(), "/proji/configs/", filepath.Base(URL.Path))
-	dwn := importer.FilePathToRawURI(filepath.Join("configs/", filepath.Base(URL.Path)))
-	err := helper.DownloadFileIfNotExists(f, dwn)
+	f := filepath.Join(os.TempDir(), "/proji/configs/", filepath.Base(packageURL.Path))
+	dwn := importer.FilePathToRawURI(filepath.Join("configs/", filepath.Base(packageURL.Path)))
+	err := util.DownloadFileIfNotExists(f, dwn)
 	if err != nil {
 		return err
 	}
@@ -182,14 +187,14 @@ func (c *Class) ImportPackage(URL *url.URL, importer repo.Importer) error {
 
 	// Download scripts and templates
 	// Create list of necessary scripts and templates
-	filesNeeded := make(map[string][]string, 0)
+	filesToDownload := make(map[string][]string)
 
 	// All templates
 	var rex *regexp.Regexp
-	var files []*File
+	var templates []*Template
 
-	for _, folder := range c.Folders {
-		if folder.Template == "" {
+	for _, template := range c.Templates {
+		if template.Path == "" {
 			continue
 		}
 
@@ -200,27 +205,27 @@ func (c *Class) ImportPackage(URL *url.URL, importer repo.Importer) error {
 			if err != nil {
 				return err
 			}
-			files, _ = filterAndConvertTreeEntries(importer, []*regexp.Regexp{rex})
+			templates = filterAndConvertTreeEntries(importer, []*regexp.Regexp{rex})
 		}
 
-		if len(files) < 1 {
+		if len(templates) < 1 {
 			return fmt.Errorf("no templates were found in repo but class %s requires templates", c.Name)
 		}
 
-		for _, file := range files {
+		for _, template := range templates {
 			// Trim the path
-			trimmedFilePath := file.Destination[len("templates/"):]
+			trimmedFilePath := template.Destination[len("templates/"):]
 			// Add file to list only if its in the current template folder
-			if strings.HasPrefix(trimmedFilePath, folder.Template) {
-				filesNeeded[templatesKey] = append(filesNeeded[templatesKey], trimmedFilePath)
+			if strings.HasPrefix(trimmedFilePath, template.Path) {
+				filesToDownload[templatesKey] = append(filesToDownload[templatesKey], trimmedFilePath)
 			}
 		}
 	}
-	for _, file := range c.Files {
-		filesNeeded[templatesKey] = append(filesNeeded[templatesKey], file.Template)
+	for _, template := range c.Templates {
+		filesToDownload[templatesKey] = append(filesToDownload[templatesKey], template.Path)
 	}
-	for _, script := range c.Scripts {
-		filesNeeded[scriptsKey] = append(filesNeeded[scriptsKey], script.Name)
+	for _, plugin := range c.Plugins {
+		filesToDownload[pluginsKey] = append(filesToDownload[pluginsKey], plugin.Path)
 	}
 
 	// Try and get default home dir
@@ -232,18 +237,18 @@ func (c *Class) ImportPackage(URL *url.URL, importer repo.Importer) error {
 
 	// Download scripts and templates
 	// Sum of templates and scripts counts
-	numFiles := len(filesNeeded[templatesKey]) + len(filesNeeded[scriptsKey])
+	numFiles := len(filesToDownload[templatesKey]) + len(filesToDownload[pluginsKey])
 	var wg sync.WaitGroup
 	wg.Add(numFiles)
 	errs := make(chan error, numFiles)
 
-	for fileType, fileList := range filesNeeded {
+	for fileType, fileList := range filesToDownload {
 		for _, file := range fileList {
 			go func(fileType, file string) {
 				defer wg.Done()
 				src := importer.FilePathToRawURI(filepath.Join(fileType, file))
 				dst := filepath.Join(downloadDestination, fileType, file)
-				err = helper.DownloadFileIfNotExists(dst, src)
+				err = util.DownloadFileIfNotExists(dst, src)
 				if err != nil {
 					errs <- err
 				}
@@ -270,7 +275,8 @@ func (c *Class) ImportPackage(URL *url.URL, importer repo.Importer) error {
 // ImportClassesFromCollection imports all classes from a given URL. A collection is a repo with multiple classes. It must include
 // a folder called configs, which holds the class configs. If the classes have scripts or templates as dependencies,
 // they should be put into the folders scripts/ and templates/ respectively.
-func ImportClassesFromCollection(URL *url.URL, importer repo.Importer) ([]*Class, error) {
+//nolint:interfacer
+func ImportClassesFromCollection(collectionURL *url.URL, importer repo.Importer) ([]*Class, error) {
 	// Get list of class configs and loop through them
 	re := regexp.MustCompile(`configs/.*`)
 	c := NewClass("", "", false)
@@ -286,17 +292,20 @@ func ImportClassesFromCollection(URL *url.URL, importer repo.Importer) ([]*Class
 
 	// Import one package at a time
 	classList := make([]*Class, 0)
-	numFiles := len(c.Files)
+	numFiles := len(c.Templates)
 	var wg sync.WaitGroup
 	wg.Add(numFiles)
 	classChannel := make(chan *Class, numFiles)
 	errs := make(chan error, numFiles)
 
-	for _, file := range c.Files {
-		go func(file *File) {
+	for _, template := range c.Templates {
+		if !template.IsFile {
+			continue
+		}
+		go func(template *Template) {
 			defer wg.Done()
 			class := NewClass("", "", false)
-			packageURL, err := repo.ParseURL(URL.String() + "/" + file.Destination)
+			packageURL, err := repo.ParseURL(collectionURL.String() + "/" + template.Destination)
 			if err != nil {
 				errs <- err
 				return
@@ -307,7 +316,7 @@ func ImportClassesFromCollection(URL *url.URL, importer repo.Importer) ([]*Class
 				return
 			}
 			classChannel <- class
-		}(file)
+		}(template)
 	}
 
 	wg.Wait()
@@ -333,36 +342,26 @@ func ImportClassesFromCollection(URL *url.URL, importer repo.Importer) ([]*Class
 	return classList, err
 }
 
-// Export exports a given class to a toml config file
+// Export exports a given class to a toml config file.
 func (c *Class) Export(destination string) (string, error) {
-	// Create config string
-	var configTxt = map[string]interface{}{
-		"name":   c.Name,
-		"label":  c.Label,
-		"folder": c.Folders,
-		"file":   c.Files,
-		"script": c.Scripts,
-	}
-
-	// Export data to toml
-	confName := filepath.Join(destination, "/proji-"+c.Name+".toml")
+	confName := filepath.Join(destination, "proji-"+c.Name+".toml")
 	conf, err := os.Create(confName)
 	if err != nil {
 		return confName, err
 	}
 	defer conf.Close()
-	return confName, toml.NewEncoder(conf).Encode(configTxt)
+	return confName, toml.NewEncoder(conf).Order(toml.OrderPreserve).Encode(c)
 }
 
-// isEmpty checks if the class holds no data
+// isEmpty checks if the class holds no data.
 func (c *Class) isEmpty() bool {
-	if len(c.Folders) == 0 && len(c.Files) == 0 && len(c.Scripts) == 0 {
+	if len(c.Templates) == 0 && len(c.Plugins) == 0 {
 		return true
 	}
 	return false
 }
 
-// pickLabel dynamically picks a label based on the class name
+// pickLabel dynamically picks a label based on the class name.
 func pickLabel(className string) string {
 	nameLen := len(className)
 	if nameLen < 2 {
@@ -373,8 +372,10 @@ func pickLabel(className string) string {
 	maxLabelLen := 4
 
 	// Try to create label by separators
+	// labelSeparators defines a list of rues that are used to split class names and transform them to labels.
+	// '%20' is for escaped paths.
+	labelSeparators := []string{"-", "_", ".", " ", "%20"}
 	parts := make([]string, 0)
-
 	for _, d := range labelSeparators {
 		parts = strings.Split(className, d)
 		if len(parts) > 1 {
@@ -423,48 +424,44 @@ func pickLabel(className string) string {
 */
 
 // GetRepoImporterFromURL returns the most suiting importer based on the code hosting platform.
-func GetRepoImporterFromURL(URL *url.URL, auth *config.APIAuthentication) (repo.Importer, error) {
+func GetRepoImporterFromURL(repoURL *url.URL, auth *config.APIAuthentication) (repo.Importer, error) {
 	var importer repo.Importer
 	var err error
 
-	switch URL.Hostname() {
+	switch repoURL.Hostname() {
 	case "github.com":
-		importer, err = github.New(URL, auth.GHToken)
+		importer, err = github.New(repoURL, auth.GHToken)
 	case "gitlab.com":
-		importer, err = gitlab.New(URL, auth.GLToken)
+		importer, err = gitlab.New(repoURL, auth.GLToken)
 	default:
 		return nil, fmt.Errorf("platform not supported yet")
 	}
 	return importer, err
 }
 
-func filterAndConvertTreeEntries(importer repo.Importer, filters []*regexp.Regexp) ([]*File, []*Folder) {
+func filterAndConvertTreeEntries(importer repo.Importer, filters []*regexp.Regexp) []*Template {
 	if filters == nil {
 		filters = make([]*regexp.Regexp, 0)
 	}
 
-	files := make([]*File, 0)
-	folders := make([]*Folder, 0)
-
-	switch importer.(type) {
+	var templates []*Template
+	switch typedImporter := importer.(type) {
 	case *github.GitHub:
-		files, folders = filterAndConvertGHTreeEntries(importer.(*github.GitHub).TreeEntries, filters)
+		templates = filterAndConvertGHTreeEntries(typedImporter.TreeEntries, filters)
 	case *gitlab.GitLab:
-		files, folders = filterAndConvertGLTreeEntries(importer.(*gitlab.GitLab).TreeEntries, filters)
+		templates = filterAndConvertGLTreeEntries(typedImporter.TreeEntries, filters)
 	default:
-		return nil, nil
+		return nil
 	}
-
-	return files, folders
+	return templates
 }
 
-func filterAndConvertGHTreeEntries(treeEntries []*gh.TreeEntry, filters []*regexp.Regexp) ([]*File, []*Folder) {
+func filterAndConvertGHTreeEntries(treeEntries []*gh.TreeEntry, filters []*regexp.Regexp) []*Template {
 	if filters == nil {
 		filters = make([]*regexp.Regexp, 0)
 	}
 
-	files := make([]*File, 0)
-	folders := make([]*Folder, 0)
+	templates := make([]*Template, 0)
 
 	for _, entry := range treeEntries {
 		skip := false
@@ -480,22 +477,25 @@ func filterAndConvertGHTreeEntries(treeEntries []*gh.TreeEntry, filters []*regex
 		if skip {
 			continue
 		}
+		isFile := false
 		if entry.GetType() == "blob" {
-			files = append(files, &File{Destination: entry.GetPath()})
-		} else {
-			folders = append(folders, &Folder{Destination: entry.GetPath()})
+			isFile = true
 		}
+		templates = append(templates, &Template{
+			IsFile:      isFile,
+			Path:        "",
+			Destination: entry.GetPath(),
+		})
 	}
-	return files, folders
+	return templates
 }
 
-func filterAndConvertGLTreeEntries(treeEntries []*gl.TreeNode, filters []*regexp.Regexp) ([]*File, []*Folder) {
+func filterAndConvertGLTreeEntries(treeEntries []*gl.TreeNode, filters []*regexp.Regexp) []*Template {
 	if filters == nil {
 		filters = make([]*regexp.Regexp, 0)
 	}
 
-	files := make([]*File, 0)
-	folders := make([]*Folder, 0)
+	templates := make([]*Template, 0)
 
 	for _, entry := range treeEntries {
 		skip := false
@@ -511,11 +511,15 @@ func filterAndConvertGLTreeEntries(treeEntries []*gl.TreeNode, filters []*regexp
 		if skip {
 			continue
 		}
+		isFile := false
 		if entry.Type == "blob" {
-			files = append(files, &File{Destination: entry.Path})
-		} else {
-			folders = append(folders, &Folder{Destination: entry.Path})
+			isFile = true
 		}
+		templates = append(templates, &Template{
+			IsFile:      isFile,
+			Path:        "",
+			Destination: entry.Path,
+		})
 	}
-	return files, folders
+	return templates
 }

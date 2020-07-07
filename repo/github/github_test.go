@@ -10,7 +10,7 @@ import (
 
 	gh "github.com/google/go-github/v31/github"
 
-	"github.com/nikoksr/proji/pkg/helper"
+	"github.com/nikoksr/proji/util"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -43,7 +43,7 @@ var apiToken = os.Getenv("PROJI_AUTH_GH_TOKEN")
 
 // TestNew tests the creation of a new github object based on given github URLs.
 func TestNew(t *testing.T) {
-	helper.SkipNetworkBasedTests(t)
+	util.SkipNetworkBasedTests(t)
 
 	// These should work
 	for i, repo := range goodRepos {
@@ -67,7 +67,7 @@ func TestNew(t *testing.T) {
 // TestLoadTreeEntries tests the github method TestGetTreePathsAndTypes which tries
 // to request and receive the folders paths and types of a github repo tree.
 func TestGitHub_LoadTreeEntries(t *testing.T) {
-	helper.SkipNetworkBasedTests(t)
+	util.SkipNetworkBasedTests(t)
 
 	type testEntry struct {
 		sha       string

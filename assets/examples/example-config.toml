@@ -1,9 +1,14 @@
 [auth]
+# Private GitHub and/or GitLab token which allow proji to access private repos and
 gh_token = ""
 gl_token = ""
 
 [import]
+# Folders that should be excluded by default when running imports.
 exclude_folders = [".git", ".env"]
 
-[sqlite3]
-path = "db/proji.sqlite3"
+[database]
+# Supported drivers: mysql, mssql, postgres, sqlite3
+driver = "sqlite3"
+# Connection string to the database. See https://gorm.io/docs/connecting_to_the_database.html#Supported-Databases for more informations.
+dsn = "db/proji.sqlite3"

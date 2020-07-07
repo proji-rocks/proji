@@ -1,3 +1,4 @@
+//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
@@ -5,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage/item"
+	"github.com/nikoksr/proji/storage/models"
+	"github.com/nikoksr/proji/util"
 	"github.com/spf13/cobra"
 )
 
@@ -27,12 +28,7 @@ var createCmd = &cobra.Command{
 		}
 
 		// Load class once for all projects
-		classID, err := projiEnv.Svc.LoadClassIDByLabel(label)
-		if err != nil {
-			return err
-		}
-
-		class, err := projiEnv.Svc.LoadClass(classID)
+		class, err := projiEnv.StorageService.LoadClass(label)
 		if err != nil {
 			return err
 		}
@@ -45,7 +41,7 @@ var createCmd = &cobra.Command{
 				fmt.Printf(" -> Failed: %v\n", err)
 
 				if err.Error() == "Project already exists" {
-					if !helper.WantTo("> Do you want to replace it?") {
+					if !util.WantTo("> Do you want to replace it?") {
 						continue
 					}
 					err := replaceProject(name, cwd, projiEnv.ConfigFolderPath, class)
@@ -67,32 +63,27 @@ func init() {
 	rootCmd.AddCommand(createCmd)
 }
 
-func createProject(name, cwd, configPath string, class *item.Class) error {
-	proj := item.NewProject(0, name, filepath.Join(cwd, name), class)
+func createProject(name, cwd, configPath string, class *models.Class) error {
+	project := models.NewProject(name, filepath.Join(cwd, name), class)
 
 	// Save it first to see if it already exists in the database
-	err := projiEnv.Svc.SaveProject(proj)
+	err := projiEnv.StorageService.SaveProject(project)
 	if err != nil {
 		return err
 	}
 	// Create the project
-	err = proj.Create(cwd, configPath)
+	err = project.Create(cwd, configPath)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func replaceProject(name, cwd, configPath string, class *item.Class) error {
-	id, err := projiEnv.Svc.LoadProjectID(filepath.Join(cwd, "/", name))
-	if err != nil {
-		return err
-	}
-
+func replaceProject(name, path, configPath string, class *models.Class) error {
 	// Replace it
-	err = projiEnv.Svc.RemoveProject(id)
+	err := projiEnv.StorageService.RemoveProject(filepath.Join(path, name))
 	if err != nil {
 		return err
 	}
-	return createProject(name, cwd, configPath, class)
+	return createProject(name, path, configPath, class)
 }

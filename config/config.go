@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/nikoksr/proji/pkg/helper"
+	"github.com/nikoksr/proji/util"
 )
 
 type APIAuthentication struct {
@@ -31,9 +31,21 @@ const (
 	rawURLPrefix = "https://raw.githubusercontent.com/nikoksr/proji/v"
 )
 
-var (
-	// Representation of the proji's main config folder
-	defaultConfigFolder = &mainConfigFolder{
+// InitConfig is the main function for projis config initialization. It determines the OS' preferred config location, creates
+// proji's config folders and downloads the required configs from GitHub to the local config folder.
+func InitConfig(path, version, fallbackVersion string, forceUpdate bool) error {
+	var err error
+
+	// Set base config path if not given
+	if strings.Trim(path, " ") == "" {
+		path, err = GetBaseConfigPath()
+		if err != nil {
+			return err
+		}
+	}
+
+	// Representation of proji's main config folder
+	defaultConfigFolder := &mainConfigFolder{
 		basePath: "",
 		configs: []*configFile{
 			{
@@ -46,20 +58,6 @@ var (
 			},
 		},
 		subFolders: []string{"db", "examples", "scripts", "templates"},
-	}
-)
-
-// InitConfig is the main function for projis config initialization. It determines the OS' preferred config location, creates
-// proji's config folders and downloads the required configs from GitHub to the local config folder.
-func InitConfig(path, version, fallbackVersion string, forceUpdate bool) error {
-	var err error
-
-	// Set base config path if not given
-	if strings.Trim(path, " ") == "" {
-		path, err = GetBaseConfigPath()
-		if err != nil {
-			return err
-		}
 	}
 
 	defaultConfigFolder.basePath = path
@@ -82,7 +80,7 @@ func InitConfig(path, version, fallbackVersion string, forceUpdate bool) error {
 // Create subfolders if they do not exist.
 func (mcf *mainConfigFolder) createSubFolders() error {
 	for _, subFolder := range mcf.subFolders {
-		err := helper.CreateFolderIfNotExists(filepath.Join(mcf.basePath, subFolder))
+		err := util.CreateFolderIfNotExists(filepath.Join(mcf.basePath, subFolder))
 		if err != nil {
 			return err
 		}
@@ -102,9 +100,9 @@ func (mcf *mainConfigFolder) downloadConfigFiles(version, fallbackVersion string
 			src := rawURLPrefix + version + conf.src
 			dst := filepath.Join(mcf.basePath, conf.dst)
 			if forceUpdate {
-				errs <- helper.DownloadFile(dst, src)
+				errs <- util.DownloadFile(dst, src)
 			} else {
-				errs <- helper.DownloadFileIfNotExists(dst, src)
+				errs <- util.DownloadFileIfNotExists(dst, src)
 			}
 		}(conf)
 	}
@@ -140,7 +138,7 @@ func GetBaseConfigPath() (string, error) {
 		configPath = filepath.Join(appData, "/proji")
 	default:
 		return "", fmt.Errorf("OS %s is not supported and/or tested yet. Please create an issue at "+
-			"https://github.com/nikoksr/proji to request the support of your OS.\n", runtime.GOOS)
+			"https://github.com/nikoksr/proji to request the support of your OS", runtime.GOOS)
 	}
 	return configPath, nil
 }

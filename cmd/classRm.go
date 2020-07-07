@@ -1,11 +1,11 @@
+//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
 	"fmt"
 
-	"github.com/nikoksr/proji/pkg/helper"
-
-	"github.com/nikoksr/proji/pkg/proji/storage/item"
+	"github.com/nikoksr/proji/storage/models"
+	"github.com/nikoksr/proji/util"
 
 	"github.com/spf13/cobra"
 )
@@ -18,11 +18,11 @@ var classRmCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		// Collect classes that will be removed
-		var classes []*item.Class
+		var classes []*models.Class
 
 		if removeAllClasses {
 			var err error
-			classes, err = projiEnv.Svc.LoadAllClasses()
+			classes, err = projiEnv.StorageService.LoadClasses()
 			if err != nil {
 				return err
 			}
@@ -32,11 +32,7 @@ var classRmCmd = &cobra.Command{
 			}
 
 			for _, label := range args {
-				classID, err := projiEnv.Svc.LoadClassIDByLabel(label)
-				if err != nil {
-					return err
-				}
-				class, err := projiEnv.Svc.LoadClass(classID)
+				class, err := projiEnv.StorageService.LoadClass(label)
 				if err != nil {
 					return err
 				}
@@ -52,13 +48,13 @@ var classRmCmd = &cobra.Command{
 			}
 			// Ask for confirmation if force flag was not passed
 			if !forceRemoveClasses {
-				if !helper.WantTo(
+				if !util.WantTo(
 					fmt.Sprintf("Do you really want to remove class '%s (%s)'?", class.Name, class.Label),
 				) {
 					continue
 				}
 			}
-			err := projiEnv.Svc.RemoveClass(class.ID)
+			err := projiEnv.StorageService.RemoveClass(class.Label)
 			if err != nil {
 				fmt.Printf("> Removing '%s' failed: %v\n", class.Label, err)
 				return err

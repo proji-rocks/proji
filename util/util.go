@@ -1,22 +1,21 @@
-package helper
+package util
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/cavaliercoder/grab"
+	"github.com/jedib0t/go-pretty/v6/table"
 )
 
 // DoesPathExist checks if a given path exists in the filesystem.
 func DoesPathExist(path string) bool {
 	_, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return true
+	return !os.IsNotExist(err)
 }
 
 // StrToUInt converts a string into a uint.
@@ -63,7 +62,7 @@ func IsInSlice(slice []string, val string) bool {
 	return false
 }
 
-// SkipNetworkBasedTests skips network/internet dependent tests when the env variable PROJI_SKIP_NETWORK_TESTS is set to 1
+// SkipNetworkBasedTests skips network/internet dependent tests when the env variable PROJI_SKIP_NETWORK_TESTS is set to 1.
 func SkipNetworkBasedTests(t *testing.T) {
 	env := os.Getenv("PROJI_SKIP_NETWORK_TESTS")
 	if env == "1" {
@@ -93,4 +92,15 @@ func DownloadFileIfNotExists(dst, src string) error {
 		err = DownloadFile(dst, src)
 	}
 	return err
+}
+
+// NewInfoTable returns a new table.Writer interface bound to the given io.Writer. It sets some sane defaults
+// for table styles and behaviour that are used in the cmd package.
+func NewInfoTable(out io.Writer) table.Writer {
+	infoTable := table.NewWriter()
+	infoTable.SetOutputMirror(out)
+	infoTable.SuppressEmptyColumns()
+	infoTable.SetAutoIndex(true)
+	infoTable.SetStyle(table.StyleRounded)
+	return infoTable
 }

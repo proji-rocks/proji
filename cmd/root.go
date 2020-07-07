@@ -1,24 +1,26 @@
+//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/nikoksr/proji/pkg/config"
-
-	"github.com/nikoksr/proji/pkg/proji/storage"
-	"github.com/nikoksr/proji/pkg/proji/storage/sqlite"
+	"github.com/nikoksr/proji/config"
+	"github.com/nikoksr/proji/storage"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 // Env represents central resources and information the app uses.
 type Env struct {
 	Auth             *config.APIAuthentication
-	DBPath           string
-	Svc              storage.Service
+	DatabaseDriver   string
+	DatabaseDSN      string
+	StorageService   storage.Service
 	ConfigFolderPath string
 	ExcludedPaths    []string
 	FallbackVersion  string
@@ -26,12 +28,15 @@ type Env struct {
 }
 
 var projiEnv *Env
+var terminalWidth, maxColumnWidth int
 
 const (
 	configExcludeFoldersKey = "import.exclude_folders"
-	configDBKey             = "sqlite3.path"
-	configGHTokenKey        = "auth.gh_token"
-	configGLTokenKey        = "auth.gl_token"
+	configDBDriverKey       = "database.driver"
+	configDBDsnKey          = "database.dsn"
+	configGHTokenKey        = "auth.gh_token" //nolint:gosec
+	configGLTokenKey        = "auth.gl_token" //nolint:gosec
+	defaultMaxColumnWidth   = 50
 )
 
 var rootCmd = &cobra.Command{
@@ -42,31 +47,23 @@ var rootCmd = &cobra.Command{
 			log.Fatalf("Error: Env struct is not defined.\n")
 		}
 	},
-	PersistentPostRun: func(cmd *cobra.Command, args []string) {
-		if projiEnv.Svc != nil {
-			_ = projiEnv.Svc.Close()
-			projiEnv.Svc = nil
-		}
-	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
-		log.Fatal(err)
-	}
+	_ = rootCmd.Execute()
 }
 
 func init() {
 	if projiEnv == nil {
 		projiEnv = &Env{
 			Auth:             &config.APIAuthentication{},
-			DBPath:           "",
+			DatabaseDriver:   "",
+			DatabaseDSN:      "",
 			ExcludedPaths:    make([]string, 0),
 			ConfigFolderPath: "",
-			Svc:              nil,
+			StorageService:   nil,
 			FallbackVersion:  "0.19.2",
 			Version:          "0.20.0",
 		}
@@ -110,9 +107,14 @@ func initConfig() {
 
 func initStorageService() {
 	var err error
-	projiEnv.Svc, err = sqlite.New(projiEnv.DBPath)
+	projiEnv.StorageService, err = storage.NewService(projiEnv.DatabaseDriver, projiEnv.DatabaseDSN)
 	if err != nil {
-		log.Fatalf("Error: could not connect to sqlite db. %v\n%s\n", err, projiEnv.DBPath)
+		log.Fatalf(
+			"Error: could not connect to %s database with dsn %s, %s\n",
+			projiEnv.DatabaseDriver,
+			projiEnv.DatabaseDSN,
+			err.Error(),
+		)
 	}
 }
 
@@ -120,12 +122,40 @@ func setDefaultConfigValues() {
 	viper.SetDefault(configGHTokenKey, "")
 	viper.SetDefault(configGLTokenKey, "")
 	viper.SetDefault(configExcludeFoldersKey, make([]string, 0))
-	viper.SetDefault(configDBKey, filepath.Join(projiEnv.ConfigFolderPath, "/db/proji.sqlite3"))
+	viper.SetDefault(configDBDriverKey, "sqlite3")
+	viper.SetDefault(configDBDsnKey, filepath.Join(projiEnv.ConfigFolderPath, "/db/proji.sqlite3"))
 }
 
 func setAllEnvValues() {
 	projiEnv.Auth.GHToken = viper.GetString(configGHTokenKey)
 	projiEnv.Auth.GLToken = viper.GetString(configGLTokenKey)
 	projiEnv.ExcludedPaths = viper.GetStringSlice(configExcludeFoldersKey)
-	projiEnv.DBPath = config.ParsePathFromConfig(projiEnv.ConfigFolderPath, viper.GetString(configDBKey))
+	projiEnv.DatabaseDriver = viper.GetString(configDBDriverKey)
+
+	// Special case for sqlite.
+	if projiEnv.DatabaseDriver == "sqlite3" {
+		projiEnv.DatabaseDSN = config.ParsePathFromConfig(projiEnv.ConfigFolderPath, viper.GetString(configDBDsnKey))
+	} else {
+		projiEnv.DatabaseDSN = viper.GetString(configDBDsnKey)
+	}
+}
+
+func getTerminalWidth() (int, error) {
+	w, _, err := terminal.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		return 0, err
+	}
+	return w, nil
+}
+
+func setMaxColumnWidth() {
+	//Load terminal width and set max column width for dynamic rendering
+	var err error
+	terminalWidth, err = getTerminalWidth()
+	if err != nil {
+		fmt.Printf("Warning: Couldn't get terminal width, %s", err.Error())
+		maxColumnWidth = defaultMaxColumnWidth
+	} else {
+		maxColumnWidth = terminalWidth / 2
+	}
 }

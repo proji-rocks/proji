@@ -14,7 +14,7 @@ import (
 	gh "github.com/google/go-github/v31/github"
 )
 
-// GitHub struct holds important data about a github repo
+// GitHub struct holds important data about a github repo.
 type GitHub struct {
 	baseURI     *url.URL
 	OwnerName   string
@@ -27,7 +27,7 @@ type GitHub struct {
 
 const defaultTimeout = time.Second * 10
 
-// setRepoSHA sets the repoSHA attribute equal to the SHA-1 of the last commit in the current branch
+// setRepoSHA sets the repoSHA attribute equal to the SHA-1 of the last commit in the current branch.
 func (g *GitHub) setRepoSHA(ctx context.Context) error {
 	if g.BranchName == "" {
 		/*
@@ -51,10 +51,10 @@ func (g *GitHub) setRepoSHA(ctx context.Context) error {
 	return nil
 }
 
-// New creates a new github repo instance
-func New(URL *url.URL, authToken string) (*GitHub, error) {
-	if URL.Hostname() != "github.com" {
-		return nil, fmt.Errorf("invalid host %s", URL.Hostname())
+// New creates a new github repo instance.
+func New(repoURL *url.URL, authToken string) (*GitHub, error) {
+	if repoURL.Hostname() != "github.com" {
+		return nil, fmt.Errorf("invalid host %s", repoURL.Hostname())
 	}
 
 	// Extract owner, repo and branch if given
@@ -62,7 +62,7 @@ func New(URL *url.URL, authToken string) (*GitHub, error) {
 	//  - /[nikoksr]/[proji]				-> extracts owner and repo name; no branch name
 	//  - /[nikoksr]/[proji]/tree/[master]	-> extracts owner, repo and branch name
 	r := regexp.MustCompile(`/([^/]+)/([^/]+)(?:/tree/([^/]+))?`)
-	specs := r.FindStringSubmatch(URL.Path)
+	specs := r.FindStringSubmatch(repoURL.Path)
 
 	if specs == nil {
 		return nil, fmt.Errorf("could not parse url")
@@ -80,7 +80,7 @@ func New(URL *url.URL, authToken string) (*GitHub, error) {
 	ghClient := getGHClient(ctx, authToken)
 
 	g := &GitHub{
-		baseURI:     URL,
+		baseURI:     repoURL,
 		OwnerName:   OwnerName,
 		RepoName:    RepoName,
 		BranchName:  BranchName,
@@ -100,13 +100,11 @@ func New(URL *url.URL, authToken string) (*GitHub, error) {
 // You can pass the relative path to a file of that repo to receive the complete raw url for said file.
 // Or you pass an empty string resulting in the base of the raw url for files of this repo.
 func (g *GitHub) FilePathToRawURI(filePath string) string {
-	if strings.HasPrefix(filePath, "/") {
-		filePath = filePath[1:]
-	}
+	filePath = strings.TrimPrefix(filePath, "/")
 	return fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s/%s", g.OwnerName, g.RepoName, g.BranchName, filePath)
 }
 
-// GetTreeEntries gets the paths and types of the repo tree
+// GetTreeEntries gets the paths and types of the repo tree.
 func (g *GitHub) LoadTreeEntries() error {
 	tree, _, err := g.client.Git.GetTree(context.Background(), g.OwnerName, g.RepoName, g.repoSHA, true)
 	if err != nil {
@@ -130,11 +128,11 @@ func getGHClient(ctx context.Context, token string) *gh.Client {
 	return gh.NewClient(&http.Client{Timeout: defaultTimeout})
 }
 
-// Owner returns the name of the owner
+// Owner returns the name of the owner.
 func (g *GitHub) Owner() string { return g.OwnerName }
 
-// Repo returns the name of the repo
+// Repo returns the name of the repo.
 func (g *GitHub) Repo() string { return g.RepoName }
 
-// Repo returns the name of the branch
+// Repo returns the name of the branch.
 func (g *GitHub) Branch() string { return g.BranchName }

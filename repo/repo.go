@@ -6,14 +6,7 @@ import (
 	"strings"
 )
 
-// domainAbbreviations defines a map of domain abbreviations like 'gh:' and their associated full domains like
-// 'https://github.com'.
-var domainAbbreviations = map[string]string{
-	"gh:": "https://github.com",
-	"gl:": "https://gitlab.com",
-}
-
-// Importer describes the behaviour of repo objects (github, gitlab)
+// Importer describes the behaviour of repo objects (github, gitlab).
 type Importer interface {
 	FilePathToRawURI(filePath string) string // Returns raw URI of a file
 	LoadTreeEntries() error                  // Loads a list of tree entries of a specific repo
@@ -29,26 +22,32 @@ type Importer interface {
 //   - Replace domain abbreviations with full domains
 //   - Parse raw string to URL structure
 //   - Make absolute if not already
-func ParseURL(URL string) (*url.URL, error) {
-	if strings.Trim(URL, " ") == "" {
+func ParseURL(repoURL string) (*url.URL, error) {
+	if strings.Trim(repoURL, " ") == "" {
 		return nil, fmt.Errorf("can't parse empty url")
 	}
 
 	// Trim trailing '.git'
-	if strings.HasSuffix(URL, ".git") {
-		URL = URL[:len(URL)-len(".git")]
+	if strings.HasSuffix(repoURL, ".git") {
+		repoURL = repoURL[:len(repoURL)-len(".git")]
 	}
 
+	// domainAbbreviations defines a map of domain abbreviations like 'gh:' and their associated full domains like
+	// 'https://github.com'.
+	var domainAbbreviations = map[string]string{
+		"gh:": "https://github.com",
+		"gl:": "https://gitlab.com",
+	}
 	// Replace domain abbreviations like 'gh:' with the actual domain of the host
 	for abbreviation, fullDomain := range domainAbbreviations {
-		if strings.HasPrefix(URL, abbreviation) {
-			URL = strings.Replace(URL, abbreviation, fullDomain, 1)
+		if strings.HasPrefix(repoURL, abbreviation) {
+			repoURL = strings.Replace(repoURL, abbreviation, fullDomain, 1)
 			break
 		}
 	}
 
 	// Parse to URL structure
-	u, err := url.Parse(URL)
+	u, err := url.Parse(repoURL)
 	if err != nil {
 		return nil, err
 	}

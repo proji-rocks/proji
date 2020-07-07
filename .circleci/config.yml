@@ -18,14 +18,13 @@ jobs:
       - run:
           name: Get dependencies
           command: |
-            go mod download
-            go generate -v ./...
+            make setup
 
       - run:
           name: Build proji
           command: |
             mkdir bin/
-            go build -v -o bin/ .
+            make build
 
       - run:
           name: Initialize proji
@@ -33,12 +32,9 @@ jobs:
             ./bin/proji init
 
       - run:
-          name: Run go vet
-          command: go vet ./...
-
-      - run:
           name: Run go test
-          command: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./pkg/...
+          command: |
+            make test
 
       - run:
           name: Upload results to codecov

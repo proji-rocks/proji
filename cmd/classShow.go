@@ -1,13 +1,19 @@
+//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
 	"fmt"
+	"io"
+	"log"
 	"os"
-	"strings"
 
-	"github.com/nikoksr/proji/pkg/proji/storage/item"
+	"github.com/jedib0t/go-pretty/v6/text"
 
-	"github.com/jedib0t/go-pretty/table"
+	"github.com/nikoksr/proji/util"
+
+	"github.com/nikoksr/proji/storage/models"
+
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
@@ -16,27 +22,19 @@ var showAll bool
 var classShowCmd = &cobra.Command{
 	Use:   "show LABEL [LABEL...]",
 	Short: "Show details about one or more classes",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		setMaxColumnWidth()
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if showAll {
-			err := showAllClasses()
-			if err != nil {
-				fmt.Printf("> Showing of all classes failed: %v\n", err)
-				return err
-			}
-			return nil
-		}
-
-		if len(args) < 1 {
+		if !showAll && len(args) < 1 {
 			return fmt.Errorf("missing class label")
 		}
 
-		for _, name := range args {
-			err := showClass(name)
-			if err != nil {
-				return err
-			}
+		var labels []string
+		if !showAll {
+			labels = args
 		}
-		return nil
+		return showClasses(labels...)
 	},
 }
 
@@ -45,91 +43,57 @@ func init() {
 	classShowCmd.Flags().BoolVarP(&showAll, "all", "a", false, "Show all classes")
 }
 
-func showClass(label string) error {
-	classID, err := projiEnv.Svc.LoadClassIDByLabel(label)
-	if err != nil {
-		return err
-	}
-	class, err := projiEnv.Svc.LoadClass(classID)
-	if err != nil {
-		return nil
-	}
-	if class.IsDefault {
-		return fmt.Errorf("default classes can not be shown")
-	}
-
-	showInfo(class.Name, class.Label)
-	showFolders(class.Folders)
-	showFiles(class.Files)
-	showScripts(class.Scripts)
-	return nil
-}
-
-func showAllClasses() error {
-	classes, err := projiEnv.Svc.LoadAllClasses()
-	if err != nil {
-		return err
-	}
-
-	for _, class := range classes {
-		if class.IsDefault {
-			continue
+func showClass(preloadedClass *models.Class, label string) error {
+	var err error
+	if preloadedClass == nil {
+		preloadedClass, err = projiEnv.StorageService.LoadClass(label)
+		if err != nil {
+			return err
 		}
-		showInfo(class.Name, class.Label)
-		showFolders(class.Folders)
-		showFiles(class.Files)
-		showScripts(class.Scripts)
+	}
+	output := os.Stdout
+	showBasicInfo(preloadedClass.Name, preloadedClass.Label, preloadedClass.Description)
+	showTemplates(output, preloadedClass.Templates)
+	showPlugins(output, preloadedClass.Plugins)
+	return nil
+}
+
+func showClasses(labels ...string) error {
+	classes, err := projiEnv.StorageService.LoadClasses(labels...)
+	if err != nil {
+		return err
+	}
+	for _, class := range classes {
+		err = showClass(class, class.Label)
+		if err != nil {
+			log.Printf("failed show class with label '%s', %s", class.Label, err.Error())
+		}
 	}
 	return nil
 }
 
-func showInfo(name, label string) {
-	fmt.Println("\nName: " + name)
-	fmt.Println("Label: " + label)
-	fmt.Println()
+func showBasicInfo(name, label, description string) {
+	fmt.Printf("\nName:  %s\n", name)
+	fmt.Printf("Label: %s\n", label)
+	fmt.Printf("Description: %s\n\n", text.WrapSoft(description, maxColumnWidth))
 }
 
-func showFolders(folders []*item.Folder) {
-	// Table header
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"Folder", "Template"})
-
-	// Fill table
-	for _, folder := range folders {
-		t.AppendRow([]interface{}{folder.Destination, folder.Template})
+func showTemplates(out io.Writer, templates []*models.Template) {
+	templatesTable := util.NewInfoTable(out)
+	templatesTable.SetTitle("TEMPLATES")
+	templatesTable.AppendHeader(table.Row{"Destination", "Template Path", "Is File", "Description"})
+	for _, template := range templates {
+		templatesTable.AppendRow(table.Row{template.Destination, template.Path, template.IsFile, template.Description})
 	}
-
-	// Print the table
-	t.Render()
+	templatesTable.Render()
 }
 
-func showFiles(files []*item.File) {
-	// Table header
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"File", "Template"})
-
-	// Fill table
-	for _, file := range files {
-		t.AppendRow([]interface{}{file.Destination, file.Template})
+func showPlugins(out io.Writer, plugins []*models.Plugin) {
+	pluginsTable := util.NewInfoTable(out)
+	pluginsTable.SetTitle("PLUGINS")
+	pluginsTable.AppendHeader(table.Row{"Path", "Execution Number", "Description"})
+	for _, plugin := range plugins {
+		pluginsTable.AppendRow(table.Row{plugin.Path, plugin.ExecNumber, text.WrapSoft(plugin.Description, maxColumnWidth)})
 	}
-
-	// Print the table
-	t.Render()
-}
-
-func showScripts(scripts []*item.Script) {
-	// Table header
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"#", "Script", "Type", "As sudo", "Args"})
-
-	// Fill table
-	for _, script := range scripts {
-		t.AppendRow([]interface{}{script.ExecNumber, script.Name, script.Type, script.RunAsSudo, strings.Join(script.Args, ", ")})
-	}
-
-	// Print the table
-	t.Render()
+	pluginsTable.Render()
 }

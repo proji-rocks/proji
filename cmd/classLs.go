@@ -1,18 +1,22 @@
+//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
+	"io"
 	"os"
 
-	"github.com/jedib0t/go-pretty/table"
+	"github.com/nikoksr/proji/util"
+
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
-// lsCmd represents the ls command
+// lsCmd represents the ls command.
 var classLsCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List classes",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return listClasses()
+		return listClasses(os.Stdout)
 	},
 }
 
@@ -20,26 +24,21 @@ func init() {
 	classCmd.AddCommand(classLsCmd)
 }
 
-func listClasses() error {
-	classes, err := projiEnv.Svc.LoadAllClasses()
+func listClasses(out io.Writer) error {
+	classes, err := projiEnv.StorageService.LoadClasses()
 	if err != nil {
 		return err
 	}
 
-	// Table header
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"Name", "Label"})
+	classesTable := util.NewInfoTable(out)
+	classesTable.AppendHeader(table.Row{"Name", "Label"})
 
-	// Fill table
 	for _, class := range classes {
 		if class.IsDefault {
 			continue
 		}
-		t.AppendRow([]interface{}{class.Name, class.Label})
+		classesTable.AppendRow(table.Row{class.Name, class.Label})
 	}
-
-	// Print the table
-	t.Render()
+	classesTable.Render()
 	return nil
 }

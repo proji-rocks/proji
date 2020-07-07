@@ -15,3 +15,4 @@ dist/
 Gopkg.lock
 Gopkg.toml
 .snapcraft.login
+coverage.txt

@@ -1,7 +1,8 @@
+//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
-	"github.com/nikoksr/proji/pkg/helper"
+	"github.com/nikoksr/proji/util"
 	"github.com/spf13/cobra"
 )
 
@@ -18,22 +19,18 @@ func init() {
 }
 
 func cleanProjects() error {
-	projects, err := projiEnv.Svc.LoadAllProjects()
+	projects, err := projiEnv.StorageService.LoadProjects()
 	if err != nil {
 		return err
 	}
 
 	for _, project := range projects {
 		// Check path
-		pathGood := true
-		if !helper.DoesPathExist(project.InstallPath) {
-			pathGood = false
-		}
-		if pathGood {
+		if util.DoesPathExist(project.Path) {
 			continue
 		}
 		// Remove the project
-		err := projiEnv.Svc.RemoveProject(project.ID)
+		err := projiEnv.StorageService.RemoveProject(project.Path)
 		if err != nil {
 			return err
 		}

@@ -1,3 +1,4 @@
+//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
@@ -6,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/nikoksr/proji/pkg/proji/storage/item"
+	"github.com/nikoksr/proji/storage/models"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -37,11 +38,11 @@ var classExportCmd = &cobra.Command{
 		}
 
 		// Collect classes that will be exported
-		var classes []*item.Class
+		var classes []*models.Class
 
 		if exportAll {
 			var err error
-			classes, err = projiEnv.Svc.LoadAllClasses()
+			classes, err = projiEnv.StorageService.LoadClasses()
 			if err != nil {
 				return err
 			}
@@ -51,11 +52,7 @@ var classExportCmd = &cobra.Command{
 			}
 
 			for _, label := range args {
-				classID, err := projiEnv.Svc.LoadClassIDByLabel(label)
-				if err != nil {
-					return err
-				}
-				class, err := projiEnv.Svc.LoadClass(classID)
+				class, err := projiEnv.StorageService.LoadClass(label)
 				if err != nil {
 					return err
 				}

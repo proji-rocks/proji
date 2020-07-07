@@ -1,3 +1,4 @@
+//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
@@ -5,8 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/nikoksr/proji/pkg/helper"
-	"github.com/nikoksr/proji/pkg/proji/storage/item"
+	"github.com/nikoksr/proji/storage/models"
+
+	"github.com/nikoksr/proji/util"
 	"github.com/spf13/cobra"
 )
 
@@ -22,7 +24,7 @@ var addCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		if !helper.DoesPathExist(path) {
+		if !util.DoesPathExist(path) {
 			return fmt.Errorf("path '%s' does not exist", path)
 		}
 
@@ -43,16 +45,11 @@ func init() {
 
 func addProject(label, path string) error {
 	name := filepath.Base(path)
-	classID, err := projiEnv.Svc.LoadClassIDByLabel(label)
+	class, err := projiEnv.StorageService.LoadClass(label)
 	if err != nil {
 		return err
 	}
 
-	class, err := projiEnv.Svc.LoadClass(classID)
-	if err != nil {
-		return err
-	}
-
-	proj := item.NewProject(0, name, path, class)
-	return projiEnv.Svc.SaveProject(proj)
+	project := models.NewProject(name, path, class)
+	return projiEnv.StorageService.SaveProject(project)
 }

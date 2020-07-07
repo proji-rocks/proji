@@ -1,4 +1,4 @@
-package helper
+package util
 
 import (
 	"os"
@@ -14,8 +14,8 @@ func TestDoesPathExist(t *testing.T) {
 		path   string
 		exists bool
 	}{
-		{path: "./helper_test.go", exists: true},
-		{path: "../../README.md", exists: true},
+		{path: "./util_test.go", exists: true},
+		{path: "../README.md", exists: true},
 		{path: "../../READMENOT.md", exists: false},
 		{path: "./CrYpTicFiLe.txt", exists: false},
 	}

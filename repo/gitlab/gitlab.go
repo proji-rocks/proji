@@ -9,7 +9,7 @@ import (
 	gl "github.com/xanzy/go-gitlab"
 )
 
-// GitLab struct holds important data about a gitlab repo
+// GitLab struct holds important data about a gitlab repo.
 type GitLab struct {
 	baseURI     *url.URL
 	OwnerName   string
@@ -19,10 +19,10 @@ type GitLab struct {
 	client      *gl.Client
 }
 
-// New creates a new gitlab repo object
-func New(URL *url.URL, authToken string) (*GitLab, error) {
-	if URL.Hostname() != "gitlab.com" {
-		return nil, fmt.Errorf("invalid host %s", URL.Hostname())
+// New creates a new gitlab repo object.
+func New(repoURL *url.URL, authToken string) (*GitLab, error) {
+	if repoURL.Hostname() != "gitlab.com" {
+		return nil, fmt.Errorf("invalid host %s", repoURL.Hostname())
 	}
 
 	// Parse URL
@@ -30,7 +30,7 @@ func New(URL *url.URL, authToken string) (*GitLab, error) {
 	//  - /[inkscape]/[inkscape]                 	-> extracts owner and repo name; no branch name
 	//  - /[inkscape]/[inkscape]/-/tree/[master]	-> extracts owner, repo and branch name
 	r := regexp.MustCompile(`/([^/]+)/([^/]+)(?:/(?:tree|blob)/([^/]+))?`)
-	specs := r.FindStringSubmatch(URL.Path)
+	specs := r.FindStringSubmatch(repoURL.Path)
 
 	if specs == nil {
 		return nil, fmt.Errorf("could not parse url path")
@@ -55,7 +55,7 @@ func New(URL *url.URL, authToken string) (*GitLab, error) {
 	}
 
 	return &GitLab{
-		baseURI:    URL,
+		baseURI:    repoURL,
 		OwnerName:  OwnerName,
 		RepoName:   RepoName,
 		BranchName: BranchName,
@@ -67,13 +67,11 @@ func New(URL *url.URL, authToken string) (*GitLab, error) {
 // You can pass the relative path to a file of that repo to receive the complete raw url for said file.
 // Or you pass an empty string resulting in the base of the raw url for files of this repo.
 func (g *GitLab) FilePathToRawURI(filePath string) string {
-	if strings.HasPrefix(filePath, "/") {
-		filePath = filePath[1:]
-	}
+	filePath = strings.TrimPrefix(filePath, "/")
 	return fmt.Sprintf("https://gitlab.com/%s/%s/-/raw/%s/%s", g.OwnerName, g.RepoName, g.BranchName, filePath)
 }
 
-// GetTreeEntries gets the paths and types of the repo tree
+// GetTreeEntries gets the paths and types of the repo tree.
 func (g *GitLab) LoadTreeEntries() error {
 	// Reset tree entries
 	g.TreeEntries = make([]*gl.TreeNode, 0)
@@ -104,11 +102,11 @@ func (g *GitLab) LoadTreeEntries() error {
 	return nil
 }
 
-// Owner returns the name of the owner
+// Owner returns the name of the owner.
 func (g *GitLab) Owner() string { return g.OwnerName }
 
-// Repo returns the name of the repo
+// Repo returns the name of the repo.
 func (g *GitLab) Repo() string { return g.RepoName }
 
-// Repo returns the name of the branch
+// Repo returns the name of the branch.
 func (g *GitLab) Branch() string { return g.BranchName }

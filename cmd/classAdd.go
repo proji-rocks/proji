@@ -1,18 +1,21 @@
+//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
-	"github.com/nikoksr/proji/pkg/proji/storage/item"
+	"github.com/nikoksr/proji/storage/models"
 	"github.com/spf13/cobra"
 )
 
 var classAddCmd = &cobra.Command{
-	Use:   "add NAME [NAME...]",
-	Short: "Add one or more classes",
+	Use:        "add NAME [NAME...]",
+	Short:      "Add one or more classes",
+	Deprecated: "command 'class add' will be deprecated in the next release",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			return fmt.Errorf("missing class name")
@@ -41,24 +44,19 @@ func addClass(name string) error {
 	if err != nil {
 		return err
 	}
-	folders, err := getFolders(reader)
+	templates, err := getTemplates(reader)
 	if err != nil {
 		return err
 	}
-	files, err := getFiles(reader)
-	if err != nil {
-		return err
-	}
-	scripts, err := getScripts(reader)
+	plugins, err := getPlugins(reader)
 	if err != nil {
 		return err
 	}
 
-	class := item.NewClass(name, label, false)
-	class.Folders = folders
-	class.Files = files
-	class.Scripts = scripts
-	return projiEnv.Svc.SaveClass(class)
+	class := models.NewClass(name, label, false)
+	class.Templates = templates
+	class.Plugins = plugins
+	return projiEnv.StorageService.SaveClass(class)
 }
 
 func getLabel(reader *bufio.Reader) (string, error) {
@@ -76,151 +74,125 @@ func getLabel(reader *bufio.Reader) (string, error) {
 	return labels[0], nil
 }
 
-func getFolders(reader *bufio.Reader) ([]*item.Folder, error) {
-	fmt.Println("> Folders: ")
-	folders := make([]*item.Folder, 0)
+func getTemplates(reader *bufio.Reader) ([]*models.Template, error) {
+	fmt.Println("> Templates (IsFile Destination [Template]): ")
+	templates := make([]*models.Template, 0)
 	destinations := make(map[string]bool)
 
+InputLoop:
 	for {
 		// Read in folders
-		// Syntax: Destination [template]
+		// Syntax: IsFile Destination [template]
 		fmt.Print("> ")
 		input, err := reader.ReadString('\n')
 		if err != nil {
 			return nil, err
 		}
 
-		folderPair := strings.Fields(input)
-		numFolders := len(folderPair)
+		splittedInput := strings.Fields(input)
+		lenInput := len(splittedInput)
 
 		// End if no input given
-		if numFolders < 1 {
-			break
-		}
-		if numFolders > 2 {
-			fmt.Println("> Warning: More than two files were given.")
-			continue
+		switch {
+		case lenInput < 1:
+			break InputLoop
+		case lenInput < 2:
+			fmt.Println("> Warning: At least 2 arguments needed.")
+			continue InputLoop
+		case lenInput > 3:
+			fmt.Println("> Warning: More than three arguments were given.")
+			continue InputLoop
 		}
 
-		dest := folderPair[0]
+		isFile, err := strconv.ParseBool(splittedInput[0])
+		if err != nil {
+			fmt.Println("> Warning: Value given for 'IsFile' field is not a boolean (true|false).")
+			continue InputLoop
+		}
+		destination := splittedInput[1]
 
 		// Check if dest exists
-		if _, ok := destinations[dest]; ok {
-			fmt.Printf("> Warning: Destination folder '%s' has already been defined.\n", dest)
-			continue
+		if _, ok := destinations[destination]; ok {
+			fmt.Printf("> Warning: Destination path '%s' was already defined.\n", destination)
+			continue InputLoop
 		}
 
-		// Add template if given
-		template := ""
-		if numFolders > 1 {
-			template = folderPair[1]
+		path := ""
+		if len(splittedInput) == 3 {
+			path = splittedInput[2]
 		}
 
 		// Add folder(s) to map
-		destinations[dest] = true
-		folders = append(folders, &item.Folder{Destination: dest, Template: template})
+		destinations[destination] = true
+		templates = append(templates, &models.Template{
+			IsFile:      isFile,
+			Path:        path,
+			Destination: destination,
+		})
 	}
 	fmt.Println()
-	return folders, nil
+	return templates, nil
 }
 
-func getFiles(reader *bufio.Reader) ([]*item.File, error) {
-	fmt.Println("> Files: ")
-	files := make([]*item.File, 0)
-	destinations := make(map[string]bool)
+func getPlugins(reader *bufio.Reader) ([]*models.Plugin, error) {
+	fmt.Println("> Plugins (Name Path Execution Number): ")
+	plugins := make([]*models.Plugin, 0)
+	pluginPaths := make(map[string]bool)
+	execNumbers := make(map[int]bool)
 
 	for {
-		// Read in files
-		// Syntax: dest [template]
+		// Read in plugins
+		// Syntax: name path execNumber
 		fmt.Print("> ")
 		input, err := reader.ReadString('\n')
 		if err != nil {
 			return nil, err
 		}
 
-		filePair := strings.Fields(input)
-		numFiles := len(filePair)
+		splittedInput := strings.Fields(input)
+		lenInput := len(splittedInput)
 
 		// End if no input given
-		if numFiles < 1 {
+		if lenInput < 1 {
 			break
-		}
-		if numFiles > 2 {
-			fmt.Println("> Warning: More than two files were given.")
+		} else if lenInput < 3 {
+			fmt.Println("> Warning: 3 arguments needed.")
 			continue
 		}
 
-		// Check if dest exists
-		// A dest should only exist once
-		// A template can be used multiple times
-		dest := filePair[0]
-
-		if _, ok := destinations[dest]; ok {
-			fmt.Printf("> Warning: Destination folder '%s' has already been defined.\n", dest)
+		pluginPath := splittedInput[0]
+		if _, ok := pluginPaths[pluginPath]; ok {
+			fmt.Printf("> Warning: Script %s is already in execution list\n", pluginPath)
 			continue
 		}
+		pluginPaths[pluginPath] = true
 
-		// Add template if given
-		template := ""
-		if numFiles > 1 {
-			template = filePair[1]
-		}
-
-		// Add file(s) to map
-		destinations[dest] = true
-		files = append(files, &item.File{Destination: dest, Template: template})
-	}
-	fmt.Println()
-	return files, nil
-}
-
-func getScripts(reader *bufio.Reader) ([]*item.Script, error) {
-	fmt.Println("> Scripts: ")
-	scripts := make([]*item.Script, 0)
-	scriptNames := make(map[string]bool)
-
-	for {
-		// Read in scripts
-		// Syntax: script [sudo]
-		fmt.Print("> ")
-		input, err := reader.ReadString('\n')
+		execNumber, err := strconv.Atoi(splittedInput[1])
 		if err != nil {
-			return nil, err
-		}
-
-		scriptData := strings.Fields(input)
-		lenData := len(scriptData)
-
-		// End if no input given
-		if lenData < 1 {
-			break
-		}
-		if lenData > 2 {
-			fmt.Println("> Warning: More than two files were given.")
+			fmt.Println("> Warning: Value given for 'ExecNumber' field is not a integer.")
 			continue
 		}
-
-		// Set sudo to true if given
-		var runAsSudo bool
-		scriptName := scriptData[0]
-
-		if lenData == 2 {
-			if scriptData[0] != "sudo" {
-				fmt.Printf("> Warning: %s invalid. Has to be 'sudo' or ''(empty).", scriptData[0])
-			}
-			runAsSudo = true
-			scriptName = scriptData[1]
-		}
-
-		// Check if script was already added to execution list
-		if _, ok := scriptNames[scriptName]; ok {
-			fmt.Printf("> Warning: Script %s is already in execution list\n", scriptName)
+		if execNumber == 0 {
+			fmt.Println("> Warning: Execution number may not be equal to zero")
 			continue
 		}
+		if _, ok := execNumbers[execNumber]; ok {
+			fmt.Printf("> Warning: Execution number %d was already given\n", execNumber)
+			continue
+		}
+		execNumbers[execNumber] = true
 
-		scriptNames[scriptName] = true
-		scripts = append(scripts, &item.Script{Name: scriptName, RunAsSudo: runAsSudo})
+		// Get optional description
+		var pluginDescription string
+		if len(splittedInput) == 3 {
+			pluginDescription = splittedInput[2]
+		}
+		plugins = append(plugins, &models.Plugin{
+			Path:        pluginPath,
+			ExecNumber:  execNumber,
+			Description: pluginDescription,
+		})
 	}
 	fmt.Println()
-	return scripts, nil
+	return plugins, nil
 }
