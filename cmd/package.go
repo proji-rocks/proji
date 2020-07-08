@@ -5,11 +5,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var classCmd = &cobra.Command{
-	Use:   "class",
-	Short: "Manage classes",
+var packageCmd = &cobra.Command{
+	Use:   "package",
+	Short: "Manage packages",
 }
 
 func init() {
-	rootCmd.AddCommand(classCmd)
+	rootCmd.AddCommand(packageCmd)
 }

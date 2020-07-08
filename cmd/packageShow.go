@@ -19,54 +19,54 @@ import (
 
 var showAll bool
 
-var classShowCmd = &cobra.Command{
+var packageShowCmd = &cobra.Command{
 	Use:   "show LABEL [LABEL...]",
-	Short: "Show details about one or more classes",
+	Short: "Show details about one or more packages",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		setMaxColumnWidth()
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if !showAll && len(args) < 1 {
-			return fmt.Errorf("missing class label")
+			return fmt.Errorf("missing package label")
 		}
 
 		var labels []string
 		if !showAll {
 			labels = args
 		}
-		return showClasses(labels...)
+		return showPackages(labels...)
 	},
 }
 
 func init() {
-	classCmd.AddCommand(classShowCmd)
-	classShowCmd.Flags().BoolVarP(&showAll, "all", "a", false, "Show all classes")
+	packageCmd.AddCommand(packageShowCmd)
+	packageShowCmd.Flags().BoolVarP(&showAll, "all", "a", false, "Show all packages")
 }
 
-func showClass(preloadedClass *models.Class, label string) error {
+func showPackage(preloadedPackage *models.Package, label string) error {
 	var err error
-	if preloadedClass == nil {
-		preloadedClass, err = session.StorageService.LoadClass(label)
+	if preloadedPackage == nil {
+		preloadedPackage, err = session.StorageService.LoadPackage(label)
 		if err != nil {
 			return err
 		}
 	}
 	output := os.Stdout
-	showBasicInfo(preloadedClass.Name, preloadedClass.Label, preloadedClass.Description)
-	showTemplates(output, preloadedClass.Templates)
-	showPlugins(output, preloadedClass.Plugins)
+	showBasicInfo(preloadedPackage.Name, preloadedPackage.Label, preloadedPackage.Description)
+	showTemplates(output, preloadedPackage.Templates)
+	showPlugins(output, preloadedPackage.Plugins)
 	return nil
 }
 
-func showClasses(labels ...string) error {
-	classes, err := session.StorageService.LoadClasses(labels...)
+func showPackages(labels ...string) error {
+	packages, err := session.StorageService.LoadPackages(labels...)
 	if err != nil {
 		return err
 	}
-	for _, class := range classes {
-		err = showClass(class, class.Label)
+	for _, pkg := range packages {
+		err = showPackage(pkg, pkg.Label)
 		if err != nil {
-			log.Printf("failed show class with label '%s', %s", class.Label, err.Error())
+			log.Printf("failed show package with label '%s', %s", pkg.Label, err.Error())
 		}
 	}
 	return nil
