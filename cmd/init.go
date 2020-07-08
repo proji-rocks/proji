@@ -56,7 +56,7 @@ func initHelp() string {
 			confPath,
 		)
 		helpMsg += fmt.Sprintf(
-			" curl -o %s/examples/proji-class.toml https://raw.githubusercontent.com/nikoksr/proji/master/assets/examples/example-class-export.toml\n\n",
+			" curl -o %s/examples/proji-package.toml https://raw.githubusercontent.com/nikoksr/proji/master/assets/examples/example-package-export.toml\n\n",
 			confPath,
 		)
 	case "windows":
@@ -72,7 +72,7 @@ func initHelp() string {
 			confPath,
 		)
 		helpMsg += fmt.Sprintf(
-			" Download https://github.com/nikoksr/proji/blob/master/assets/examples/example-class-export.toml to %s\\examples\\proji-class.toml\n\n",
+			" Download https://github.com/nikoksr/proji/blob/master/assets/examples/example-package-export.toml to %s\\examples\\proji-package.toml\n\n",
 			confPath,
 		)
 	default:

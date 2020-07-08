@@ -6,26 +6,26 @@ import (
 )
 
 type RemoveService interface {
-	RemoveClass(label string) error  // RemoveClass removes a class from storage.
-	PurgeClass(label string) error   // PurgeClass removes a soft-deleted class finally from storage.
-	RemoveProject(path string) error // RemoveProject removes a project from storage.
-	PurgeProject(path string) error  // PurgeProject removes a soft-deleted project finally from storage.
+	RemovePackage(label string) error // RemovePackage removes a package from storage.
+	PurgePackage(label string) error  // PurgePackage removes a soft-deleted package finally from storage.
+	RemoveProject(path string) error  // RemoveProject removes a project from storage.
+	PurgeProject(path string) error   // PurgeProject removes a soft-deleted project finally from storage.
 }
 
-// RemoveClass performs a soft-delete of a given class from storage.
-func (db *Database) RemoveClass(label string) error {
-	err := db.Connection.Delete(&models.Class{}, "label = ? AND deleted_at IS NULL", label).Error
+// RemovePackage performs a soft-delete of a given package from storage.
+func (db *Database) RemovePackage(label string) error {
+	err := db.Connection.Delete(&models.Package{}, "label = ? AND deleted_at IS NULL", label).Error
 	if err == gorm.ErrRecordNotFound {
-		return NewClassNotFoundError(label)
+		return NewPackageNotFoundError(label)
 	}
 	return err
 }
 
-// PurgeClass removes a soft-deleted class finally from storage.
-func (db *Database) PurgeClass(label string) error {
-	err := db.Connection.Unscoped().Delete(&models.Class{}, "label = ?", label).Error
+// PurgePackage removes a soft-deleted package finally from storage.
+func (db *Database) PurgePackage(label string) error {
+	err := db.Connection.Unscoped().Delete(&models.Package{}, "label = ?", label).Error
 	if err == gorm.ErrRecordNotFound {
-		return NewClassNotFoundError(label)
+		return NewPackageNotFoundError(label)
 	}
 	return err
 }

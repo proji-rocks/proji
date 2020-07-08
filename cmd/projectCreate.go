@@ -29,8 +29,8 @@ var createCmd = &cobra.Command{
 			return err
 		}
 
-		// Load class once for all projects
-		class, err := session.StorageService.LoadClass(label)
+		// Load package once for all projects
+		pkg, err := session.StorageService.LoadPackage(label)
 		if err != nil {
 			return err
 		}
@@ -40,7 +40,7 @@ var createCmd = &cobra.Command{
 
 			// Try to create the project
 			projectPath := filepath.Join(workingDirectory, projectName)
-			err := createProject(projectName, projectPath, class)
+			err := createProject(projectName, projectPath, pkg)
 			if err == nil {
 				fmt.Printf("> Project %s was successfully created\n", projectName)
 				continue
@@ -61,7 +61,7 @@ var createCmd = &cobra.Command{
 			}
 
 			// Try to replace the project
-			err = replaceProject(projectName, projectPath, class)
+			err = replaceProject(projectName, projectPath, pkg)
 			if err != nil {
 				fmt.Printf("> Replacing project %s failed: %v\n", projectName, err)
 				continue
@@ -76,10 +76,10 @@ func init() {
 	rootCmd.AddCommand(createCmd)
 }
 
-// createProject is a small wrapper function which takes a project name, path and its associated class,
+// createProject is a small wrapper function which takes a project name, path and its associated package,
 // creates the project directory and tries to save it to storage.
-func createProject(name, path string, class *models.Class) error {
-	project := models.NewProject(name, path, class)
+func createProject(name, path string, pkg *models.Package) error {
+	project := models.NewProject(name, path, pkg)
 	err := project.Create(session.Config.BasePath)
 	if err != nil {
 		return err
@@ -94,11 +94,11 @@ func createProject(name, path string, class *models.Class) error {
 // replaceProject should usually be executed after a attempt to create a new project failed with an ProjectExistsError.
 // It will remove the given project from storage and save the new one, effectively replacing everything that's
 // associated with the given project path.
-func replaceProject(name, path string, class *models.Class) error {
+func replaceProject(name, path string, pkg *models.Package) error {
 	err := session.StorageService.RemoveProject(path)
 	if err != nil {
 		return err
 	}
-	project := models.NewProject(name, path, class)
+	project := models.NewProject(name, path, pkg)
 	return session.StorageService.SaveProject(project)
 }

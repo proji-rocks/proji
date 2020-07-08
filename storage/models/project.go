@@ -18,15 +18,15 @@ type Project struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 	Name      string         `gorm:"size:64"`
 	Path      string         `gorm:"index:idx_unq_project_path_deletedat,unique;not null"`
-	Class     *Class         `gorm:"ForeignKey:ID;References:ID"`
+	Package   *Package       `gorm:"ForeignKey:ID;References:ID"`
 }
 
 // NewProject returns a new project.
-func NewProject(name, path string, class *Class) *Project {
+func NewProject(name, path string, pkg *Package) *Project {
 	return &Project{
-		Name:  name,
-		Path:  path,
-		Class: class,
+		Name:    name,
+		Path:    path,
+		Package: pkg,
 	}
 }
 
@@ -76,7 +76,7 @@ func (p *Project) createProjectFolder() error {
 
 func (p *Project) createFilesAndFolders(baseConfigPath string) error {
 	baseTemplatesPath := filepath.Join(baseConfigPath, "/templates/")
-	for _, template := range p.Class.Templates {
+	for _, template := range p.Package.Templates {
 		if len(template.Path) > 0 {
 			// Copy template file or folder
 			err := copy.Copy(filepath.Join(baseTemplatesPath, template.Path), template.Destination)
@@ -103,7 +103,7 @@ func (p *Project) createFilesAndFolders(baseConfigPath string) error {
 
 func (p *Project) preRunPlugins(baseConfigPath string) error {
 	basePluginsPath := filepath.Join(baseConfigPath, "plugins")
-	for _, plugin := range p.Class.Plugins {
+	for _, plugin := range p.Package.Plugins {
 		if plugin.ExecNumber >= 0 {
 			continue
 		}
@@ -120,7 +120,7 @@ func (p *Project) preRunPlugins(baseConfigPath string) error {
 
 func (p *Project) postRunPlugins(baseConfigPath string) error {
 	basePluginsPath := filepath.Join(baseConfigPath, "plugins")
-	for _, plugin := range p.Class.Plugins {
+	for _, plugin := range p.Package.Plugins {
 		if plugin.ExecNumber <= 0 {
 			continue
 		}

@@ -21,7 +21,7 @@ type Database struct {
 
 func (db *Database) Migrate() error {
 	modelList := []interface{}{
-		&models.Class{},
+		&models.Package{},
 		&models.Plugin{},
 		&models.Project{},
 		&models.Template{},

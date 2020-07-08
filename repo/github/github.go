@@ -111,7 +111,7 @@ func (g *GitHub) LoadTreeEntries() error {
 		return err
 	}
 	if tree.GetTruncated() {
-		return fmt.Errorf("the response was truncated by Github, which means that the number of items in the tree array exceeded the maximum limit.\n\nClone the repo manually with git and use 'proji class import --directory /path/to/repo' to import the local instance of that repo")
+		return fmt.Errorf("the response was truncated by Github, which means that the number of items in the tree array exceeded the maximum limit.\n\nClone the repo manually with git and use 'proji package import --directory /path/to/repo' to import the local instance of that repo")
 	}
 	g.TreeEntries = tree.Entries
 	return nil
