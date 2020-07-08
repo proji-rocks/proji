@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/nikoksr/proji/messages"
+	"github.com/pkg/errors"
+
 	"github.com/nikoksr/proji/storage/models"
 
 	"github.com/nikoksr/proji/repo"
@@ -40,8 +43,8 @@ var packageImportCmd = &cobra.Command{
 		configs = append(configs, args...)
 		importTypes := map[string][]string{
 			flagConfig:     configs,
-			"dir":          directories,
-			"repo":         remoteRepos,
+			flagDirectory:  directories,
+			flagRemoteRepo: remoteRepos,
 			flagPackage:    packages,
 			flagCollection: collections,
 		}
@@ -51,9 +54,9 @@ var packageImportCmd = &cobra.Command{
 			for _, path := range paths {
 				result, err := importPackage(path, importType, excludes)
 				if err != nil {
-					fmt.Printf("Error: %v\n", err)
+					messages.Warning("failed to import package, %s", err.Error())
 				} else {
-					fmt.Println(result)
+					messages.Success(result)
 				}
 			}
 		}
@@ -114,7 +117,7 @@ func importPackage(path, importType string, excludes []string) (string, error) {
 		}
 		err = session.StorageService.SavePackage(pkg)
 		if err == nil {
-			msg = fmt.Sprintf("> Successfully imported package '%s' from '%s'", pkg.Name, path)
+			msg = fmt.Sprintf("successfully imported package %s from %s", pkg.Name, path)
 		}
 	case "dir":
 		err = pkg.ImportFromFolderStructure(path, excludes)
@@ -124,28 +127,29 @@ func importPackage(path, importType string, excludes []string) (string, error) {
 	case "repo":
 		err = pkg.ImportFromRepoStructure(importer, nil)
 		if err != nil {
-			return "", err
+			return "", errors.Wrap(err, "failed to import repository structure")
 		}
 	case flagPackage:
 		err = pkg.ImportFromRepo(URL, importer)
 		if err != nil {
-			return "", err
+			return "", errors.Wrap(err, "failed to import package from repository")
 		}
 		err = session.StorageService.SavePackage(pkg)
-		if err == nil {
-			msg = fmt.Sprintf("> Successfully imported package '%s' from '%s'", pkg.Name, path)
+		if err != nil {
+			return "", errors.Wrap(err, "failed to save package")
 		}
+		msg = fmt.Sprintf("successfully imported package %s from %s", pkg.Name, path)
 	case flagCollection:
 		packageList, err := models.ImportCollectionFromRepo(URL, importer)
 		if err != nil {
-			return "", err
+			return "", errors.Wrap(err, "failed to import collection")
 		}
 		for _, pkg := range packageList {
 			err = session.StorageService.SavePackage(pkg)
-			if err == nil {
-				msg += fmt.Sprintf("> Successfully imported package '%s' from '%s'\n", pkg.Name, path)
+			if err != nil {
+				msg += fmt.Sprintf("failed to import package %s from %s, %s", pkg.Name, path, err.Error())
 			} else {
-				msg += fmt.Sprintf("> Importing package '%s' from '%s' failed: %v\n", pkg.Name, path, err)
+				msg += fmt.Sprintf("successfully imported package %s from %s", pkg.Name, path)
 			}
 		}
 	default:
@@ -157,7 +161,7 @@ func importPackage(path, importType string, excludes []string) (string, error) {
 	if importType != flagConfig && importType != flagPackage && importType != flagCollection {
 		confName, err = pkg.ExportConfig(".")
 		if err == nil {
-			msg = fmt.Sprintf("> '%s' was successfully exported to '%s'", path, confName)
+			msg = fmt.Sprintf("successfully exported %s to %s", path, confName)
 		}
 	}
 	return msg, err

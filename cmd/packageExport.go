@@ -7,6 +7,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/nikoksr/proji/messages"
+
+	"github.com/pkg/errors"
+
 	"github.com/nikoksr/proji/storage/models"
 
 	"github.com/spf13/cobra"
@@ -30,10 +34,9 @@ var packageExportCmd = &cobra.Command{
 		if example {
 			file, err := exportExample(destination, session.Config.BasePath)
 			if err != nil {
-				fmt.Printf("> ExportConfig of example package failed: %v\n", err)
-				return err
+				return errors.Wrap(err, "failed to export example package")
 			}
-			fmt.Printf("> Example package was successfully exported to %s\n", file)
+			messages.Success("successfully exported example package to %s", file)
 			return nil
 		}
 
@@ -67,10 +70,10 @@ var packageExportCmd = &cobra.Command{
 			}
 			fileOut, err := pkg.ExportConfig(destination)
 			if err != nil {
-				fmt.Printf("> ExportConfig of '%s' to file %s failed: %v\n", pkg.Label, fileOut, err)
-				return err
+				messages.Warning("failed to export package %s to %s, %s", pkg.Label, fileOut, err.Error())
+			} else {
+				messages.Success("successfully exported package %s to %s", pkg.Label, fileOut)
 			}
-			fmt.Printf("> '%s' was successfully exported to file %s\n", pkg.Label, fileOut)
 		}
 		return nil
 	},

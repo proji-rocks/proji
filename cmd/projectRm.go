@@ -4,8 +4,11 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/nikoksr/proji/messages"
+
 	"github.com/nikoksr/proji/storage/models"
 	"github.com/nikoksr/proji/util"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +18,6 @@ var rmCmd = &cobra.Command{
 	Use:   "rm PATH [PATH...]",
 	Short: "Remove one or more projects",
 	RunE: func(cmd *cobra.Command, args []string) error {
-
 		// Collect projects that will be removed
 		var projects []*models.Project
 
@@ -23,7 +25,7 @@ var rmCmd = &cobra.Command{
 			var err error
 			projects, err = session.StorageService.LoadProjects()
 			if err != nil {
-				return err
+				return errors.Wrap(err, "failed to load all projects")
 			}
 		} else {
 			if len(args) < 1 {
@@ -33,7 +35,7 @@ var rmCmd = &cobra.Command{
 			for _, path := range args {
 				project, err := session.StorageService.LoadProject(path)
 				if err != nil {
-					return err
+					return errors.Wrap(err, "failed to load project")
 				}
 				projects = append(projects, project)
 			}
@@ -44,17 +46,17 @@ var rmCmd = &cobra.Command{
 			// Ask for confirmation if force flag was not passed
 			if !forceRemoveProjects {
 				if !util.WantTo(
-					fmt.Sprintf("Do you really want to remove the path '%s' from your projects?", project.Path),
+					fmt.Sprintf("Do you really want to remove the path %s from your projects?", project.Path),
 				) {
 					continue
 				}
 			}
 			err := session.StorageService.RemoveProject(project.Path)
 			if err != nil {
-				fmt.Printf("> Removing project '%s' failed: %v\n", project.Path, err)
-				return err
+				messages.Warning("failed to remove project %s, %s", project.Path, err.Error())
+				continue
 			}
-			fmt.Printf("> Project '%s' was successfully removed\n", project.Path)
+			messages.Success("successfully removed project %s", project.Path)
 		}
 		return nil
 	},

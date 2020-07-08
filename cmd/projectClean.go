@@ -2,7 +2,9 @@
 package cmd
 
 import (
+	"github.com/nikoksr/proji/messages"
 	"github.com/nikoksr/proji/util"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +23,7 @@ func init() {
 func cleanProjects() error {
 	projects, err := session.StorageService.LoadProjects()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to load all projects")
 	}
 
 	for _, project := range projects {
@@ -32,7 +34,7 @@ func cleanProjects() error {
 		// Remove the project
 		err := session.StorageService.RemoveProject(project.Path)
 		if err != nil {
-			return err
+			messages.Warning("failed to remove project with path %s, %s", project.Path, err.Error())
 		}
 	}
 	return nil

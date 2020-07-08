@@ -6,7 +6,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/nikoksr/proji/messages"
+
 	"github.com/nikoksr/proji/storage"
+	"github.com/pkg/errors"
 
 	"github.com/nikoksr/proji/storage/models"
 	"github.com/nikoksr/proji/util"
@@ -26,28 +29,28 @@ var createCmd = &cobra.Command{
 		// Get current working directory
 		workingDirectory, err := os.Getwd()
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to get working directory")
 		}
 
 		// Load package once for all projects
 		pkg, err := session.StorageService.LoadPackage(label)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to load package")
 		}
 
 		for _, projectName := range projectNames {
-			fmt.Printf("\n> Creating project %s\n", projectName)
+			messages.Info("creating project %s", projectName)
 
 			// Try to create the project
 			projectPath := filepath.Join(workingDirectory, projectName)
 			err := createProject(projectName, projectPath, pkg)
 			if err == nil {
-				fmt.Printf("> Project %s was successfully created\n", projectName)
+				messages.Success("successfully created project %s", projectName)
 				continue
 			}
 
 			// Print error message
-			fmt.Printf(" > Failed: %v\n", err)
+			messages.Warning("failed to create project, %s", projectName, err.Error())
 
 			// Check if error is because of a project is already associated with this path. Continue loop if so.
 			_, projectExists := err.(*storage.ProjectExistsError)
@@ -63,10 +66,10 @@ var createCmd = &cobra.Command{
 			// Try to replace the project
 			err = replaceProject(projectName, projectPath, pkg)
 			if err != nil {
-				fmt.Printf("> Replacing project %s failed: %v\n", projectName, err)
-				continue
+				messages.Warning("failed to replace project %s, %s", projectName, err.Error())
+			} else {
+				messages.Success("successfully replaced project %s", projectName)
 			}
-			fmt.Printf("> Project %s was successfully replaced\n", projectName)
 		}
 		return nil
 	},
@@ -82,11 +85,11 @@ func createProject(name, path string, pkg *models.Package) error {
 	project := models.NewProject(name, path, pkg)
 	err := project.Create(session.Config.BasePath)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to create project")
 	}
 	err = session.StorageService.SaveProject(project)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to save project")
 	}
 	return nil
 }
@@ -97,8 +100,12 @@ func createProject(name, path string, pkg *models.Package) error {
 func replaceProject(name, path string, pkg *models.Package) error {
 	err := session.StorageService.RemoveProject(path)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to remove project")
 	}
 	project := models.NewProject(name, path, pkg)
-	return session.StorageService.SaveProject(project)
+	err = session.StorageService.SaveProject(project)
+	if err != nil {
+		return errors.Wrap(err, "failed to save project")
+	}
+	return nil
 }

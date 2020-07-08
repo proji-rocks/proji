@@ -6,7 +6,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/nikoksr/proji/messages"
+
 	"github.com/nikoksr/proji/storage/models"
+	"github.com/pkg/errors"
 
 	"github.com/nikoksr/proji/util"
 	"github.com/spf13/cobra"
@@ -25,16 +28,16 @@ var addCmd = &cobra.Command{
 			return err
 		}
 		if !util.DoesPathExist(path) {
-			return fmt.Errorf("path '%s' does not exist", path)
+			return fmt.Errorf("path %s does not exist", path)
 		}
 
 		label := strings.ToLower(args[0])
 
 		err = addProject(label, path)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to add project")
 		}
-		fmt.Printf("> Project '%s' was successfully added\n", path)
+		messages.Success("successfully added project at path %s", path)
 		return nil
 	},
 }
@@ -47,9 +50,13 @@ func addProject(label, path string) error {
 	name := filepath.Base(path)
 	pkg, err := session.StorageService.LoadPackage(label)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to load package")
 	}
 
 	project := models.NewProject(name, path, pkg)
-	return session.StorageService.SaveProject(project)
+	err = session.StorageService.SaveProject(project)
+	if err != nil {
+		return errors.Wrap(err, "failed to save package")
+	}
+	return nil
 }

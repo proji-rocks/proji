@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/nikoksr/proji/messages"
+	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 )
 
@@ -28,10 +31,9 @@ var projectSetPathCmd = &cobra.Command{
 
 		err = session.StorageService.UpdateProjectLocation(oldPath, newPath)
 		if err != nil {
-			fmt.Printf("> Setting path '%s' for project %s failed: %v\n", newPath, oldPath, err)
-			return err
+			return errors.Wrap(err, "failed setting project path")
 		}
-		fmt.Printf("> Path '%s' was successfully set for project %s\n", newPath, oldPath)
+		messages.Success("successfully set path of project at %s to %s", oldPath, newPath)
 		return nil
 	},
 }

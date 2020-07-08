@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/nikoksr/proji/util"
+	"github.com/pkg/errors"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
@@ -29,7 +30,7 @@ func init() {
 func listProjects(out io.Writer) error {
 	projects, err := session.StorageService.LoadProjects()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to load all projects")
 	}
 
 	projectsTable := util.NewInfoTable(out)

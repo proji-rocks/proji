@@ -3,8 +3,9 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
+
+	"github.com/nikoksr/proji/messages"
 
 	"github.com/nikoksr/proji/config"
 	"github.com/nikoksr/proji/storage"
@@ -18,29 +19,37 @@ type Session struct {
 	StorageService  storage.Service
 	FallbackVersion string
 	Version         string
+	NoColors        bool
 }
 
 var session *Session
 var terminalWidth, maxColumnWidth int
+var disableColors bool
 
 const (
 	defaultMaxColumnWidth = 50
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "proji",
-	Short: "A powerful cross-platform CLI project templating tool.",
+	Use:           "proji",
+	Short:         "A powerful cross-platform CLI project templating tool.",
+	SilenceErrors: true,
+	SilenceUsage:  true,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		if session == nil {
-			log.Fatalln("session is not defined")
-		}
+		messages.EnableColors(disableColors)
+
+		// Leave one empty line above by default
+		fmt.Println()
 	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	_ = rootCmd.Execute()
+	err := rootCmd.Execute()
+	if err != nil {
+		messages.Error("", err)
+	}
 }
 
 func init() {
@@ -52,6 +61,9 @@ func init() {
 			Version:         "0.20.0",
 		}
 	}
+
+	// Initialize command flags
+	initFlags()
 
 	// Skip initialization if no args were given
 	if len(os.Args) < 2 {
@@ -65,7 +77,7 @@ func init() {
 		// Don't init config or storage on version or help. It's just not necessary.
 		return
 	case "init":
-		// Setup the config because init needs a barebone config to deploy the base config folder.
+		// Setup the config because init needs a bare bone config to deploy the base config folder.
 		initFunctions = append(initFunctions, setupConfig)
 	default:
 		// On default load the main config and initialize the storage service
@@ -77,16 +89,21 @@ func init() {
 	cobra.OnInitialize(initFunctions...)
 }
 
+func initFlags() {
+	rootCmd.PersistentFlags().BoolVar(&disableColors, "no-colors", false, "disable text colors")
+}
+
 func setupConfig() {
 	err := config.Setup()
 	if err != nil {
-		log.Fatalf("failed to setup config, %s", err.Error())
+		messages.Error("failed to setup config", err)
+		os.Exit(1)
 	}
 }
 
 func initConfig() {
 	if session == nil {
-		log.Fatalf("couldn't set config, environment struct is nil")
+		messages.Error("couldn't initialize config", fmt.Errorf("session not found"))
 	}
 
 	// Run config setup
@@ -98,7 +115,8 @@ func initConfig() {
 	// Load the config
 	err := session.Config.Load()
 	if err != nil {
-		log.Fatalf("loading config failed, %s", err.Error())
+		messages.Error("loading config failed", err)
+		os.Exit(1)
 	}
 }
 
@@ -109,12 +127,13 @@ func initStorageService() {
 		session.Config.DatabaseConnection.DSN,
 	)
 	if err != nil {
-		log.Fatalf(
-			"Error: could not connect to %s database with dsn %s, %s\n",
+		messages.Error(
+			"could not connect to %s database with dsn %s, %s",
+			err,
 			session.Config.DatabaseConnection.Driver,
 			session.Config.DatabaseConnection.DSN,
-			err.Error(),
 		)
+		os.Exit(1)
 	}
 }
 
@@ -131,7 +150,7 @@ func setMaxColumnWidth() {
 	var err error
 	terminalWidth, err = getTerminalWidth()
 	if err != nil {
-		fmt.Printf("Warning: Couldn't get terminal width, %s", err.Error())
+		messages.Warning("couldn't get terminal width. Falling back to default value, %s", err.Error())
 		maxColumnWidth = defaultMaxColumnWidth
 	} else {
 		maxColumnWidth = terminalWidth / 2

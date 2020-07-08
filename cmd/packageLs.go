@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/nikoksr/proji/util"
+	"github.com/pkg/errors"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
@@ -27,7 +28,7 @@ func init() {
 func listPackages(out io.Writer) error {
 	packages, err := session.StorageService.LoadPackages()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to load all packages")
 	}
 
 	packagesTable := util.NewInfoTable(out)

@@ -4,10 +4,12 @@ package cmd
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
 
+	"github.com/nikoksr/proji/messages"
+
 	"github.com/jedib0t/go-pretty/v6/text"
+	"github.com/pkg/errors"
 
 	"github.com/nikoksr/proji/util"
 
@@ -48,7 +50,7 @@ func showPackage(preloadedPackage *models.Package, label string) error {
 	if preloadedPackage == nil {
 		preloadedPackage, err = session.StorageService.LoadPackage(label)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to load package")
 		}
 	}
 	output := os.Stdout
@@ -61,12 +63,12 @@ func showPackage(preloadedPackage *models.Package, label string) error {
 func showPackages(labels ...string) error {
 	packages, err := session.StorageService.LoadPackages(labels...)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to load package")
 	}
 	for _, pkg := range packages {
 		err = showPackage(pkg, pkg.Label)
 		if err != nil {
-			log.Printf("failed show package with label '%s', %s", pkg.Label, err.Error())
+			messages.Warning("failed to show package %s, %s", pkg.Label, err.Error())
 		}
 	}
 	return nil
