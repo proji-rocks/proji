@@ -66,23 +66,21 @@ var packageImportCmd = &cobra.Command{
 func init() {
 	packageCmd.AddCommand(packageImportCmd)
 
-	packageImportCmd.Flags().StringSliceVar(&remoteRepos, flagRemoteRepo, make([]string, 0), "create an importable config based on on the structure of a remote repository")
-	_ = packageImportCmd.MarkFlagDirname(flagRemoteRepo)
-
-	packageImportCmd.Flags().StringSliceVar(&directories, flagDirectory, make([]string, 0), "create an importable config based on the structure of a local directory")
+	packageImportCmd.Flags().StringSliceVarP(&directories, flagDirectory, "d", make([]string, 0), "create an importable config based on the structure of a local directory")
 	_ = packageImportCmd.MarkFlagDirname(flagDirectory)
 
-	packageImportCmd.Flags().StringSliceVar(&configs, flagConfig, make([]string, 0), "import a package from a config file")
+	packageImportCmd.Flags().StringSliceVarP(&configs, flagConfig, "f", make([]string, 0), "import a package from a config file")
 	_ = packageImportCmd.MarkFlagFilename(flagConfig)
 
-	packageImportCmd.Flags().StringSliceVar(&packages, flagPackage, make([]string, 0), "import a package (EXPERIMENTAL)")
-	_ = packageImportCmd.MarkFlagFilename(flagPackage)
-
-	packageImportCmd.Flags().StringSliceVar(&collections, flagCollection, make([]string, 0), "import a collection of packages (EXPERIMENTAL)")
-	_ = packageImportCmd.MarkFlagFilename(flagCollection)
-
-	packageImportCmd.Flags().StringSliceVar(&excludes, flagExclude, make([]string, 0), "folder to exclude from local directory import")
+	packageImportCmd.Flags().StringSliceVarP(&excludes, flagExclude, "e", make([]string, 0), "folder to exclude from local directory import")
 	_ = packageImportCmd.MarkFlagFilename(flagExclude)
+
+	packageImportCmd.Flags().StringSliceVarP(&remoteRepos, flagRemoteRepo, "r", make([]string, 0), "create an importable config based on on the structure of a remote repository")
+
+	packageImportCmd.Flags().StringSliceVarP(&packages, flagPackage, "p", make([]string, 0), "import a package (EXPERIMENTAL)")
+
+	packageImportCmd.Flags().StringSliceVarP(&collections, flagCollection, "c", make([]string, 0), "import a collection of packages (EXPERIMENTAL)")
+
 }
 
 func importPackage(path, importType string, excludes []string) (string, error) {
