@@ -81,11 +81,12 @@ func Error(format string, err error, args ...interface{}) {
 }
 
 func formatErrorMessage(format string, err error) string {
+	errorString := colorError("error") + "=" + err.Error()
 	format = strings.TrimSpace(format)
 	if len(format) < 1 {
-		return colorError("error") + "=" + err.Error()
+		return errorString
 	}
-	return format + " " + colorError("error") + "=" + err.Error()
+	return format + " " + errorString
 }
 
 func printPrefixedMessage(out io.Writer, prefix, format string, args ...interface{}) {
