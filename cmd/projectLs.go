@@ -33,13 +33,13 @@ func listProjects(out io.Writer) error {
 	}
 
 	projectsTable := util.NewInfoTable(out)
-	projectsTable.AppendHeader(table.Row{"Name", "Install Path", "Class"})
+	projectsTable.AppendHeader(table.Row{"Name", "Install Path", "Package"})
 
 	for _, project := range projects {
 		projectsTable.AppendRow(table.Row{
 			project.Name,
 			project.Path,
-			project.Class.Name,
+			project.Package.Name,
 		})
 	}
 

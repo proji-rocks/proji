@@ -23,9 +23,9 @@ const (
 	flagRemoteRepo = "remote-repo"
 )
 
-var classImportCmd = &cobra.Command{
+var packageImportCmd = &cobra.Command{
 	Use:   "import FILE [FILE...]",
-	Short: "Import one or more classes",
+	Short: "Import one or more packages",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if len(configs) < 1 && len(directories) < 1 && len(remoteRepos) < 1 && len(packages) < 1 && len(collections) < 1 {
 			return fmt.Errorf("no flag given")
@@ -49,7 +49,7 @@ var classImportCmd = &cobra.Command{
 		// Import configs
 		for importType, paths := range importTypes {
 			for _, path := range paths {
-				result, err := importClass(path, importType, excludes)
+				result, err := importPackage(path, importType, excludes)
 				if err != nil {
 					fmt.Printf("Error: %v\n", err)
 				} else {
@@ -61,33 +61,33 @@ var classImportCmd = &cobra.Command{
 }
 
 func init() {
-	classCmd.AddCommand(classImportCmd)
+	packageCmd.AddCommand(packageImportCmd)
 
-	classImportCmd.Flags().StringSliceVar(&remoteRepos, flagRemoteRepo, make([]string, 0), "create an importable config based on on the structure of a remote repository")
-	_ = classImportCmd.MarkFlagDirname(flagRemoteRepo)
+	packageImportCmd.Flags().StringSliceVar(&remoteRepos, flagRemoteRepo, make([]string, 0), "create an importable config based on on the structure of a remote repository")
+	_ = packageImportCmd.MarkFlagDirname(flagRemoteRepo)
 
-	classImportCmd.Flags().StringSliceVar(&directories, flagDirectory, make([]string, 0), "create an importable config based on the structure of a local directory")
-	_ = classImportCmd.MarkFlagDirname(flagDirectory)
+	packageImportCmd.Flags().StringSliceVar(&directories, flagDirectory, make([]string, 0), "create an importable config based on the structure of a local directory")
+	_ = packageImportCmd.MarkFlagDirname(flagDirectory)
 
-	classImportCmd.Flags().StringSliceVar(&configs, flagConfig, make([]string, 0), "import a class from a config file")
-	_ = classImportCmd.MarkFlagFilename(flagConfig)
+	packageImportCmd.Flags().StringSliceVar(&configs, flagConfig, make([]string, 0), "import a package from a config file")
+	_ = packageImportCmd.MarkFlagFilename(flagConfig)
 
-	classImportCmd.Flags().StringSliceVar(&packages, flagPackage, make([]string, 0), "import a package (EXPERIMENTAL)")
-	_ = classImportCmd.MarkFlagFilename(flagPackage)
+	packageImportCmd.Flags().StringSliceVar(&packages, flagPackage, make([]string, 0), "import a package (EXPERIMENTAL)")
+	_ = packageImportCmd.MarkFlagFilename(flagPackage)
 
-	classImportCmd.Flags().StringSliceVar(&collections, flagCollection, make([]string, 0), "import a collection of packages (EXPERIMENTAL)")
-	_ = classImportCmd.MarkFlagFilename(flagCollection)
+	packageImportCmd.Flags().StringSliceVar(&collections, flagCollection, make([]string, 0), "import a collection of packages (EXPERIMENTAL)")
+	_ = packageImportCmd.MarkFlagFilename(flagCollection)
 
-	classImportCmd.Flags().StringSliceVar(&excludes, flagExclude, make([]string, 0), "folder to exclude from local directory import")
-	_ = classImportCmd.MarkFlagFilename(flagExclude)
+	packageImportCmd.Flags().StringSliceVar(&excludes, flagExclude, make([]string, 0), "folder to exclude from local directory import")
+	_ = packageImportCmd.MarkFlagFilename(flagExclude)
 }
 
-func importClass(path, importType string, excludes []string) (string, error) {
+func importPackage(path, importType string, excludes []string) (string, error) {
 	if util.IsInSlice(excludes, path) {
 		return "", nil
 	}
 
-	class := models.NewClass("", "", false)
+	pkg := models.NewPackage("", "", false)
 	var err error
 	var confName, msg string
 	var URL *url.URL
@@ -108,54 +108,54 @@ func importClass(path, importType string, excludes []string) (string, error) {
 
 	switch importType {
 	case flagConfig:
-		err = class.ImportConfig(path)
+		err = pkg.ImportFromConfig(path)
 		if err != nil {
 			return "", err
 		}
-		err = session.StorageService.SaveClass(class)
+		err = session.StorageService.SavePackage(pkg)
 		if err == nil {
-			msg = fmt.Sprintf("> Successfully imported class '%s' from '%s'", class.Name, path)
+			msg = fmt.Sprintf("> Successfully imported package '%s' from '%s'", pkg.Name, path)
 		}
 	case "dir":
-		err = class.ImportFolderStructure(path, excludes)
+		err = pkg.ImportFromFolderStructure(path, excludes)
 		if err != nil {
 			return "", err
 		}
 	case "repo":
-		err = class.ImportRepoStructure(importer, nil)
+		err = pkg.ImportFromRepoStructure(importer, nil)
 		if err != nil {
 			return "", err
 		}
 	case flagPackage:
-		err = class.ImportPackage(URL, importer)
+		err = pkg.ImportFromRepo(URL, importer)
 		if err != nil {
 			return "", err
 		}
-		err = session.StorageService.SaveClass(class)
+		err = session.StorageService.SavePackage(pkg)
 		if err == nil {
-			msg = fmt.Sprintf("> Successfully imported class '%s' from '%s'", class.Name, path)
+			msg = fmt.Sprintf("> Successfully imported package '%s' from '%s'", pkg.Name, path)
 		}
 	case flagCollection:
-		classList, err := models.ImportClassesFromCollection(URL, importer)
+		packageList, err := models.ImportCollectionFromRepo(URL, importer)
 		if err != nil {
 			return "", err
 		}
-		for _, class := range classList {
-			err = session.StorageService.SaveClass(class)
+		for _, pkg := range packageList {
+			err = session.StorageService.SavePackage(pkg)
 			if err == nil {
-				msg += fmt.Sprintf("> Successfully imported class '%s' from '%s'\n", class.Name, path)
+				msg += fmt.Sprintf("> Successfully imported package '%s' from '%s'\n", pkg.Name, path)
 			} else {
-				msg += fmt.Sprintf("> Importing class '%s' from '%s' failed: %v\n", class.Name, path, err)
+				msg += fmt.Sprintf("> Importing package '%s' from '%s' failed: %v\n", pkg.Name, path, err)
 			}
 		}
 	default:
 		err = fmt.Errorf("path type %s is not supported", importType)
 	}
 
-	// Classes that are generated from directories or repos (structure, package and collection) should be exported to a config file first
+	// Packages that are generated from directories or repos (structure, package and collection) should be exported to a config file first
 	// so that the user can fine tune them
 	if importType != flagConfig && importType != flagPackage && importType != flagCollection {
-		confName, err = class.Export(".")
+		confName, err = pkg.ExportConfig(".")
 		if err == nil {
 			msg = fmt.Sprintf("> '%s' was successfully exported to '%s'", path, confName)
 		}

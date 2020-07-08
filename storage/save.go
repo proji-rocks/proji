@@ -6,18 +6,18 @@ import (
 )
 
 type SaveService interface {
-	SaveClass(class *models.Class) error       // SaveClass saves a class to storage.
+	SavePackage(pkg *models.Package) error     // SavePackage saves a package to storage.
 	SaveProject(project *models.Project) error // SaveProject saves a project to storage.
 }
 
-// SaveClass saves a class to storage.
-func (db *Database) SaveClass(class *models.Class) error {
-	err := db.Connection.First(class, "label = ?", class.Label).Error
+// SavePackage saves a package to storage.
+func (db *Database) SavePackage(pkg *models.Package) error {
+	err := db.Connection.First(pkg, "label = ?", pkg.Label).Error
 	if err == nil {
-		return NewClassExistsError(class.Label)
+		return NewPackageExistsError(pkg.Label)
 	}
 	if err == gorm.ErrRecordNotFound {
-		return db.Connection.Create(class).Error
+		return db.Connection.Create(pkg).Error
 	}
 	return err
 }

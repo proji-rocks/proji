@@ -24,18 +24,18 @@ import (
 	"gorm.io/gorm"
 )
 
-// Class represents a proji class; the central item of proji's project creation mechanism. It holds tags for gorm and
+// Package represents a proji package; the central item of proji's project creation mechanism. It holds tags for gorm and
 // toml defining its storage and export/import behaviour.
-type Class struct {
+type Package struct {
 	ID          uint           `gorm:"primarykey" toml:"-"`
 	CreatedAt   time.Time      `toml:"-"`
 	UpdatedAt   time.Time      `toml:"-"`
-	DeletedAt   gorm.DeletedAt `gorm:"index:idx_unq_class_label_deletedat,unique;" toml:"-"`
+	DeletedAt   gorm.DeletedAt `gorm:"index:idx_unq_package_label_deletedat,unique;" toml:"-"`
 	Name        string         `gorm:"not null;size:64" toml:"name"`
-	Label       string         `gorm:"index:idx_unq_class_label_deletedat,unique;not null;size:16" toml:"label"`
+	Label       string         `gorm:"index:idx_unq_package_label_deletedat,unique;not null;size:16" toml:"label"`
 	Description string         `gorm:"size:255" toml:"description"`
-	Templates   []*Template    `gorm:"many2many:class_templates;ForeignKey:ID;References:ID" toml:"template"`
-	Plugins     []*Plugin      `gorm:"many2many:class_plugins;ForeignKey:ID;References:ID" toml:"plugin"`
+	Templates   []*Template    `gorm:"many2many:package_templates;ForeignKey:ID;References:ID" toml:"template"`
+	Plugins     []*Plugin      `gorm:"many2many:package_plugins;ForeignKey:ID;References:ID" toml:"plugin"`
 	IsDefault   bool           `gorm:"not null" toml:"-"`
 }
 
@@ -44,10 +44,10 @@ const (
 	pluginsKey   = "plugins"   // Map key for plugins.
 )
 
-// NewClass returns a new class instance. isDefault should be false by default and only true for fallback classes
+// NewPackage returns a new package instance. isDefault should be false by default and only true for fallback packages
 // that should be ignored anyways.
-func NewClass(name, label string, isDefault bool) *Class {
-	return &Class{
+func NewPackage(name, label string, isDefault bool) *Package {
+	return &Package{
 		Name:      name,
 		Label:     label,
 		Templates: nil,
@@ -56,8 +56,8 @@ func NewClass(name, label string, isDefault bool) *Class {
 	}
 }
 
-// ImportConfig imports class data from a given config file.
-func (c *Class) ImportConfig(path string) error {
+// ImportFromConfig imports package data from a given config file.
+func (c *Package) ImportFromConfig(path string) error {
 	// Validate that it's a toml file
 	if !strings.HasSuffix(path, ".toml") {
 		return fmt.Errorf("import file has to be of type 'toml'")
@@ -95,15 +95,15 @@ func (c *Class) ImportConfig(path string) error {
 	return nil
 }
 
-// ImportFolderStructure imports a class from a given directory. Proji will imitate the
-// structure and content of the directory and create a class based on it.
-func (c *Class) ImportFolderStructure(path string, excludeDirs []string) error {
+// ImportFromFolderStructure imports a package from a given directory. Proji will imitate the
+// structure and content of the directory and create a package based on it.
+func (c *Package) ImportFromFolderStructure(path string, excludeDirs []string) error {
 	// Validate that the directory exists
 	if !util.DoesPathExist(path) {
 		return fmt.Errorf("given directory does not exist")
 	}
 
-	// Set class name from directory base name
+	// Set package name from directory base name
 	base := filepath.Base(path)
 	c.Name = base
 	c.Label = pickLabel(c.Name)
@@ -122,7 +122,7 @@ func (c *Class) ImportFolderStructure(path string, excludeDirs []string) error {
 			return err
 		}
 
-		// Add file or folder to class
+		// Add file or folder to package
 		isFile := true
 		if info.IsDir() {
 			if util.IsInSlice(excludeDirs, info.Name()) {
@@ -144,10 +144,10 @@ func (c *Class) ImportFolderStructure(path string, excludeDirs []string) error {
 	return nil
 }
 
-// ImportRepoStructure imports a class from a given URL. The URL should point to a remote repo of one of the following code
-// platforms: github, gitlab. Proji will imitate the structure and content of the repo and create a class
+// ImportFromRepoStructure imports a package from a given URL. The URL should point to a remote repo of one of the following code
+// platforms: github, gitlab. Proji will imitate the structure and content of the repo and create a package
 // based on it.
-func (c *Class) ImportRepoStructure(importer repo.Importer, filters []*regexp.Regexp) error {
+func (c *Package) ImportFromRepoStructure(importer repo.Importer, filters []*regexp.Regexp) error {
 	// Import the complete repo tree. No filters needed.
 	err := importer.LoadTreeEntries()
 	if err != nil {
@@ -160,17 +160,17 @@ func (c *Class) ImportRepoStructure(importer repo.Importer, filters []*regexp.Re
 		return fmt.Errorf("no relevant data was found. Platform might be unsupported")
 	}
 
-	// Set class name from base name
+	// Set package name from base name
 	// E.g. https://github.com/nikoksr/proji -> proji is the base name
 	c.Name = path.Base(importer.Repo())
 	c.Label = pickLabel(c.Name)
 	return nil
 }
 
-// ImportPackage imports a package from a given URL. The URL should point directly to a class config in a remote repo
-// of one of the following code platforms: github, gitlab. Proji will import the class config and download its
+// ImportFromRepo imports a package from a given URL. The URL should point directly to a package config in a remote repo
+// of one of the following code platforms: github, gitlab. Proji will import the package config and download its
 // dependencies if necessary.
-func (c *Class) ImportPackage(packageURL *url.URL, importer repo.Importer) error {
+func (c *Package) ImportFromRepo(packageURL *url.URL, importer repo.Importer) error {
 	// Download config
 	f := filepath.Join(os.TempDir(), "/proji/configs/", filepath.Base(packageURL.Path))
 	dwn := importer.FilePathToRawURI(filepath.Join("configs/", filepath.Base(packageURL.Path)))
@@ -180,7 +180,7 @@ func (c *Class) ImportPackage(packageURL *url.URL, importer repo.Importer) error
 	}
 
 	// Import config
-	err = c.ImportConfig(f)
+	err = c.ImportFromConfig(f)
 	if err != nil {
 		return err
 	}
@@ -209,7 +209,7 @@ func (c *Class) ImportPackage(packageURL *url.URL, importer repo.Importer) error
 		}
 
 		if len(templates) < 1 {
-			return fmt.Errorf("no templates were found in repo but class %s requires templates", c.Name)
+			return fmt.Errorf("no templates were found in repo but package %s requires templates", c.Name)
 		}
 
 		for _, template := range templates {
@@ -268,30 +268,30 @@ func (c *Class) ImportPackage(packageURL *url.URL, importer repo.Importer) error
 	return err
 }
 
-// ImportClassesFromCollection imports all classes from a given URL. A collection is a repo with multiple classes. It must include
-// a folder called configs, which holds the class configs. If the classes have plugins or templates as dependencies,
+// ImportCollectionFromRepo imports all packages from a given URL. A collection is a repo with multiple packages. It must include
+// a folder called configs, which holds the package configs. If the packages have plugins or templates as dependencies,
 // they should be put into the folders plugins/ and templates/ respectively.
 //nolint:interfacer
-func ImportClassesFromCollection(collectionURL *url.URL, importer repo.Importer) ([]*Class, error) {
-	// Get list of class configs and loop through them
+func ImportCollectionFromRepo(collectionURL *url.URL, importer repo.Importer) ([]*Package, error) {
+	// Get list of package configs and loop through them
 	re := regexp.MustCompile(`configs/.*`)
-	c := NewClass("", "", false)
-	err := c.ImportRepoStructure(importer, []*regexp.Regexp{re})
+	c := NewPackage("", "", false)
+	err := c.ImportFromRepoStructure(importer, []*regexp.Regexp{re})
 	if err != nil {
 		return nil, err
 	}
 
-	// Check if class is empty -> no configs found
+	// Check if package is empty -> no configs found
 	if c.isEmpty() {
 		return nil, fmt.Errorf("no configs were found")
 	}
 
 	// Import one package at a time
-	classList := make([]*Class, 0)
+	packageList := make([]*Package, 0)
 	numFiles := len(c.Templates)
 	var wg sync.WaitGroup
 	wg.Add(numFiles)
-	classChannel := make(chan *Class, numFiles)
+	packageChannel := make(chan *Package, numFiles)
 	errs := make(chan error, numFiles)
 
 	for _, template := range c.Templates {
@@ -300,28 +300,28 @@ func ImportClassesFromCollection(collectionURL *url.URL, importer repo.Importer)
 		}
 		go func(template *Template) {
 			defer wg.Done()
-			class := NewClass("", "", false)
+			pkg := NewPackage("", "", false)
 			packageURL, err := repo.ParseURL(collectionURL.String() + "/" + template.Destination)
 			if err != nil {
 				errs <- err
 				return
 			}
-			err = class.ImportPackage(packageURL, importer)
+			err = pkg.ImportFromRepo(packageURL, importer)
 			if err != nil {
 				errs <- err
 				return
 			}
-			classChannel <- class
+			packageChannel <- pkg
 		}(template)
 	}
 
 	wg.Wait()
-	close(classChannel)
+	close(packageChannel)
 	close(errs)
 
-	for cls := range classChannel {
+	for cls := range packageChannel {
 		if cls != nil {
-			classList = append(classList, cls)
+			packageList = append(packageList, cls)
 		}
 	}
 
@@ -335,11 +335,11 @@ func ImportClassesFromCollection(collectionURL *url.URL, importer repo.Importer)
 	if len(errMsg) > 0 {
 		err = errors.New(errMsg)
 	}
-	return classList, err
+	return packageList, err
 }
 
-// Export exports a given class to a toml config file.
-func (c *Class) Export(destination string) (string, error) {
+// ExportConfig exports a given package to a toml config file.
+func (c *Package) ExportConfig(destination string) (string, error) {
 	confName := filepath.Join(destination, "proji-"+c.Name+".toml")
 	conf, err := os.Create(confName)
 	if err != nil {
@@ -349,31 +349,31 @@ func (c *Class) Export(destination string) (string, error) {
 	return confName, toml.NewEncoder(conf).Order(toml.OrderPreserve).Encode(c)
 }
 
-// isEmpty checks if the class holds no data.
-func (c *Class) isEmpty() bool {
+// isEmpty checks if the package holds no data.
+func (c *Package) isEmpty() bool {
 	if len(c.Templates) == 0 && len(c.Plugins) == 0 {
 		return true
 	}
 	return false
 }
 
-// pickLabel dynamically picks a label based on the class name.
-func pickLabel(className string) string {
-	nameLen := len(className)
+// pickLabel dynamically picks a label based on the package name.
+func pickLabel(packageName string) string {
+	nameLen := len(packageName)
 	if nameLen < 2 {
-		return strings.ToLower(className)
+		return strings.ToLower(packageName)
 	}
 
 	label := ""
 	maxLabelLen := 4
 
 	// Try to create label by separators
-	// labelSeparators defines a list of rues that are used to split class names and transform them to labels.
+	// labelSeparators defines a list of rues that are used to split package names and transform them to labels.
 	// '%20' is for escaped paths.
 	labelSeparators := []string{"-", "_", ".", " ", "%20"}
 	parts := make([]string, 0)
 	for _, d := range labelSeparators {
-		parts = strings.Split(className, d)
+		parts = strings.Split(packageName, d)
 		if len(parts) > 1 {
 			break
 		}
@@ -390,12 +390,12 @@ func pickLabel(className string) string {
 	}
 
 	// Try to create label by uppercase letters
-	if !unicode.IsUpper(rune(className[0])) {
-		className = string(byte(unicode.ToUpper(rune(className[0])))) + className[1:]
+	if !unicode.IsUpper(rune(packageName[0])) {
+		packageName = string(byte(unicode.ToUpper(rune(packageName[0])))) + packageName[1:]
 	}
 
 	re := regexp.MustCompile(`[A-Z][^A-Z]*`)
-	parts = re.FindAllString(className, -1)
+	parts = re.FindAllString(packageName, -1)
 
 	if len(parts) > 1 {
 		for i, part := range parts {
@@ -408,7 +408,7 @@ func pickLabel(className string) string {
 	}
 
 	// Pick first, mid and last byte in string
-	label = string(className[0]) + string(className[nameLen/2]) + string(className[nameLen-1])
+	label = string(packageName[0]) + string(packageName[nameLen/2]) + string(packageName[nameLen-1])
 	return strings.ToLower(label)
 }
 

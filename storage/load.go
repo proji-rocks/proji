@@ -7,47 +7,47 @@ import (
 )
 
 type LoadService interface {
-	LoadClass(label string) (*models.Class, error)           // LoadClass loads a class from storage by its label.
-	LoadClasses(labels ...string) ([]*models.Class, error)   // LoadClasses returns classes by the given labels. If no labels are given, all classes are loaded.
-	LoadProject(path string) (*models.Project, error)        // LoadProject loads a project from storage by its path.
-	LoadProjects(paths ...string) ([]*models.Project, error) // LoadProjects returns projects by the given paths. If no paths are given, all projects are loaded.
+	LoadPackage(label string) (*models.Package, error)        // LoadPackage loads a package from storage by its label.
+	LoadPackages(labels ...string) ([]*models.Package, error) // LoadPackages returns packages by the given labels. If no labels are given, all packages are loaded.
+	LoadProject(path string) (*models.Project, error)         // LoadProject loads a project from storage by its path.
+	LoadProjects(paths ...string) ([]*models.Project, error)  // LoadProjects returns projects by the given paths. If no paths are given, all projects are loaded.
 }
 
-// LoadClass loads a class from storage by its label.
-func (db *Database) LoadClass(label string) (*models.Class, error) {
-	var class models.Class
-	err := db.Connection.Preload(clause.Associations).First(&class, "label = ?", label).Error
+// LoadPackage loads a package from storage by its label.
+func (db *Database) LoadPackage(label string) (*models.Package, error) {
+	var pkg models.Package
+	err := db.Connection.Preload(clause.Associations).First(&pkg, "label = ?", label).Error
 	if err == gorm.ErrRecordNotFound {
-		return nil, NewClassNotFoundError(label)
+		return nil, NewPackageNotFoundError(label)
 	}
-	return &class, err
+	return &pkg, err
 }
 
-// LoadClasses loads classes by the given labels. If not labels are given, all classes are loaded.
-func (db *Database) LoadClasses(labels ...string) ([]*models.Class, error) {
+// LoadPackages loads packages by the given labels. If not labels are given, all packages are loaded.
+func (db *Database) LoadPackages(labels ...string) ([]*models.Package, error) {
 	lenLabels := len(labels)
 	if lenLabels < 1 {
-		return db.loadAllClasses()
+		return db.loadAllPackages()
 	}
-	classes := make([]*models.Class, 0, lenLabels)
+	packages := make([]*models.Package, 0, lenLabels)
 	for _, label := range labels {
-		class, err := db.LoadClass(label)
+		pkg, err := db.LoadPackage(label)
 		if err != nil {
 			return nil, err
 		}
-		classes = append(classes, class)
+		packages = append(packages, pkg)
 	}
-	return classes, nil
+	return packages, nil
 }
 
-// loadAllClasses loads and returns all classes found in the database.
-func (db *Database) loadAllClasses() ([]*models.Class, error) {
-	var classes []*models.Class
-	err := db.Connection.Preload(clause.Associations).Find(&classes).Error
+// loadAllPackages loads and returns all packages found in the database.
+func (db *Database) loadAllPackages() ([]*models.Package, error) {
+	var packages []*models.Package
+	err := db.Connection.Preload(clause.Associations).Find(&packages).Error
 	if err == gorm.ErrRecordNotFound {
-		return nil, NewNoClassesFoundError()
+		return nil, NewNoPackagesFoundError()
 	}
-	return classes, err
+	return packages, err
 }
 
 // LoadProject loads a project from storage by its path.

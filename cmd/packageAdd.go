@@ -12,32 +12,32 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var classAddCmd = &cobra.Command{
+var packageAddCmd = &cobra.Command{
 	Use:        "add NAME [NAME...]",
-	Short:      "Add one or more classes",
-	Deprecated: "command 'class add' will be deprecated in the next release",
+	Short:      "Add one or more packages",
+	Deprecated: "command 'package add' will be deprecated in the next release",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("missing class name")
+			return fmt.Errorf("missing package name")
 		}
 
 		for _, name := range args {
-			err := addClass(name)
+			err := addPackage(name)
 			if err != nil {
-				fmt.Printf("> Adding class '%s' failed: %v\n", name, err)
+				fmt.Printf("> Adding package '%s' failed: %v\n", name, err)
 				continue
 			}
-			fmt.Printf("> Class '%s' was successfully added\n", name)
+			fmt.Printf("> Package '%s' was successfully added\n", name)
 		}
 		return nil
 	},
 }
 
 func init() {
-	classCmd.AddCommand(classAddCmd)
+	packageCmd.AddCommand(packageAddCmd)
 }
 
-func addClass(name string) error {
+func addPackage(name string) error {
 	reader := bufio.NewReader(os.Stdin)
 
 	label, err := getLabel(reader)
@@ -53,10 +53,10 @@ func addClass(name string) error {
 		return err
 	}
 
-	class := models.NewClass(name, label, false)
-	class.Templates = templates
-	class.Plugins = plugins
-	return session.StorageService.SaveClass(class)
+	pkg := models.NewPackage(name, label, false)
+	pkg.Templates = templates
+	pkg.Plugins = plugins
+	return session.StorageService.SavePackage(pkg)
 }
 
 func getLabel(reader *bufio.Reader) (string, error) {

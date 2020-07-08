@@ -59,8 +59,8 @@ func newMainConfigFolder() *mainConfigFolder {
 		basePath: "",
 		files: []*file{
 			{
-				src: "/assets/examples/example-class-export.toml",
-				dst: "examples/proji-class.toml",
+				src: "/assets/examples/example-package-export.toml",
+				dst: "examples/proji-package.toml",
 			},
 		},
 		subFolders: []string{

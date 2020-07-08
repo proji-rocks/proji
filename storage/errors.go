@@ -19,46 +19,46 @@ func NewUnsupportedDatabaseDialectError(dialect string) *UnsupportedDatabaseDial
 	return &UnsupportedDatabaseDialectError{Dialect: dialect}
 }
 
-// ClassNotFoundError represents an error for the case that a query for a class returns a
+// PackageNotFoundError represents an error for the case that a query for a package returns a
 // gorm.ErrRecordNotFound error.
-type ClassNotFoundError struct {
+type PackageNotFoundError struct {
 	Label string
 }
 
 //
-func (e *ClassNotFoundError) Error() string {
-	return fmt.Sprintf("class with label '%s' not found", e.Label)
+func (e *PackageNotFoundError) Error() string {
+	return fmt.Sprintf("package with label '%s' not found", e.Label)
 }
 
-// NewClassNotFoundError returns a pointer to an initialized ClassNotFoundError object.
-func NewClassNotFoundError(label string) *ClassNotFoundError {
-	return &ClassNotFoundError{Label: label}
+// NewPackageNotFoundError returns a pointer to an initialized PackageNotFoundError object.
+func NewPackageNotFoundError(label string) *PackageNotFoundError {
+	return &PackageNotFoundError{Label: label}
 }
 
-// NoClassesFoundError represents an error for the case that no classes were found by a query.
-type NoClassesFoundError struct{}
+// NoPackagesFoundError represents an error for the case that no packages were found by a query.
+type NoPackagesFoundError struct{}
 
-func (e *NoClassesFoundError) Error() string {
-	return "no classes were found"
+func (e *NoPackagesFoundError) Error() string {
+	return "no packages were found"
 }
 
-// NewNoClassesFoundError returns a pointer to an initialized NoClassesFoundError object.
-func NewNoClassesFoundError() *NoClassesFoundError {
-	return &NoClassesFoundError{}
+// NewNoPackagesFoundError returns a pointer to an initialized NoPackagesFoundError object.
+func NewNoPackagesFoundError() *NoPackagesFoundError {
+	return &NoPackagesFoundError{}
 }
 
-// ClassExistsError represents an error for the case that a query for a class returns no result.
-type ClassExistsError struct {
+// PackageExistsError represents an error for the case that a query for a package returns no result.
+type PackageExistsError struct {
 	Label string
 }
 
-func (e *ClassExistsError) Error() string {
-	return fmt.Sprintf("class with label '%s' already exists", e.Label)
+func (e *PackageExistsError) Error() string {
+	return fmt.Sprintf("package with label '%s' already exists", e.Label)
 }
 
-// NewClassExistsError returns a pointer to an initialized ClassExistsError object.
-func NewClassExistsError(label string) *ClassExistsError {
-	return &ClassExistsError{Label: label}
+// NewPackageExistsError returns a pointer to an initialized PackageExistsError object.
+func NewPackageExistsError(label string) *PackageExistsError {
+	return &PackageExistsError{Label: label}
 }
 
 // ProjectNotFoundError represents an error for the case that a query for a project returns a

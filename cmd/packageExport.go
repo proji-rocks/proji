@@ -16,9 +16,9 @@ import (
 var exportAll, example bool
 var destination string
 
-var classExportCmd = &cobra.Command{
+var packageExportCmd = &cobra.Command{
 	Use:   "export LABEL [LABEL...]",
-	Short: "Export one or more classes",
+	Short: "ExportConfig one or more packages",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if exportAll && example {
 			return fmt.Errorf("the flags 'example' and 'all' cannot be passed at the same time")
@@ -26,63 +26,63 @@ var classExportCmd = &cobra.Command{
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Export an example class
+		// ExportConfig an example package
 		if example {
 			file, err := exportExample(destination, session.Config.BasePath)
 			if err != nil {
-				fmt.Printf("> Export of example class failed: %v\n", err)
+				fmt.Printf("> ExportConfig of example package failed: %v\n", err)
 				return err
 			}
-			fmt.Printf("> Example class was successfully exported to %s\n", file)
+			fmt.Printf("> Example package was successfully exported to %s\n", file)
 			return nil
 		}
 
-		// Collect classes that will be exported
-		var classes []*models.Class
+		// Collect packages that will be exported
+		var packages []*models.Package
 
 		if exportAll {
 			var err error
-			classes, err = session.StorageService.LoadClasses()
+			packages, err = session.StorageService.LoadPackages()
 			if err != nil {
 				return err
 			}
 		} else {
 			if len(args) < 1 {
-				return fmt.Errorf("missing class label")
+				return fmt.Errorf("missing package label")
 			}
 
 			for _, label := range args {
-				class, err := session.StorageService.LoadClass(label)
+				pkg, err := session.StorageService.LoadPackage(label)
 				if err != nil {
 					return err
 				}
-				classes = append(classes, class)
+				packages = append(packages, pkg)
 			}
 		}
 
-		// Export the classes
-		for _, class := range classes {
-			if class.IsDefault {
+		// ExportConfig the packages
+		for _, pkg := range packages {
+			if pkg.IsDefault {
 				continue
 			}
-			fileOut, err := class.Export(destination)
+			fileOut, err := pkg.ExportConfig(destination)
 			if err != nil {
-				fmt.Printf("> Export of '%s' to file %s failed: %v\n", class.Label, fileOut, err)
+				fmt.Printf("> ExportConfig of '%s' to file %s failed: %v\n", pkg.Label, fileOut, err)
 				return err
 			}
-			fmt.Printf("> '%s' was successfully exported to file %s\n", class.Label, fileOut)
+			fmt.Printf("> '%s' was successfully exported to file %s\n", pkg.Label, fileOut)
 		}
 		return nil
 	},
 }
 
 func init() {
-	classCmd.AddCommand(classExportCmd)
-	classExportCmd.Flags().BoolVarP(&example, "example", "e", false, "Export an example class")
-	classExportCmd.Flags().BoolVarP(&exportAll, "all", "a", false, "Export all classes")
+	packageCmd.AddCommand(packageExportCmd)
+	packageExportCmd.Flags().BoolVarP(&example, "example", "e", false, "ExportConfig an example package")
+	packageExportCmd.Flags().BoolVarP(&exportAll, "all", "a", false, "ExportConfig all packages")
 
-	classExportCmd.Flags().StringVarP(&destination, "destination", "d", ".", "Destination for the export")
-	_ = classExportCmd.MarkFlagDirname("destination")
+	packageExportCmd.Flags().StringVarP(&destination, "destination", "d", ".", "Destination for the export")
+	_ = packageExportCmd.MarkFlagDirname("destination")
 }
 
 func exportExample(destination, confPath string) (string, error) {
@@ -107,7 +107,7 @@ func exportExample(destination, confPath string) (string, error) {
 	}
 	defer src.Close()
 
-	dstPath := filepath.Join(destination, "/proji-class-example.toml")
+	dstPath := filepath.Join(destination, "/proji-package-example.toml")
 	dst, err := os.Create(dstPath)
 	if err != nil {
 		return "", err
