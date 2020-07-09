@@ -1,4 +1,3 @@
-//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
@@ -8,20 +7,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var cleanCmd = &cobra.Command{
-	Use:   "clean",
-	Short: "Clean up projects",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return cleanProjects()
-	},
+type projectCleanCommand struct {
+	cmd *cobra.Command
 }
 
-func init() {
-	rootCmd.AddCommand(cleanCmd)
+func newProjectCleanCommand() *projectCleanCommand {
+	var cmd = &cobra.Command{
+		Use:   "clean",
+		Short: "Clean up projects",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return cleanProjects()
+		},
+	}
+	return &projectCleanCommand{cmd: cmd}
 }
 
 func cleanProjects() error {
-	projects, err := session.StorageService.LoadProjects()
+	projects, err := activeSession.storageService.LoadProjects()
 	if err != nil {
 		return errors.Wrap(err, "failed to load all projects")
 	}
@@ -32,7 +34,7 @@ func cleanProjects() error {
 			continue
 		}
 		// Remove the project
-		err := session.StorageService.RemoveProject(project.Path)
+		err := activeSession.storageService.RemoveProject(project.Path)
 		if err != nil {
 			messages.Warning("failed to remove project with path %s, %s", project.Path, err.Error())
 		}

@@ -1,4 +1,3 @@
-//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
@@ -10,27 +9,29 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// initCmd represents the init command.
-var initCmd = &cobra.Command{
-	Use:    "init",
-	Short:  "Initialize user-specific config folder",
-	Long:   initHelp(),
-	Hidden: true,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		err := config.Deploy(
-			session.Version,
-			session.FallbackVersion,
-			false,
-		)
-		if err != nil {
-			return errors.Wrap(err, "could not set up config folder")
-		}
-		return nil
-	},
+type initCommand struct {
+	cmd *cobra.Command
 }
 
-func init() {
-	rootCmd.AddCommand(initCmd)
+func newInitCommand() *initCommand {
+	var cmd = &cobra.Command{
+		Use:    "init",
+		Short:  "Initialize central config folder",
+		Long:   initHelp(),
+		Hidden: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			err := config.Deploy(
+				activeSession.version,
+				activeSession.fallbackVersion,
+				false,
+			)
+			if err != nil {
+				return errors.Wrap(err, "could not set up config folder")
+			}
+			return nil
+		},
+	}
+	return &initCommand{cmd: cmd}
 }
 
 func initHelp() string {

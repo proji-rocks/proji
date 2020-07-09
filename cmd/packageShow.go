@@ -1,4 +1,3 @@
-//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
@@ -19,36 +18,36 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var showAll bool
-
-var packageShowCmd = &cobra.Command{
-	Use:   "show LABEL [LABEL...]",
-	Short: "Show details about one or more packages",
-	PreRun: func(cmd *cobra.Command, args []string) {
-		setMaxColumnWidth()
-	},
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if !showAll && len(args) < 1 {
-			return fmt.Errorf("missing package label")
-		}
-
-		var labels []string
-		if !showAll {
-			labels = args
-		}
-		return showPackages(labels...)
-	},
+type packageShowCommand struct {
+	cmd *cobra.Command
 }
 
-func init() {
-	packageCmd.AddCommand(packageShowCmd)
-	packageShowCmd.Flags().BoolVarP(&showAll, "all", "a", false, "Show all packages")
+func newPackageShowCommand() *packageShowCommand {
+	var showAll bool
+
+	var cmd = &cobra.Command{
+		Use:   "show LABEL [LABEL...]",
+		Short: "Show details about one or more packages",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if !showAll && len(args) < 1 {
+				return fmt.Errorf("missing package label")
+			}
+
+			var labels []string
+			if !showAll {
+				labels = args
+			}
+			return showPackages(labels...)
+		},
+	}
+	cmd.Flags().BoolVarP(&showAll, "all", "a", false, "Show all packages")
+	return &packageShowCommand{cmd: cmd}
 }
 
 func showPackage(preloadedPackage *models.Package, label string) error {
 	var err error
 	if preloadedPackage == nil {
-		preloadedPackage, err = session.StorageService.LoadPackage(label)
+		preloadedPackage, err = activeSession.storageService.LoadPackage(label)
 		if err != nil {
 			return errors.Wrap(err, "failed to load package")
 		}
@@ -61,7 +60,7 @@ func showPackage(preloadedPackage *models.Package, label string) error {
 }
 
 func showPackages(labels ...string) error {
-	packages, err := session.StorageService.LoadPackages(labels...)
+	packages, err := activeSession.storageService.LoadPackages(labels...)
 	if err != nil {
 		return errors.Wrap(err, "failed to load package")
 	}
@@ -77,15 +76,23 @@ func showPackages(labels ...string) error {
 func showBasicInfo(name, label, description string) {
 	fmt.Printf("\nName:  %s\n", name)
 	fmt.Printf("Label: %s\n", label)
-	fmt.Printf("Description: %s\n\n", text.WrapSoft(description, maxColumnWidth))
+	fmt.Printf("Description: %s\n\n", text.WrapSoft(description, activeSession.maxTableColumnWidth))
 }
 
 func showTemplates(out io.Writer, templates []*models.Template) {
 	templatesTable := util.NewInfoTable(out)
 	templatesTable.SetTitle("TEMPLATES")
 	templatesTable.AppendHeader(table.Row{"Destination", "Template Path", "Is File", "Description"})
+
 	for _, template := range templates {
-		templatesTable.AppendRow(table.Row{template.Destination, template.Path, template.IsFile, template.Description})
+		templatesTable.AppendRow(
+			table.Row{
+				template.Destination,
+				template.Path,
+				template.IsFile,
+				template.Description,
+			},
+		)
 	}
 	templatesTable.Render()
 }
@@ -94,8 +101,15 @@ func showPlugins(out io.Writer, plugins []*models.Plugin) {
 	pluginsTable := util.NewInfoTable(out)
 	pluginsTable.SetTitle("PLUGINS")
 	pluginsTable.AppendHeader(table.Row{"Path", "Execution Number", "Description"})
+
 	for _, plugin := range plugins {
-		pluginsTable.AppendRow(table.Row{plugin.Path, plugin.ExecNumber, text.WrapSoft(plugin.Description, maxColumnWidth)})
+		pluginsTable.AppendRow(
+			table.Row{
+				plugin.Path,
+				plugin.ExecNumber,
+				text.WrapSoft(plugin.Description, activeSession.maxTableColumnWidth),
+			},
+		)
 	}
 	pluginsTable.Render()
 }

@@ -1,4 +1,3 @@
-//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
@@ -14,29 +13,33 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var packageAddCmd = &cobra.Command{
-	Use:        "add NAME [NAME...]",
-	Short:      "Add one or more packages",
-	Deprecated: "command 'package add' will be deprecated in the next release",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) < 1 {
-			return fmt.Errorf("missing package name")
-		}
-
-		for _, name := range args {
-			err := addPackage(name)
-			if err != nil {
-				messages.Warning("adding package %s failed, %s", name, err.Error())
-			} else {
-				messages.Info("package %s was successfully added", name)
-			}
-		}
-		return nil
-	},
+type packageAddCommand struct {
+	cmd *cobra.Command
 }
 
-func init() {
-	packageCmd.AddCommand(packageAddCmd)
+func newPackageAddCommand() *packageAddCommand {
+	var cmd = &cobra.Command{
+		Use:        "add NAME [NAME...]",
+		Short:      "Add one or more packages",
+		Deprecated: "command 'package add' will be deprecated in the next release",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				return fmt.Errorf("missing package name")
+			}
+
+			for _, name := range args {
+				err := addPackage(name)
+				if err != nil {
+					messages.Warning("adding package %s failed, %s", name, err.Error())
+				} else {
+					messages.Info("package %s was successfully added", name)
+				}
+			}
+			return nil
+		},
+	}
+
+	return &packageAddCommand{cmd: cmd}
 }
 
 func addPackage(name string) error {
@@ -58,7 +61,7 @@ func addPackage(name string) error {
 	pkg := models.NewPackage(name, label, false)
 	pkg.Templates = templates
 	pkg.Plugins = plugins
-	return session.StorageService.SavePackage(pkg)
+	return activeSession.storageService.SavePackage(pkg)
 }
 
 func getLabel(reader *bufio.Reader) (string, error) {

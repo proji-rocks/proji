@@ -1,4 +1,3 @@
-//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
@@ -12,21 +11,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// lsCmd represents the ls command.
-var packageLsCmd = &cobra.Command{
-	Use:   "ls",
-	Short: "List packages",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return listPackages(os.Stdout)
-	},
+type packageListCommand struct {
+	cmd *cobra.Command
 }
 
-func init() {
-	packageCmd.AddCommand(packageLsCmd)
+func newPackageListCommand() *packageListCommand {
+	var cmd = &cobra.Command{
+		Use:   "ls",
+		Short: "List packages",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return listPackages(os.Stdout)
+		},
+	}
+	return &packageListCommand{cmd: cmd}
 }
 
 func listPackages(out io.Writer) error {
-	packages, err := session.StorageService.LoadPackages()
+	packages, err := activeSession.storageService.LoadPackages()
 	if err != nil {
 		return errors.Wrap(err, "failed to load all packages")
 	}

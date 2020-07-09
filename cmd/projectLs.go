@@ -1,4 +1,3 @@
-//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
@@ -12,23 +11,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var lsCmd = &cobra.Command{
-	Use:   "ls",
-	Short: "List projects",
-	PreRun: func(cmd *cobra.Command, args []string) {
-		setMaxColumnWidth()
-	},
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return listProjects(os.Stdout)
-	},
+type projectListCommand struct {
+	cmd *cobra.Command
 }
 
-func init() {
-	rootCmd.AddCommand(lsCmd)
+func newProjectListCommand() *projectListCommand {
+	var cmd = &cobra.Command{
+		Use:   "ls",
+		Short: "List projects",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return listProjects(os.Stdout)
+		},
+	}
+	return &projectListCommand{cmd: cmd}
 }
 
 func listProjects(out io.Writer) error {
-	projects, err := session.StorageService.LoadProjects()
+	projects, err := activeSession.storageService.LoadProjects()
 	if err != nil {
 		return errors.Wrap(err, "failed to load all projects")
 	}

@@ -1,15 +1,20 @@
-//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
 	"github.com/spf13/cobra"
 )
 
-var projectSetCmd = &cobra.Command{
-	Use:   "set",
-	Short: "Set project information",
+type projectSetCommand struct {
+	cmd *cobra.Command
 }
 
-func init() {
-	rootCmd.AddCommand(projectSetCmd)
+func newProjectSetCommand() *projectSetCommand {
+	var cmd = &cobra.Command{
+		Use:   "set",
+		Short: "Set project information",
+	}
+
+	cmd.AddCommand(newProjectSetPathCommand().cmd)
+
+	return &projectSetCommand{cmd: cmd}
 }
