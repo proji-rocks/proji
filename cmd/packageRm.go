@@ -4,6 +4,10 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/nikoksr/proji/messages"
+
+	"github.com/pkg/errors"
+
 	"github.com/nikoksr/proji/storage/models"
 	"github.com/nikoksr/proji/util"
 
@@ -16,7 +20,6 @@ var packageRmCmd = &cobra.Command{
 	Use:   "rm LABEL [LABEL...]",
 	Short: "Remove one or more packages",
 	RunE: func(cmd *cobra.Command, args []string) error {
-
 		// Collect packages that will be removed
 		var packages []*models.Package
 
@@ -24,7 +27,7 @@ var packageRmCmd = &cobra.Command{
 			var err error
 			packages, err = session.StorageService.LoadPackages()
 			if err != nil {
-				return err
+				return errors.Wrap(err, "failed to load all packages")
 			}
 		} else {
 			if len(args) < 1 {
@@ -34,7 +37,8 @@ var packageRmCmd = &cobra.Command{
 			for _, label := range args {
 				pkg, err := session.StorageService.LoadPackage(label)
 				if err != nil {
-					return err
+					messages.Warning("failed to load package, %s", err.Error())
+					continue
 				}
 				packages = append(packages, pkg)
 			}
@@ -56,10 +60,10 @@ var packageRmCmd = &cobra.Command{
 			}
 			err := session.StorageService.RemovePackage(pkg.Label)
 			if err != nil {
-				fmt.Printf("> Removing '%s' failed: %v\n", pkg.Label, err)
-				return err
+				messages.Warning("failed to remove package %s, %s", pkg.Label, err.Error())
+			} else {
+				messages.Success("successfully remove package %s", pkg.Label)
 			}
-			fmt.Printf("> '%s' was successfully removed\n", pkg.Label)
 		}
 		return nil
 	},

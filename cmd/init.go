@@ -6,6 +6,7 @@ import (
 	"runtime"
 
 	"github.com/nikoksr/proji/config"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -13,6 +14,7 @@ import (
 var initCmd = &cobra.Command{
 	Use:    "init",
 	Short:  "Initialize user-specific config folder",
+	Long:   initHelp(),
 	Hidden: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		err := config.Deploy(
@@ -21,11 +23,7 @@ var initCmd = &cobra.Command{
 			false,
 		)
 		if err != nil {
-			return fmt.Errorf(
-				"could not set up config folder, %s\n\n%s",
-				err.Error(),
-				initHelp(),
-			)
+			return errors.Wrap(err, "could not set up config folder")
 		}
 		return nil
 	},

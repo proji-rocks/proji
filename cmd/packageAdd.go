@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/nikoksr/proji/messages"
+
 	"github.com/nikoksr/proji/storage/models"
 	"github.com/spf13/cobra"
 )
@@ -24,10 +26,10 @@ var packageAddCmd = &cobra.Command{
 		for _, name := range args {
 			err := addPackage(name)
 			if err != nil {
-				fmt.Printf("> Adding package '%s' failed: %v\n", name, err)
-				continue
+				messages.Warning("adding package %s failed, %s", name, err.Error())
+			} else {
+				messages.Info("package %s was successfully added", name)
 			}
-			fmt.Printf("> Package '%s' was successfully added\n", name)
 		}
 		return nil
 	},
@@ -75,7 +77,7 @@ func getLabel(reader *bufio.Reader) (string, error) {
 }
 
 func getTemplates(reader *bufio.Reader) ([]*models.Template, error) {
-	fmt.Println("> Templates (IsFile Destination [Template]): ")
+	fmt.Println("> Templates (IsFile Destination [Template])")
 	templates := make([]*models.Template, 0)
 	destinations := make(map[string]bool)
 
@@ -97,23 +99,23 @@ InputLoop:
 		case lenInput < 1:
 			break InputLoop
 		case lenInput < 2:
-			fmt.Println("> Warning: At least 2 arguments needed.")
+			messages.Warning("minimum of 2 arguments needed")
 			continue InputLoop
 		case lenInput > 3:
-			fmt.Println("> Warning: More than three arguments were given.")
+			messages.Warning("more than 3 arguments given")
 			continue InputLoop
 		}
 
 		isFile, err := strconv.ParseBool(splittedInput[0])
 		if err != nil {
-			fmt.Println("> Warning: Value given for 'IsFile' field is not a boolean (true|false).")
+			messages.Warning("value given for 'IsFile' field is not a boolean (true|false)")
 			continue InputLoop
 		}
 		destination := splittedInput[1]
 
 		// Check if dest exists
 		if _, ok := destinations[destination]; ok {
-			fmt.Printf("> Warning: Destination path '%s' was already defined.\n", destination)
+			messages.Warning("destination path %s was already defined", destination)
 			continue InputLoop
 		}
 
@@ -135,7 +137,7 @@ InputLoop:
 }
 
 func getPlugins(reader *bufio.Reader) ([]*models.Plugin, error) {
-	fmt.Println("> Plugins (Name Path Execution Number): ")
+	fmt.Println("> Plugins (Name Path Execution Number)")
 	plugins := make([]*models.Plugin, 0)
 	pluginPaths := make(map[string]bool)
 	execNumbers := make(map[int]bool)
@@ -156,7 +158,7 @@ func getPlugins(reader *bufio.Reader) ([]*models.Plugin, error) {
 		if lenInput < 1 {
 			break
 		} else if lenInput < 3 {
-			fmt.Println("> Warning: 3 arguments needed.")
+			messages.Warning("minimum of 3 arguments needed")
 			continue
 		}
 
@@ -169,15 +171,15 @@ func getPlugins(reader *bufio.Reader) ([]*models.Plugin, error) {
 
 		execNumber, err := strconv.Atoi(splittedInput[1])
 		if err != nil {
-			fmt.Println("> Warning: Value given for 'ExecNumber' field is not a integer.")
+			messages.Warning("value given for 'ExecNumber' field is not a integer")
 			continue
 		}
 		if execNumber == 0 {
-			fmt.Println("> Warning: Execution number may not be equal to zero")
+			messages.Warning("execution number may not be equal to zero")
 			continue
 		}
 		if _, ok := execNumbers[execNumber]; ok {
-			fmt.Printf("> Warning: Execution number %d was already given\n", execNumber)
+			messages.Warning("execution number %d was already given", execNumber)
 			continue
 		}
 		execNumbers[execNumber] = true
