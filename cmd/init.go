@@ -15,10 +15,12 @@ type initCommand struct {
 
 func newInitCommand() *initCommand {
 	var cmd = &cobra.Command{
-		Use:    "init",
-		Short:  "Initialize central config folder",
-		Long:   initHelp(),
-		Hidden: true,
+		Use:                   "init",
+		Short:                 "Initialize central config folder",
+		Long:                  initHelp(),
+		Hidden:                true,
+		DisableFlagsInUseLine: true,
+		Args:                  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			err := config.Deploy(
 				activeSession.version,

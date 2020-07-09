@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -21,12 +20,11 @@ type projectCreateCommand struct {
 
 func newProjectCreateCommand() *projectCreateCommand {
 	var cmd = &cobra.Command{
-		Use:   "create LABEL NAME [NAME...]",
-		Short: "Create one or more projects",
+		Use:                   "create LABEL NAME [NAME...]",
+		Short:                 "Create one or more projects",
+		DisableFlagsInUseLine: true,
+		Args:                  cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) < 2 {
-				return fmt.Errorf("at least one label and name have to be given")
-			}
 			label := args[0]
 			projectNames := args[1:]
 

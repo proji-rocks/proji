@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"io"
 	"os"
 
 	"github.com/nikoksr/proji/util"
@@ -17,22 +16,24 @@ type projectListCommand struct {
 
 func newProjectListCommand() *projectListCommand {
 	var cmd = &cobra.Command{
-		Use:   "ls",
-		Short: "List projects",
+		Use:                   "ls",
+		Short:                 "List projects",
+		DisableFlagsInUseLine: true,
+		Args:                  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return listProjects(os.Stdout)
+			return listProjects()
 		},
 	}
 	return &projectListCommand{cmd: cmd}
 }
 
-func listProjects(out io.Writer) error {
+func listProjects() error {
 	projects, err := activeSession.storageService.LoadProjects()
 	if err != nil {
 		return errors.Wrap(err, "failed to load all projects")
 	}
 
-	projectsTable := util.NewInfoTable(out)
+	projectsTable := util.NewInfoTable(os.Stdout)
 	projectsTable.AppendHeader(table.Row{"Name", "Install Path", "Package"})
 
 	for _, project := range projects {

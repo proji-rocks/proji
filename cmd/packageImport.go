@@ -34,17 +34,22 @@ func newPackageImportCommand() *packageImportCommand {
 		Use:   "import FILE [FILE...]",
 		Short: "Import one or more packages",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if len(configs) < 1 && len(directories) < 1 && len(remoteRepos) < 1 && len(packages) < 1 && len(collections) < 1 {
-				return fmt.Errorf("no flag given")
+			if cmd.Flags().NFlag() == 0 {
+				if len(args) < 1 {
+					return fmt.Errorf("no config path or flag given")
+				}
+				messages.Warningf("no flag given, using --config by default")
+				configs = args
+			} else {
+				// Concat the two arrays so that '... import --config *.toml' is a valid command.
+				// Without appending the args, proji would only use the first toml-file and not all of
+				// them as intended with the '*'.
+				configs = append(configs, args...)
 			}
-			excludes = append(excludes, activeSession.config.ExcludedPaths...)
+			excludes = append(activeSession.config.ExcludedPaths, excludes...)
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			// Concat the two arrays so that '... import --config *.toml' is a valid command.
-			// Without appending the args, proji would only use the first toml-file and not all of
-			// them as intended with the '*'.
-			configs = append(configs, args...)
 			importTypes := map[string][]string{
 				flagConfig:     configs,
 				flagDirectory:  directories,

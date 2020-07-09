@@ -13,8 +13,10 @@ type projectCleanCommand struct {
 
 func newProjectCleanCommand() *projectCleanCommand {
 	var cmd = &cobra.Command{
-		Use:   "clean",
-		Short: "Clean up projects",
+		Use:                   "clean",
+		Short:                 "Clean up projects",
+		DisableFlagsInUseLine: true,
+		Args:                  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cleanProjects()
 		},

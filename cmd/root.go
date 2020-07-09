@@ -52,7 +52,7 @@ func newRootCommand() *rootCommand {
 			}
 
 			// Leave one empty line above by default
-			fmt.Println()
+			// fmt.Println()
 
 			// Prepare proji
 			prepare()
