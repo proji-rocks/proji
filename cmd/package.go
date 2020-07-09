@@ -1,15 +1,27 @@
-//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
 	"github.com/spf13/cobra"
 )
 
-var packageCmd = &cobra.Command{
-	Use:   "package",
-	Short: "Manage packages",
+type packageCommand struct {
+	cmd *cobra.Command
 }
 
-func init() {
-	rootCmd.AddCommand(packageCmd)
+func newPackageCommand() *packageCommand {
+	var cmd = &cobra.Command{
+		Use:   "package",
+		Short: "Manage packages",
+	}
+
+	cmd.AddCommand(
+		newPackageAddCommand().cmd,
+		newPackageExportCommand().cmd,
+		newPackageImportCommand().cmd,
+		newPackageListCommand().cmd,
+		newPackageRemoveCommand().cmd,
+		newPackageShowCommand().cmd,
+	)
+
+	return &packageCommand{cmd: cmd}
 }

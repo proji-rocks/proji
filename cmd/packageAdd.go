@@ -1,4 +1,3 @@
-//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
@@ -14,29 +13,33 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var packageAddCmd = &cobra.Command{
-	Use:        "add NAME [NAME...]",
-	Short:      "Add one or more packages",
-	Deprecated: "command 'package add' will be deprecated in the next release",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) < 1 {
-			return fmt.Errorf("missing package name")
-		}
-
-		for _, name := range args {
-			err := addPackage(name)
-			if err != nil {
-				messages.Warning("adding package %s failed, %s", name, err.Error())
-			} else {
-				messages.Info("package %s was successfully added", name)
-			}
-		}
-		return nil
-	},
+type packageAddCommand struct {
+	cmd *cobra.Command
 }
 
-func init() {
-	packageCmd.AddCommand(packageAddCmd)
+func newPackageAddCommand() *packageAddCommand {
+	var cmd = &cobra.Command{
+		Use:        "add NAME [NAME...]",
+		Short:      "Add one or more packages",
+		Deprecated: "command 'package add' will be deprecated in the next release",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				return fmt.Errorf("missing package name")
+			}
+
+			for _, name := range args {
+				err := addPackage(name)
+				if err != nil {
+					messages.Warningf("adding package %s failed, %s", name, err.Error())
+				} else {
+					messages.Infof("package %s was successfully added", name)
+				}
+			}
+			return nil
+		},
+	}
+
+	return &packageAddCommand{cmd: cmd}
 }
 
 func addPackage(name string) error {
@@ -58,7 +61,7 @@ func addPackage(name string) error {
 	pkg := models.NewPackage(name, label, false)
 	pkg.Templates = templates
 	pkg.Plugins = plugins
-	return session.StorageService.SavePackage(pkg)
+	return activeSession.storageService.SavePackage(pkg)
 }
 
 func getLabel(reader *bufio.Reader) (string, error) {
@@ -99,23 +102,23 @@ InputLoop:
 		case lenInput < 1:
 			break InputLoop
 		case lenInput < 2:
-			messages.Warning("minimum of 2 arguments needed")
+			messages.Warningf("minimum of 2 arguments needed")
 			continue InputLoop
 		case lenInput > 3:
-			messages.Warning("more than 3 arguments given")
+			messages.Warningf("more than 3 arguments given")
 			continue InputLoop
 		}
 
 		isFile, err := strconv.ParseBool(splittedInput[0])
 		if err != nil {
-			messages.Warning("value given for 'IsFile' field is not a boolean (true|false)")
+			messages.Warningf("value given for 'IsFile' field is not a boolean (true|false)")
 			continue InputLoop
 		}
 		destination := splittedInput[1]
 
 		// Check if dest exists
 		if _, ok := destinations[destination]; ok {
-			messages.Warning("destination path %s was already defined", destination)
+			messages.Warningf("destination path %s was already defined", destination)
 			continue InputLoop
 		}
 
@@ -158,7 +161,7 @@ func getPlugins(reader *bufio.Reader) ([]*models.Plugin, error) {
 		if lenInput < 1 {
 			break
 		} else if lenInput < 3 {
-			messages.Warning("minimum of 3 arguments needed")
+			messages.Warningf("minimum of 3 arguments needed")
 			continue
 		}
 
@@ -171,15 +174,15 @@ func getPlugins(reader *bufio.Reader) ([]*models.Plugin, error) {
 
 		execNumber, err := strconv.Atoi(splittedInput[1])
 		if err != nil {
-			messages.Warning("value given for 'ExecNumber' field is not a integer")
+			messages.Warningf("value given for 'ExecNumber' field is not a integer")
 			continue
 		}
 		if execNumber == 0 {
-			messages.Warning("execution number may not be equal to zero")
+			messages.Warningf("execution number may not be equal to zero")
 			continue
 		}
 		if _, ok := execNumbers[execNumber]; ok {
-			messages.Warning("execution number %d was already given", execNumber)
+			messages.Warningf("execution number %d was already given", execNumber)
 			continue
 		}
 		execNumbers[execNumber] = true

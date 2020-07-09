@@ -1,4 +1,3 @@
-//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
@@ -15,46 +14,49 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var addCmd = &cobra.Command{
-	Use:   "add LABEL PATH",
-	Short: "Add an existing project",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) < 2 {
-			return fmt.Errorf("missing label or path")
-		}
-
-		path, err := filepath.Abs(args[1])
-		if err != nil {
-			return err
-		}
-		if !util.DoesPathExist(path) {
-			return fmt.Errorf("path %s does not exist", path)
-		}
-
-		label := strings.ToLower(args[0])
-
-		err = addProject(label, path)
-		if err != nil {
-			return errors.Wrap(err, "failed to add project")
-		}
-		messages.Success("successfully added project at path %s", path)
-		return nil
-	},
+type projectAddCommand struct {
+	cmd *cobra.Command
 }
 
-func init() {
-	rootCmd.AddCommand(addCmd)
+func newProjectAddCommand() *projectAddCommand {
+	var cmd = &cobra.Command{
+		Use:   "add LABEL PATH",
+		Short: "Add an existing project",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 2 {
+				return fmt.Errorf("missing label or path")
+			}
+
+			path, err := filepath.Abs(args[1])
+			if err != nil {
+				return err
+			}
+			if !util.DoesPathExist(path) {
+				return fmt.Errorf("path %s does not exist", path)
+			}
+
+			label := strings.ToLower(args[0])
+
+			err = addProject(label, path)
+			if err != nil {
+				return errors.Wrap(err, "failed to add project")
+			}
+			messages.Successf("successfully added project at path %s", path)
+			return nil
+		},
+	}
+	return &projectAddCommand{cmd: cmd}
 }
 
 func addProject(label, path string) error {
 	name := filepath.Base(path)
-	pkg, err := session.StorageService.LoadPackage(label)
+	pkg, err := activeSession.storageService.LoadPackage(label)
 	if err != nil {
 		return errors.Wrap(err, "failed to load package")
 	}
 
 	project := models.NewProject(name, path, pkg)
-	err = session.StorageService.SaveProject(project)
+	err = activeSession.storageService.SaveProject(project)
 	if err != nil {
 		return errors.Wrap(err, "failed to save package")
 	}

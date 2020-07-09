@@ -1,4 +1,3 @@
-//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
@@ -14,63 +13,66 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var removeAllPackages, forceRemovePackages bool
-
-var packageRmCmd = &cobra.Command{
-	Use:   "rm LABEL [LABEL...]",
-	Short: "Remove one or more packages",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		// Collect packages that will be removed
-		var packages []*models.Package
-
-		if removeAllPackages {
-			var err error
-			packages, err = session.StorageService.LoadPackages()
-			if err != nil {
-				return errors.Wrap(err, "failed to load all packages")
-			}
-		} else {
-			if len(args) < 1 {
-				return fmt.Errorf("missing package label")
-			}
-
-			for _, label := range args {
-				pkg, err := session.StorageService.LoadPackage(label)
-				if err != nil {
-					messages.Warning("failed to load package, %s", err.Error())
-					continue
-				}
-				packages = append(packages, pkg)
-			}
-		}
-
-		// Remove the packages
-		for _, pkg := range packages {
-			// Skip default packages
-			if pkg.IsDefault {
-				continue
-			}
-			// Ask for confirmation if force flag was not passed
-			if !forceRemovePackages {
-				if !util.WantTo(
-					fmt.Sprintf("Do you really want to remove package '%s (%s)'?", pkg.Name, pkg.Label),
-				) {
-					continue
-				}
-			}
-			err := session.StorageService.RemovePackage(pkg.Label)
-			if err != nil {
-				messages.Warning("failed to remove package %s, %s", pkg.Label, err.Error())
-			} else {
-				messages.Success("successfully remove package %s", pkg.Label)
-			}
-		}
-		return nil
-	},
+type packageRemoveCommand struct {
+	cmd *cobra.Command
 }
 
-func init() {
-	packageCmd.AddCommand(packageRmCmd)
-	packageRmCmd.Flags().BoolVarP(&removeAllPackages, "all", "a", false, "Remove all packages")
-	packageRmCmd.Flags().BoolVarP(&forceRemovePackages, "force", "f", false, "Don't ask for confirmation")
+func newPackageRemoveCommand() *packageRemoveCommand {
+	var removeAllPackages, forceRemovePackages bool
+
+	var cmd = &cobra.Command{
+		Use:   "rm LABEL [LABEL...]",
+		Short: "Remove one or more packages",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Collect packages that will be removed
+			var packages []*models.Package
+
+			if removeAllPackages {
+				var err error
+				packages, err = activeSession.storageService.LoadPackages()
+				if err != nil {
+					return errors.Wrap(err, "failed to load all packages")
+				}
+			} else {
+				if len(args) < 1 {
+					return fmt.Errorf("missing package label")
+				}
+
+				for _, label := range args {
+					pkg, err := activeSession.storageService.LoadPackage(label)
+					if err != nil {
+						messages.Warningf("failed to load package, %s", err.Error())
+						continue
+					}
+					packages = append(packages, pkg)
+				}
+			}
+
+			// Remove the packages
+			for _, pkg := range packages {
+				// Skip default packages
+				if pkg.IsDefault {
+					continue
+				}
+				// Ask for confirmation if force flag was not passed
+				if !forceRemovePackages {
+					if !util.WantTo(
+						fmt.Sprintf("Do you really want to remove package '%s (%s)'?", pkg.Name, pkg.Label),
+					) {
+						continue
+					}
+				}
+				err := activeSession.storageService.RemovePackage(pkg.Label)
+				if err != nil {
+					messages.Warningf("failed to remove package %s, %s", pkg.Label, err.Error())
+				} else {
+					messages.Successf("successfully remove package %s", pkg.Label)
+				}
+			}
+			return nil
+		},
+	}
+	cmd.Flags().BoolVarP(&removeAllPackages, "all", "a", false, "Remove all packages")
+	cmd.Flags().BoolVarP(&forceRemovePackages, "force", "f", false, "Don't ask for confirmation")
+	return &packageRemoveCommand{cmd: cmd}
 }

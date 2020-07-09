@@ -1,4 +1,3 @@
-//nolint:gochecknoglobals,gochecknoinits
 package cmd
 
 import (
@@ -17,75 +16,79 @@ import (
 	"github.com/spf13/viper"
 )
 
-var exportAll, example bool
-var destination string
+type packageExportCommand struct {
+	cmd *cobra.Command
+}
 
-var packageExportCmd = &cobra.Command{
-	Use:   "export LABEL [LABEL...]",
-	Short: "ExportConfig one or more packages",
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if exportAll && example {
-			return fmt.Errorf("the flags 'example' and 'all' cannot be passed at the same time")
-		}
-		return nil
-	},
-	RunE: func(cmd *cobra.Command, args []string) error {
-		// ExportConfig an example package
-		if example {
-			file, err := exportExample(destination, session.Config.BasePath)
-			if err != nil {
-				return errors.Wrap(err, "failed to export example package")
+func newPackageExportCommand() *packageExportCommand {
+	var exportAll, example bool
+	var destination string
+
+	var cmd = &cobra.Command{
+		Use:   "export LABEL [LABEL...]",
+		Short: "Export one or more packages",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if exportAll && example {
+				return fmt.Errorf("the flags 'example' and 'all' cannot be passed at the same time")
 			}
-			messages.Success("successfully exported example package to %s", file)
 			return nil
-		}
-
-		// Collect packages that will be exported
-		var packages []*models.Package
-
-		if exportAll {
-			var err error
-			packages, err = session.StorageService.LoadPackages()
-			if err != nil {
-				return err
-			}
-		} else {
-			if len(args) < 1 {
-				return fmt.Errorf("missing package label")
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Export an example package
+			if example {
+				file, err := exportExample(destination, activeSession.config.BasePath)
+				if err != nil {
+					return errors.Wrap(err, "failed to export example package")
+				}
+				messages.Successf("successfully exported example package to %s", file)
+				return nil
 			}
 
-			for _, label := range args {
-				pkg, err := session.StorageService.LoadPackage(label)
+			// Collect packages that will be exported
+			var packages []*models.Package
+
+			if exportAll {
+				var err error
+				packages, err = activeSession.storageService.LoadPackages()
 				if err != nil {
 					return err
 				}
-				packages = append(packages, pkg)
-			}
-		}
-
-		// ExportConfig the packages
-		for _, pkg := range packages {
-			if pkg.IsDefault {
-				continue
-			}
-			fileOut, err := pkg.ExportConfig(destination)
-			if err != nil {
-				messages.Warning("failed to export package %s to %s, %s", pkg.Label, fileOut, err.Error())
 			} else {
-				messages.Success("successfully exported package %s to %s", pkg.Label, fileOut)
+				if len(args) < 1 {
+					return fmt.Errorf("missing package label")
+				}
+
+				for _, label := range args {
+					pkg, err := activeSession.storageService.LoadPackage(label)
+					if err != nil {
+						return err
+					}
+					packages = append(packages, pkg)
+				}
 			}
-		}
-		return nil
-	},
-}
 
-func init() {
-	packageCmd.AddCommand(packageExportCmd)
-	packageExportCmd.Flags().BoolVarP(&example, "example", "e", false, "ExportConfig an example package")
-	packageExportCmd.Flags().BoolVarP(&exportAll, "all", "a", false, "ExportConfig all packages")
+			// Export the packages
+			for _, pkg := range packages {
+				if pkg.IsDefault {
+					continue
+				}
+				fileOut, err := pkg.ExportConfig(destination)
+				if err != nil {
+					messages.Warningf("failed to export package %s to %s, %s", pkg.Label, fileOut, err.Error())
+				} else {
+					messages.Successf("successfully exported package %s to %s", pkg.Label, fileOut)
+				}
+			}
+			return nil
+		},
+	}
 
-	packageExportCmd.Flags().StringVarP(&destination, "destination", "d", ".", "Destination for the export")
-	_ = packageExportCmd.MarkFlagDirname("destination")
+	cmd.Flags().BoolVarP(&example, "example", "e", false, "Export an example package")
+	cmd.Flags().BoolVarP(&exportAll, "all", "a", false, "Export all packages")
+	cmd.Flags().StringVarP(&destination, "destination", "d", ".", "Destination for the export")
+	_ = cmd.MarkFlagDirname("destination")
+
+	return &packageExportCommand{cmd: cmd}
 }
 
 func exportExample(destination, confPath string) (string, error) {
