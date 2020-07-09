@@ -47,7 +47,9 @@ func newRootCommand() *rootCommand {
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			messages.EnableColors(disableColors)
+			if disableColors {
+				messages.DisableColors()
+			}
 
 			// Leave one empty line above by default
 			fmt.Println()

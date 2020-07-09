@@ -39,11 +39,10 @@ var (
 	prefixError   = colorError(symbolError)
 )
 
-func EnableColors(disableColors bool) {
-	if disableColors {
-		setNoColors()
-		renderPrefixes()
-	}
+// DisableColors disables colorful text output.
+func DisableColors() {
+	setNoColors()
+	renderPrefixes()
 }
 
 func setNoColors() {
