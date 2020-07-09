@@ -136,3 +136,6 @@ func (g *GitHub) Repo() string { return g.RepoName }
 
 // Repo returns the name of the branch.
 func (g *GitHub) Branch() string { return g.BranchName }
+
+// URL the url of the attached repository.
+func (g *GitHub) URL() *url.URL { return g.baseURI }
