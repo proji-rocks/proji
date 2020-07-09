@@ -19,9 +19,6 @@ const (
 )
 
 var (
-	defaultOutput      = os.Stdout
-	defaultErrorOutput = os.Stderr
-
 	defaultColorNone    = color.FgDefault.Render
 	defaultColorInfo    = color.FgBlue.Render
 	defaultColorSuccess = color.FgGreen.Render
@@ -61,23 +58,23 @@ func renderPrefixes() {
 
 // Infof prints a formatted information message.
 func Infof(format string, args ...interface{}) {
-	printPrefixedMessagef(defaultOutput, prefixInfo, format, args...)
+	printPrefixedMessagef(os.Stdout, prefixInfo, format, args...)
 }
 
 // Successf prints a formatted success message.
 func Successf(format string, args ...interface{}) {
-	printPrefixedMessagef(defaultOutput, prefixSuccess, format, args...)
+	printPrefixedMessagef(os.Stdout, prefixSuccess, format, args...)
 }
 
 // Warningf prints a formatted warning message.
 func Warningf(format string, args ...interface{}) {
-	printPrefixedMessagef(defaultOutput, prefixWarning, format, args...)
+	printPrefixedMessagef(os.Stdout, prefixWarning, format, args...)
 }
 
 // Errorf prints a formatted error message.
 func Errorf(format string, err error, args ...interface{}) {
 	format = formatErrorMessage(format, err)
-	printPrefixedMessagef(defaultErrorOutput, prefixError, format, args...)
+	printPrefixedMessagef(os.Stderr, prefixError, format, args...)
 }
 
 func formatErrorMessage(format string, err error) string {
