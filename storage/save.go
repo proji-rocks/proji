@@ -14,7 +14,7 @@ type SaveService interface {
 func (db *Database) SavePackage(pkg *models.Package) error {
 	err := db.Connection.First(pkg, "label = ?", pkg.Label).Error
 	if err == nil {
-		return NewPackageExistsError(pkg.Label)
+		return &PackageExistsError{Label: pkg.Label}
 	}
 	if err == gorm.ErrRecordNotFound {
 		return db.Connection.Create(pkg).Error
@@ -26,7 +26,7 @@ func (db *Database) SavePackage(pkg *models.Package) error {
 func (db *Database) SaveProject(project *models.Project) error {
 	err := db.Connection.First(project, "path = ?", project.Path).Error
 	if err == nil {
-		return NewProjectExistsError(project.Path)
+		return &ProjectExistsError{Path: project.Path}
 	}
 	if err == gorm.ErrRecordNotFound {
 		return db.Connection.Create(project).Error

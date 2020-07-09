@@ -16,7 +16,7 @@ type RemoveService interface {
 func (db *Database) RemovePackage(label string) error {
 	err := db.Connection.Delete(&models.Package{}, "label = ? AND deleted_at IS NULL", label).Error
 	if err == gorm.ErrRecordNotFound {
-		return NewPackageNotFoundError(label)
+		return &PackageNotFoundError{Label: label}
 	}
 	return err
 }
@@ -25,7 +25,7 @@ func (db *Database) RemovePackage(label string) error {
 func (db *Database) PurgePackage(label string) error {
 	err := db.Connection.Unscoped().Delete(&models.Package{}, "label = ?", label).Error
 	if err == gorm.ErrRecordNotFound {
-		return NewPackageNotFoundError(label)
+		return &PackageNotFoundError{Label: label}
 	}
 	return err
 }
@@ -34,7 +34,7 @@ func (db *Database) PurgePackage(label string) error {
 func (db *Database) RemoveProject(path string) error {
 	err := db.Connection.Delete(&models.Project{}, "path = ? AND deleted_at IS NULL", path).Error
 	if err == gorm.ErrRecordNotFound {
-		return NewProjectNotFoundError(path)
+		return &ProjectNotFoundError{Path: path}
 	}
 	return err
 }
@@ -43,7 +43,7 @@ func (db *Database) RemoveProject(path string) error {
 func (db *Database) PurgeProject(path string) error {
 	err := db.Connection.Unscoped().Delete(&models.Project{}, "path = ?", path).Error
 	if err == gorm.ErrRecordNotFound {
-		return NewProjectNotFoundError(path)
+		return &ProjectNotFoundError{Path: path}
 	}
 	return err
 }
