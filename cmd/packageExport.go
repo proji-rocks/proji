@@ -40,7 +40,7 @@ func newPackageExportCommand() *packageExportCommand {
 				if err != nil {
 					return errors.Wrap(err, "failed to export example package")
 				}
-				messages.Success("successfully exported example package to %s", file)
+				messages.Successf("successfully exported example package to %s", file)
 				return nil
 			}
 
@@ -74,9 +74,9 @@ func newPackageExportCommand() *packageExportCommand {
 				}
 				fileOut, err := pkg.ExportConfig(destination)
 				if err != nil {
-					messages.Warning("failed to export package %s to %s, %s", pkg.Label, fileOut, err.Error())
+					messages.Warningf("failed to export package %s to %s, %s", pkg.Label, fileOut, err.Error())
 				} else {
-					messages.Success("successfully exported package %s to %s", pkg.Label, fileOut)
+					messages.Successf("successfully exported package %s to %s", pkg.Label, fileOut)
 				}
 			}
 			return nil

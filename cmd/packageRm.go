@@ -41,7 +41,7 @@ func newPackageRemoveCommand() *packageRemoveCommand {
 				for _, label := range args {
 					pkg, err := activeSession.storageService.LoadPackage(label)
 					if err != nil {
-						messages.Warning("failed to load package, %s", err.Error())
+						messages.Warningf("failed to load package, %s", err.Error())
 						continue
 					}
 					packages = append(packages, pkg)
@@ -64,9 +64,9 @@ func newPackageRemoveCommand() *packageRemoveCommand {
 				}
 				err := activeSession.storageService.RemovePackage(pkg.Label)
 				if err != nil {
-					messages.Warning("failed to remove package %s, %s", pkg.Label, err.Error())
+					messages.Warningf("failed to remove package %s, %s", pkg.Label, err.Error())
 				} else {
-					messages.Success("successfully remove package %s", pkg.Label)
+					messages.Successf("successfully remove package %s", pkg.Label)
 				}
 			}
 			return nil

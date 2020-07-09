@@ -67,7 +67,7 @@ func showPackages(labels ...string) error {
 	for _, pkg := range packages {
 		err = showPackage(pkg, pkg.Label)
 		if err != nil {
-			messages.Warning("failed to show package %s, %s", pkg.Label, err.Error())
+			messages.Warningf("failed to show package %s, %s", pkg.Label, err.Error())
 		}
 	}
 	return nil

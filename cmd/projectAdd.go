@@ -41,7 +41,7 @@ func newProjectAddCommand() *projectAddCommand {
 			if err != nil {
 				return errors.Wrap(err, "failed to add project")
 			}
-			messages.Success("successfully added project at path %s", path)
+			messages.Successf("successfully added project at path %s", path)
 			return nil
 		},
 	}

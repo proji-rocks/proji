@@ -57,10 +57,10 @@ func newProjectRemoveCommand() *projectRemoveCommand {
 				}
 				err := activeSession.storageService.RemoveProject(project.Path)
 				if err != nil {
-					messages.Warning("failed to remove project %s, %s", project.Path, err.Error())
+					messages.Warningf("failed to remove project %s, %s", project.Path, err.Error())
 					continue
 				}
-				messages.Success("successfully removed project %s", project.Path)
+				messages.Successf("successfully removed project %s", project.Path)
 			}
 			return nil
 		},

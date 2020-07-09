@@ -58,9 +58,9 @@ func newPackageImportCommand() *packageImportCommand {
 				for _, path := range paths {
 					result, err := importPackage(path, importType, excludes)
 					if err != nil {
-						messages.Warning("failed to import package, %s", err.Error())
+						messages.Warningf("failed to import package, %s", err.Error())
 					} else {
-						messages.Success(result)
+						messages.Successf(result)
 					}
 				}
 			}

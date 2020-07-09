@@ -1,3 +1,4 @@
+//nolint:gochecknoglobals
 package messages
 
 import (
@@ -59,25 +60,25 @@ func renderPrefixes() {
 	prefixError = colorError(symbolError)
 }
 
-// Info prints a formatted information message.
-func Info(format string, args ...interface{}) {
-	printPrefixedMessage(defaultOutput, prefixInfo, format, args...)
+// Infof prints a formatted information message.
+func Infof(format string, args ...interface{}) {
+	printPrefixedMessagef(defaultOutput, prefixInfo, format, args...)
 }
 
-// Success prints a formatted success message.
-func Success(format string, args ...interface{}) {
-	printPrefixedMessage(defaultOutput, prefixSuccess, format, args...)
+// Successf prints a formatted success message.
+func Successf(format string, args ...interface{}) {
+	printPrefixedMessagef(defaultOutput, prefixSuccess, format, args...)
 }
 
-// Warning prints a formatted warning message.
-func Warning(format string, args ...interface{}) {
-	printPrefixedMessage(defaultOutput, prefixWarning, format, args...)
+// Warningf prints a formatted warning message.
+func Warningf(format string, args ...interface{}) {
+	printPrefixedMessagef(defaultOutput, prefixWarning, format, args...)
 }
 
-// Error prints a formatted error message.
-func Error(format string, err error, args ...interface{}) {
+// Errorf prints a formatted error message.
+func Errorf(format string, err error, args ...interface{}) {
 	format = formatErrorMessage(format, err)
-	printPrefixedMessage(defaultErrorOutput, prefixError, format, args...)
+	printPrefixedMessagef(defaultErrorOutput, prefixError, format, args...)
 }
 
 func formatErrorMessage(format string, err error) string {
@@ -89,7 +90,7 @@ func formatErrorMessage(format string, err error) string {
 	return format + " " + errorString
 }
 
-func printPrefixedMessage(out io.Writer, prefix, format string, args ...interface{}) {
+func printPrefixedMessagef(out io.Writer, prefix, format string, args ...interface{}) {
 	_, err := fmt.Fprintf(out, prefix+format+"\n", args...)
 	if err != nil {
 		log.Fatalf("failed to print message to %v.\n", out)

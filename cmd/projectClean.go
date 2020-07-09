@@ -36,7 +36,7 @@ func cleanProjects() error {
 		// Remove the project
 		err := activeSession.storageService.RemoveProject(project.Path)
 		if err != nil {
-			messages.Warning("failed to remove project with path %s, %s", project.Path, err.Error())
+			messages.Warningf("failed to remove project with path %s, %s", project.Path, err.Error())
 		}
 	}
 	return nil

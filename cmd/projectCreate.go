@@ -43,18 +43,18 @@ func newProjectCreateCommand() *projectCreateCommand {
 			}
 
 			for _, projectName := range projectNames {
-				messages.Info("creating project %s", projectName)
+				messages.Infof("creating project %s", projectName)
 
 				// Try to create the project
 				projectPath := filepath.Join(workingDirectory, projectName)
 				err := createProject(projectName, projectPath, pkg)
 				if err == nil {
-					messages.Success("successfully created project %s", projectName)
+					messages.Successf("successfully created project %s", projectName)
 					continue
 				}
 
 				// Print error message
-				messages.Warning("failed to create project, %s", projectName, err.Error())
+				messages.Warningf("failed to create project, %s", projectName, err.Error())
 
 				// Check if error is because of a project is already associated with this path. Continue loop if so.
 				_, projectExists := err.(*storage.ProjectExistsError)
@@ -70,9 +70,9 @@ func newProjectCreateCommand() *projectCreateCommand {
 				// Try to replace the project
 				err = replaceProject(projectName, projectPath, pkg)
 				if err != nil {
-					messages.Warning("failed to replace project %s, %s", projectName, err.Error())
+					messages.Warningf("failed to replace project %s, %s", projectName, err.Error())
 				} else {
-					messages.Success("successfully replaced project %s", projectName)
+					messages.Successf("successfully replaced project %s", projectName)
 				}
 			}
 			return nil

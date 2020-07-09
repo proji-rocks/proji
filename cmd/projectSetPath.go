@@ -37,7 +37,7 @@ func newProjectSetPathCommand() *projectSetPath {
 			if err != nil {
 				return errors.Wrap(err, "failed setting project path")
 			}
-			messages.Success("successfully set path of project at %s to %s", oldPath, newPath)
+			messages.Successf("successfully set path of project at %s to %s", oldPath, newPath)
 			return nil
 		},
 	}

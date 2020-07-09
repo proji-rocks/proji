@@ -30,7 +30,7 @@ type session struct {
 func Execute() {
 	err := newRootCommand().cmd.Execute()
 	if err != nil {
-		messages.Error("", err)
+		messages.Errorf("", err)
 	}
 }
 
@@ -108,14 +108,14 @@ func prepare() {
 func setupConfig() {
 	err := config.Setup()
 	if err != nil {
-		messages.Error("failed to setup config", err)
+		messages.Errorf("failed to setup config", err)
 		os.Exit(1)
 	}
 }
 
 func loadConfig() {
 	if activeSession == nil {
-		messages.Error("couldn't initialize config", fmt.Errorf("session not found"))
+		messages.Errorf("couldn't initialize config", fmt.Errorf("session not found"))
 	}
 
 	// Run config setup
@@ -127,7 +127,7 @@ func loadConfig() {
 	// Load the config
 	err := activeSession.config.Load()
 	if err != nil {
-		messages.Error("loading config failed", err)
+		messages.Errorf("loading config failed", err)
 		os.Exit(1)
 	}
 }
@@ -139,7 +139,7 @@ func initStorageService() {
 		activeSession.config.DatabaseConnection.DSN,
 	)
 	if err != nil {
-		messages.Error(
+		messages.Errorf(
 			"could not connect to %s database with dsn %s, %s",
 			err,
 			activeSession.config.DatabaseConnection.Driver,
@@ -161,7 +161,7 @@ func getMaxColumnWidth() int {
 	//Load terminal width and set max column width for dynamic rendering
 	terminalWidth, err := getTerminalWidth()
 	if err != nil {
-		messages.Warning("couldn't get terminal width. Falling back to default value, %s", err.Error())
+		messages.Warningf("couldn't get terminal width. Falling back to default value, %s", err.Error())
 		return 50
 	}
 	return terminalWidth / 2
