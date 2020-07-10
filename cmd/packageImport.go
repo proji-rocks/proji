@@ -60,11 +60,9 @@ func newPackageImportCommand() *packageImportCommand {
 			// Import configs
 			for importType, paths := range importTypes {
 				for _, path := range paths {
-					result, err := importPackage(path, importType, excludes)
+					err := importPackage(path, importType, excludes)
 					if err != nil {
 						messages.Warningf("failed to import package, %s", err.Error())
-					} else {
-						messages.Successf(result)
 					}
 				}
 			}
@@ -84,84 +82,127 @@ func newPackageImportCommand() *packageImportCommand {
 	return &packageImportCommand{cmd: cmd}
 }
 
-func importPackage(path, importType string, excludes []string) (string, error) {
-	if util.IsInSlice(excludes, path) {
-		return "", nil
-	}
-
-	pkg := models.NewPackage("", "", false)
+func importPackage(path, importType string, excludes []string) error {
 	var err error
-	var confName, msg string
-	var URL *url.URL
-	var importer repo.Importer
-
-	// In case of a repo, package or collection try to parse the path to a URL structure
-	if importType == "repo" || importType == flagPackage || importType == flagCollection {
-		URL, err = repo.ParseURL(path)
-		if err != nil {
-			return "", err
-		}
-
-		importer, err = models.GetRepoImporterFromURL(URL, activeSession.config.Auth)
-		if err != nil {
-			return "", err
-		}
-	}
-
 	switch importType {
 	case flagConfig:
-		err = pkg.ImportFromConfig(path)
-		if err != nil {
-			return "", err
-		}
-		err = activeSession.storageService.SavePackage(pkg)
-		if err == nil {
-			msg = fmt.Sprintf("successfully imported package %s from %s", pkg.Name, path)
-		}
-	case "dir":
-		err = pkg.ImportFromFolderStructure(path, excludes)
-		if err != nil {
-			return "", err
-		}
-	case "repo":
-		err = pkg.ImportFromRepoStructure(importer, nil)
-		if err != nil {
-			return "", errors.Wrap(err, "failed to import repository structure")
-		}
-	case flagPackage:
-		err = pkg.ImportFromRepo(URL, importer)
-		if err != nil {
-			return "", errors.Wrap(err, "failed to import package from repository")
-		}
-		err = activeSession.storageService.SavePackage(pkg)
-		if err != nil {
-			return "", errors.Wrap(err, "failed to save package")
-		}
-		msg = fmt.Sprintf("successfully imported package %s from %s", pkg.Name, path)
+		err = importPackageFromConfig(path)
+	case flagDirectoryStructure:
+		err = importPackageFromDirectoryStructure(path, excludes)
+	case flagRepoStructure:
+		err = importPackageFromRepoStructure(path)
 	case flagCollection:
-		packageList, err := models.ImportCollectionFromRepo(URL, importer)
-		if err != nil {
-			return "", errors.Wrap(err, "failed to import collection")
-		}
-		for _, pkg := range packageList {
-			err = activeSession.storageService.SavePackage(pkg)
-			if err != nil {
-				msg += fmt.Sprintf("failed to import package %s from %s, %s", pkg.Name, path, err.Error())
-			} else {
-				msg += fmt.Sprintf("successfully imported package %s from %s", pkg.Name, path)
-			}
-		}
-	default:
-		err = fmt.Errorf("path type %s is not supported", importType)
+		err = importPackagesFromCollection(path)
+	case flagPackage:
+		err = importPackageFromRepo(path)
+	}
+	return err
+}
+
+func exportPackageConfig(pkg *models.Package) error {
+	// Export package config to current working directory
+	confName, err := pkg.ExportConfig(".")
+	if err != nil {
+		return err
+	}
+	messages.Successf("successfully imported package %s to %s", pkg.Name, confName)
+	return nil
+}
+
+func importPackageFromConfig(path string) error {
+	// Import the package
+	pkg := models.NewPackage("", "", false)
+	err := pkg.ImportFromConfig(path)
+	if err != nil {
+		return err
 	}
 
-	// Packages that are generated from directories or repos (structure, package and collection) should be exported to a config file first
-	// so that the user can fine tune them
-	if importType != flagConfig && importType != flagPackage && importType != flagCollection {
-		confName, err = pkg.ExportConfig(".")
-		if err == nil {
-			msg = fmt.Sprintf("successfully exported %s to %s", path, confName)
+	// Save the package
+	err = activeSession.storageService.SavePackage(pkg)
+	if err != nil {
+		return err
+	}
+	messages.Successf("successfully imported package %s from %s", pkg.Name, path)
+	return nil
+}
+
+func importPackageFromDirectoryStructure(path string, excludes []string) error {
+	// Import the package
+	pkg := models.NewPackage("", "", false)
+	err := pkg.ImportFromFolderStructure(path, excludes)
+	if err != nil {
+		return err
+	}
+	// Export the config for user editing
+	return exportPackageConfig(pkg)
+}
+
+func importPackageFromRepoStructure(url string) error {
+	// Get repo importer
+	_, importer, err := getURLAndRepoImporter(url)
+	if err != nil {
+		return err
+	}
+
+	// Import the package
+	pkg := models.NewPackage("", "", false)
+	err = pkg.ImportFromRepoStructure(importer, nil)
+	if err != nil {
+		return errors.Wrap(err, "import repository structure")
+	}
+
+	// Export the config for user editing
+	return exportPackageConfig(pkg)
+}
+
+func importPackagesFromCollection(url string) error {
+	// Get parsed url and repo importer
+	parsedURL, importer, err := getURLAndRepoImporter(url)
+	if err != nil {
+		return err
+	}
+
+	// Import the packages
+	packageList, err := models.ImportCollectionFromRepo(parsedURL, importer)
+	if err != nil {
+		return errors.Wrap(err, "failed to import collection")
+	}
+
+	// Save the packages to storage
+	for _, pkg := range packageList {
+		err = activeSession.storageService.SavePackage(pkg)
+		if err != nil {
+			messages.Warningf("failed to import package %s, %s", pkg.Name, err.Error())
+		} else {
+			messages.Successf("successfully imported package %s from %s", pkg.Name, importer.URL().String())
 		}
+	}
+	return nil
+}
+
+func importPackageFromRepo(url string) error {
+	// Get parsed url and repo importer
+	parsedURL, importer, err := getURLAndRepoImporter(url)
+	if err != nil {
+		return err
+	}
+
+	// Import the package
+	pkg := models.NewPackage("", "", false)
+	err = pkg.ImportFromRepo(parsedURL, importer)
+	if err != nil {
+		return errors.Wrap(err, "failed to import package from repository")
+	}
+
+	// Save the package
+	err = activeSession.storageService.SavePackage(pkg)
+	if err != nil {
+		return errors.Wrap(err, "failed to save package")
+	}
+	messages.Successf("successfully imported package %s from %s", pkg.Name, parsedURL.String())
+	return nil
+}
+
 	}
 	return msg, err
 }
