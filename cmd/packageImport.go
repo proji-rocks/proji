@@ -203,6 +203,27 @@ func importPackageFromRepo(url string) error {
 	return nil
 }
 
+// getParsedURL tries to parse an url string to an url object. The parsing will validate the given url
+// that way. If the url is valid, it returns a url object.
+func getParsedURL(url string) (*url.URL, error) {
+	parsedURL, err := repo.ParseURL(url)
+	if err != nil {
+		return nil, errors.Wrap(err, "parse url")
 	}
-	return msg, err
+	return parsedURL, nil
+}
+
+// getURLAndRepoImporter tries to parse a given url string to a url object. If successful (if url valid),
+// it will try to get an importer interface for the given url. If this is successful too, the function
+// will return the parsed url and the importer interface.
+func getURLAndRepoImporter(url string) (*url.URL, repo.Importer, error) {
+	parsedURL, err := getParsedURL(url)
+	if err != nil {
+		return nil, nil, err
+	}
+	importer, err := models.GetRepoImporterFromURL(parsedURL, activeSession.config.Auth)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "get repo importer")
+	}
+	return parsedURL, importer, nil
 }
