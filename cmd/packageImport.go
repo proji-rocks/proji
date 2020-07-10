@@ -16,8 +16,8 @@ import (
 const (
 	flagExclude            = "exclude"
 	flagConfig             = "config"
-	flagDirectoryStructure = "directory"
-	flagRepoStructure      = "remote-repo"
+	flagDirectoryStructure = "dir-structure"
+	flagRepoStructure      = "repo-structure"
 	flagCollection         = "collection"
 	flagPackage            = "package"
 )
@@ -37,8 +37,8 @@ func newPackageImportCommand() *packageImportCommand {
 				if len(args) < 1 {
 					return fmt.Errorf("no config path or flag given")
 				}
-				messages.Warningf("no flag given, using --config by default")
-				configs = args
+				messages.Warningf("no flag given, trying regular package import by default")
+				packages = args
 			} else {
 				// Concat the two arrays so that '... import --config *.toml' is a valid command.
 				// Without appending the args, proji would only use the first toml-file and not all of
@@ -68,12 +68,12 @@ func newPackageImportCommand() *packageImportCommand {
 			}
 		},
 	}
-	cmd.Flags().StringSliceVarP(&directories, flagDirectoryStructure, "d", make([]string, 0), "create an importable config based on the structure of a local directory")
-	cmd.Flags().StringSliceVarP(&configs, flagConfig, "f", make([]string, 0), "import a package from a config file")
-	cmd.Flags().StringSliceVarP(&excludes, flagExclude, "e", make([]string, 0), "folder to exclude from local directory import")
-	cmd.Flags().StringSliceVarP(&remoteRepos, flagRepoStructure, "r", make([]string, 0), "create an importable config based on on the structure of a remote repository")
-	cmd.Flags().StringSliceVarP(&packages, flagPackage, "p", make([]string, 0), "import a package (EXPERIMENTAL)")
+	cmd.Flags().StringSliceVar(&packages, flagPackage, make([]string, 0), "import a package (default) (EXPERIMENTAL)")
 	cmd.Flags().StringSliceVarP(&collections, flagCollection, "c", make([]string, 0), "import a collection of packages (EXPERIMENTAL)")
+	cmd.Flags().StringSliceVarP(&configs, flagConfig, "f", make([]string, 0), "import a package from a config file")
+	cmd.Flags().StringSliceVarP(&remoteRepos, flagRepoStructure, "r", make([]string, 0), "create an importable config based on on the structure of a remote repository")
+	cmd.Flags().StringSliceVarP(&directories, flagDirectoryStructure, "d", make([]string, 0), "create an importable config based on the structure of a local directory")
+	cmd.Flags().StringSliceVarP(&excludes, flagExclude, "e", make([]string, 0), "folder to exclude from local directory import")
 
 	_ = cmd.MarkFlagDirname(flagDirectoryStructure)
 	_ = cmd.MarkFlagFilename(flagConfig)
