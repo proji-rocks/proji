@@ -10,17 +10,16 @@ import (
 	"github.com/nikoksr/proji/storage/models"
 
 	"github.com/nikoksr/proji/repo"
-	"github.com/nikoksr/proji/util"
 	"github.com/spf13/cobra"
 )
 
 const (
-	flagCollection = "collection"
-	flagConfig     = "config"
-	flagDirectory  = "directory"
-	flagExclude    = "exclude"
-	flagPackage    = "package"
-	flagRemoteRepo = "remote-repo"
+	flagExclude            = "exclude"
+	flagConfig             = "config"
+	flagDirectoryStructure = "directory"
+	flagRepoStructure      = "remote-repo"
+	flagCollection         = "collection"
+	flagPackage            = "package"
 )
 
 type packageImportCommand struct {
@@ -51,11 +50,11 @@ func newPackageImportCommand() *packageImportCommand {
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			importTypes := map[string][]string{
-				flagConfig:     configs,
-				flagDirectory:  directories,
-				flagRemoteRepo: remoteRepos,
-				flagPackage:    packages,
-				flagCollection: collections,
+				flagConfig:             configs,
+				flagDirectoryStructure: directories,
+				flagRepoStructure:      remoteRepos,
+				flagPackage:            packages,
+				flagCollection:         collections,
 			}
 
 			// Import configs
@@ -71,14 +70,14 @@ func newPackageImportCommand() *packageImportCommand {
 			}
 		},
 	}
-	cmd.Flags().StringSliceVarP(&directories, flagDirectory, "d", make([]string, 0), "create an importable config based on the structure of a local directory")
+	cmd.Flags().StringSliceVarP(&directories, flagDirectoryStructure, "d", make([]string, 0), "create an importable config based on the structure of a local directory")
 	cmd.Flags().StringSliceVarP(&configs, flagConfig, "f", make([]string, 0), "import a package from a config file")
 	cmd.Flags().StringSliceVarP(&excludes, flagExclude, "e", make([]string, 0), "folder to exclude from local directory import")
-	cmd.Flags().StringSliceVarP(&remoteRepos, flagRemoteRepo, "r", make([]string, 0), "create an importable config based on on the structure of a remote repository")
+	cmd.Flags().StringSliceVarP(&remoteRepos, flagRepoStructure, "r", make([]string, 0), "create an importable config based on on the structure of a remote repository")
 	cmd.Flags().StringSliceVarP(&packages, flagPackage, "p", make([]string, 0), "import a package (EXPERIMENTAL)")
 	cmd.Flags().StringSliceVarP(&collections, flagCollection, "c", make([]string, 0), "import a collection of packages (EXPERIMENTAL)")
 
-	_ = cmd.MarkFlagDirname(flagDirectory)
+	_ = cmd.MarkFlagDirname(flagDirectoryStructure)
 	_ = cmd.MarkFlagFilename(flagConfig)
 	_ = cmd.MarkFlagFilename(flagExclude)
 
