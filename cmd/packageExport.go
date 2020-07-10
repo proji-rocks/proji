@@ -25,7 +25,7 @@ func newPackageExportCommand() *packageExportCommand {
 	var destination string
 
 	var cmd = &cobra.Command{
-		Use:   "export LABEL [LABEL...]",
+		Use:   "export [LABEL...]",
 		Short: "Export one or more packages",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if exportAll && example {

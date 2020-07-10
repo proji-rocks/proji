@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"io"
 	"os"
 
 	"github.com/nikoksr/proji/util"
@@ -17,22 +16,24 @@ type packageListCommand struct {
 
 func newPackageListCommand() *packageListCommand {
 	var cmd = &cobra.Command{
-		Use:   "ls",
-		Short: "List packages",
+		Use:                   "ls",
+		Short:                 "List packages",
+		DisableFlagsInUseLine: true,
+		Args:                  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return listPackages(os.Stdout)
+			return listPackages()
 		},
 	}
 	return &packageListCommand{cmd: cmd}
 }
 
-func listPackages(out io.Writer) error {
+func listPackages() error {
 	packages, err := activeSession.storageService.LoadPackages()
 	if err != nil {
 		return errors.Wrap(err, "failed to load all packages")
 	}
 
-	packagesTable := util.NewInfoTable(out)
+	packagesTable := util.NewInfoTable(os.Stdout)
 	packagesTable.AppendHeader(table.Row{"Name", "Label"})
 
 	for _, pkg := range packages {

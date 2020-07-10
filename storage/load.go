@@ -18,7 +18,7 @@ func (db *Database) LoadPackage(label string) (*models.Package, error) {
 	var pkg models.Package
 	err := db.Connection.Preload(clause.Associations).First(&pkg, "label = ?", label).Error
 	if err == gorm.ErrRecordNotFound {
-		return nil, NewPackageNotFoundError(label)
+		return nil, &PackageNotFoundError{Label: label}
 	}
 	return &pkg, err
 }
@@ -45,7 +45,7 @@ func (db *Database) loadAllPackages() ([]*models.Package, error) {
 	var packages []*models.Package
 	err := db.Connection.Preload(clause.Associations).Find(&packages).Error
 	if err == gorm.ErrRecordNotFound {
-		return nil, NewNoPackagesFoundError()
+		return nil, &NoPackagesFoundError{}
 	}
 	return packages, err
 }
@@ -55,7 +55,7 @@ func (db *Database) LoadProject(path string) (*models.Project, error) {
 	var project models.Project
 	err := db.Connection.Preload(clause.Associations).First(&project, "path = ?", path).Error
 	if err == gorm.ErrRecordNotFound {
-		return nil, NewProjectNotFoundError(path)
+		return nil, &ProjectNotFoundError{Path: path}
 	}
 	return &project, err
 }
@@ -82,7 +82,7 @@ func (db *Database) loadAllProjects() ([]*models.Project, error) {
 	var projects []*models.Project
 	err := db.Connection.Preload(clause.Associations).Find(&projects).Error
 	if err == gorm.ErrRecordNotFound {
-		return nil, NewNoProjectsFoundError()
+		return nil, &NoProjectsFoundError{}
 	}
 	return projects, err
 }

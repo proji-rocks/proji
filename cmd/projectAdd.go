@@ -20,13 +20,11 @@ type projectAddCommand struct {
 
 func newProjectAddCommand() *projectAddCommand {
 	var cmd = &cobra.Command{
-		Use:   "add LABEL PATH",
-		Short: "Add an existing project",
+		Use:                   "add LABEL PATH",
+		Short:                 "Add an existing project",
+		DisableFlagsInUseLine: true,
+		Args:                  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) < 2 {
-				return fmt.Errorf("missing label or path")
-			}
-
 			path, err := filepath.Abs(args[1])
 			if err != nil {
 				return err

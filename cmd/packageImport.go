@@ -10,17 +10,16 @@ import (
 	"github.com/nikoksr/proji/storage/models"
 
 	"github.com/nikoksr/proji/repo"
-	"github.com/nikoksr/proji/util"
 	"github.com/spf13/cobra"
 )
 
 const (
-	flagCollection = "collection"
-	flagConfig     = "config"
-	flagDirectory  = "directory"
-	flagExclude    = "exclude"
-	flagPackage    = "package"
-	flagRemoteRepo = "remote-repo"
+	flagExclude            = "exclude"
+	flagConfig             = "config"
+	flagDirectoryStructure = "dir-structure"
+	flagRepoStructure      = "repo-structure"
+	flagCollection         = "collection"
+	flagPackage            = "package"
 )
 
 type packageImportCommand struct {
@@ -34,130 +33,197 @@ func newPackageImportCommand() *packageImportCommand {
 		Use:   "import FILE [FILE...]",
 		Short: "Import one or more packages",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if len(configs) < 1 && len(directories) < 1 && len(remoteRepos) < 1 && len(packages) < 1 && len(collections) < 1 {
-				return fmt.Errorf("no flag given")
+			if cmd.Flags().NFlag() == 0 {
+				if len(args) < 1 {
+					return fmt.Errorf("no config path or flag given")
+				}
+				messages.Warningf("no flag given, trying regular package import by default")
+				packages = args
+			} else {
+				// Concat the two arrays so that '... import --config *.toml' is a valid command.
+				// Without appending the args, proji would only use the first toml-file and not all of
+				// them as intended with the '*'.
+				configs = append(configs, args...)
 			}
-			excludes = append(excludes, activeSession.config.ExcludedPaths...)
+			excludes = append(activeSession.config.ExcludedPaths, excludes...)
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			// Concat the two arrays so that '... import --config *.toml' is a valid command.
-			// Without appending the args, proji would only use the first toml-file and not all of
-			// them as intended with the '*'.
-			configs = append(configs, args...)
 			importTypes := map[string][]string{
-				flagConfig:     configs,
-				flagDirectory:  directories,
-				flagRemoteRepo: remoteRepos,
-				flagPackage:    packages,
-				flagCollection: collections,
+				flagConfig:             configs,
+				flagDirectoryStructure: directories,
+				flagRepoStructure:      remoteRepos,
+				flagPackage:            packages,
+				flagCollection:         collections,
 			}
 
 			// Import configs
 			for importType, paths := range importTypes {
 				for _, path := range paths {
-					result, err := importPackage(path, importType, excludes)
+					err := importPackage(path, importType, excludes)
 					if err != nil {
 						messages.Warningf("failed to import package, %s", err.Error())
-					} else {
-						messages.Successf(result)
 					}
 				}
 			}
 		},
 	}
-	cmd.Flags().StringSliceVarP(&directories, flagDirectory, "d", make([]string, 0), "create an importable config based on the structure of a local directory")
-	cmd.Flags().StringSliceVarP(&configs, flagConfig, "f", make([]string, 0), "import a package from a config file")
-	cmd.Flags().StringSliceVarP(&excludes, flagExclude, "e", make([]string, 0), "folder to exclude from local directory import")
-	cmd.Flags().StringSliceVarP(&remoteRepos, flagRemoteRepo, "r", make([]string, 0), "create an importable config based on on the structure of a remote repository")
-	cmd.Flags().StringSliceVarP(&packages, flagPackage, "p", make([]string, 0), "import a package (EXPERIMENTAL)")
+	cmd.Flags().StringSliceVar(&packages, flagPackage, make([]string, 0), "import a package (default) (EXPERIMENTAL)")
 	cmd.Flags().StringSliceVarP(&collections, flagCollection, "c", make([]string, 0), "import a collection of packages (EXPERIMENTAL)")
+	cmd.Flags().StringSliceVarP(&configs, flagConfig, "f", make([]string, 0), "import a package from a config file")
+	cmd.Flags().StringSliceVarP(&remoteRepos, flagRepoStructure, "r", make([]string, 0), "create an importable config based on on the structure of a remote repository")
+	cmd.Flags().StringSliceVarP(&directories, flagDirectoryStructure, "d", make([]string, 0), "create an importable config based on the structure of a local directory")
+	cmd.Flags().StringSliceVarP(&excludes, flagExclude, "e", make([]string, 0), "folder to exclude from local directory import")
 
-	_ = cmd.MarkFlagDirname(flagDirectory)
+	_ = cmd.MarkFlagDirname(flagDirectoryStructure)
 	_ = cmd.MarkFlagFilename(flagConfig)
 	_ = cmd.MarkFlagFilename(flagExclude)
 
 	return &packageImportCommand{cmd: cmd}
 }
 
-func importPackage(path, importType string, excludes []string) (string, error) {
-	if util.IsInSlice(excludes, path) {
-		return "", nil
-	}
-
-	pkg := models.NewPackage("", "", false)
+func importPackage(path, importType string, excludes []string) error {
 	var err error
-	var confName, msg string
-	var URL *url.URL
-	var importer repo.Importer
-
-	// In case of a repo, package or collection try to parse the path to a URL structure
-	if importType == "repo" || importType == flagPackage || importType == flagCollection {
-		URL, err = repo.ParseURL(path)
-		if err != nil {
-			return "", err
-		}
-
-		importer, err = models.GetRepoImporterFromURL(URL, activeSession.config.Auth)
-		if err != nil {
-			return "", err
-		}
-	}
-
 	switch importType {
 	case flagConfig:
-		err = pkg.ImportFromConfig(path)
-		if err != nil {
-			return "", err
-		}
-		err = activeSession.storageService.SavePackage(pkg)
-		if err == nil {
-			msg = fmt.Sprintf("successfully imported package %s from %s", pkg.Name, path)
-		}
-	case "dir":
-		err = pkg.ImportFromFolderStructure(path, excludes)
-		if err != nil {
-			return "", err
-		}
-	case "repo":
-		err = pkg.ImportFromRepoStructure(importer, nil)
-		if err != nil {
-			return "", errors.Wrap(err, "failed to import repository structure")
-		}
-	case flagPackage:
-		err = pkg.ImportFromRepo(URL, importer)
-		if err != nil {
-			return "", errors.Wrap(err, "failed to import package from repository")
-		}
-		err = activeSession.storageService.SavePackage(pkg)
-		if err != nil {
-			return "", errors.Wrap(err, "failed to save package")
-		}
-		msg = fmt.Sprintf("successfully imported package %s from %s", pkg.Name, path)
+		err = importPackageFromConfig(path)
+	case flagDirectoryStructure:
+		err = importPackageFromDirectoryStructure(path, excludes)
+	case flagRepoStructure:
+		err = importPackageFromRepoStructure(path)
 	case flagCollection:
-		packageList, err := models.ImportCollectionFromRepo(URL, importer)
-		if err != nil {
-			return "", errors.Wrap(err, "failed to import collection")
-		}
-		for _, pkg := range packageList {
-			err = activeSession.storageService.SavePackage(pkg)
-			if err != nil {
-				msg += fmt.Sprintf("failed to import package %s from %s, %s", pkg.Name, path, err.Error())
-			} else {
-				msg += fmt.Sprintf("successfully imported package %s from %s", pkg.Name, path)
-			}
-		}
-	default:
-		err = fmt.Errorf("path type %s is not supported", importType)
+		err = importPackagesFromCollection(path)
+	case flagPackage:
+		err = importPackageFromRepo(path)
+	}
+	return err
+}
+
+func exportPackageConfig(pkg *models.Package) error {
+	// Export package config to current working directory
+	confName, err := pkg.ExportConfig(".")
+	if err != nil {
+		return err
+	}
+	messages.Successf("successfully imported package %s to %s", pkg.Name, confName)
+	return nil
+}
+
+func importPackageFromConfig(path string) error {
+	// Import the package
+	pkg := models.NewPackage("", "", false)
+	err := pkg.ImportFromConfig(path)
+	if err != nil {
+		return err
 	}
 
-	// Packages that are generated from directories or repos (structure, package and collection) should be exported to a config file first
-	// so that the user can fine tune them
-	if importType != flagConfig && importType != flagPackage && importType != flagCollection {
-		confName, err = pkg.ExportConfig(".")
-		if err == nil {
-			msg = fmt.Sprintf("successfully exported %s to %s", path, confName)
+	// Save the package
+	err = activeSession.storageService.SavePackage(pkg)
+	if err != nil {
+		return err
+	}
+	messages.Successf("successfully imported package %s from %s", pkg.Name, path)
+	return nil
+}
+
+func importPackageFromDirectoryStructure(path string, excludes []string) error {
+	// Import the package
+	pkg := models.NewPackage("", "", false)
+	err := pkg.ImportFromFolderStructure(path, excludes)
+	if err != nil {
+		return err
+	}
+	// Export the config for user editing
+	return exportPackageConfig(pkg)
+}
+
+func importPackageFromRepoStructure(url string) error {
+	// Get repo importer
+	_, importer, err := getURLAndRepoImporter(url)
+	if err != nil {
+		return err
+	}
+
+	// Import the package
+	pkg := models.NewPackage("", "", false)
+	err = pkg.ImportFromRepoStructure(importer, nil)
+	if err != nil {
+		return errors.Wrap(err, "import repository structure")
+	}
+
+	// Export the config for user editing
+	return exportPackageConfig(pkg)
+}
+
+func importPackagesFromCollection(url string) error {
+	// Get parsed url and repo importer
+	parsedURL, importer, err := getURLAndRepoImporter(url)
+	if err != nil {
+		return err
+	}
+
+	// Import the packages
+	packageList, err := models.ImportCollectionFromRepo(parsedURL, importer)
+	if err != nil {
+		return errors.Wrap(err, "failed to import collection")
+	}
+
+	// Save the packages to storage
+	for _, pkg := range packageList {
+		err = activeSession.storageService.SavePackage(pkg)
+		if err != nil {
+			messages.Warningf("failed to import package %s, %s", pkg.Name, err.Error())
+		} else {
+			messages.Successf("successfully imported package %s from %s", pkg.Name, importer.URL().String())
 		}
 	}
-	return msg, err
+	return nil
+}
+
+func importPackageFromRepo(url string) error {
+	// Get parsed url and repo importer
+	parsedURL, importer, err := getURLAndRepoImporter(url)
+	if err != nil {
+		return err
+	}
+
+	// Import the package
+	pkg := models.NewPackage("", "", false)
+	err = pkg.ImportFromRepo(parsedURL, importer)
+	if err != nil {
+		return errors.Wrap(err, "failed to import package from repository")
+	}
+
+	// Save the package
+	err = activeSession.storageService.SavePackage(pkg)
+	if err != nil {
+		return errors.Wrap(err, "failed to save package")
+	}
+	messages.Successf("successfully imported package %s from %s", pkg.Name, parsedURL.String())
+	return nil
+}
+
+// getParsedURL tries to parse an url string to an url object. The parsing will validate the given url
+// that way. If the url is valid, it returns a url object.
+func getParsedURL(url string) (*url.URL, error) {
+	parsedURL, err := repo.ParseURL(url)
+	if err != nil {
+		return nil, errors.Wrap(err, "parse url")
+	}
+	return parsedURL, nil
+}
+
+// getURLAndRepoImporter tries to parse a given url string to a url object. If successful (if url valid),
+// it will try to get an importer interface for the given url. If this is successful too, the function
+// will return the parsed url and the importer interface.
+func getURLAndRepoImporter(url string) (*url.URL, repo.Importer, error) {
+	parsedURL, err := getParsedURL(url)
+	if err != nil {
+		return nil, nil, err
+	}
+	importer, err := models.GetRepoImporterFromURL(parsedURL, activeSession.config.Auth)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "get repo importer")
+	}
+	return parsedURL, importer, nil
 }

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"path/filepath"
 
 	"github.com/nikoksr/proji/messages"
@@ -16,13 +15,11 @@ type projectSetPath struct {
 
 func newProjectSetPathCommand() *projectSetPath {
 	var cmd = &cobra.Command{
-		Use:   "path OLD-PATH NEW-PATH",
-		Short: "Set a new path",
+		Use:                   "path OLD-PATH NEW-PATH",
+		Short:                 "Set a new path",
+		DisableFlagsInUseLine: true,
+		Args:                  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) < 1 {
-				return fmt.Errorf("missing old or new path")
-			}
-
 			oldPath, err := filepath.Abs(args[0])
 			if err != nil {
 				return err

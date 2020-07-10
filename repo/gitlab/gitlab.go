@@ -110,3 +110,6 @@ func (g *GitLab) Repo() string { return g.RepoName }
 
 // Repo returns the name of the branch.
 func (g *GitLab) Branch() string { return g.BranchName }
+
+// URL the url of the attached repository.
+func (g *GitLab) URL() *url.URL { return g.baseURI }

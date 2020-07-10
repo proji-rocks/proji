@@ -13,6 +13,7 @@ type Importer interface {
 	Owner() string                           // Returns the name of the owner
 	Repo() string                            // Returns the name of the repo
 	Branch() string                          // Returns the name of the branch
+	URL() *url.URL                           // Returns the url of the attached repository
 }
 
 // ParseURL parses a regular URL of a remote repository into a "cleaned up" version.

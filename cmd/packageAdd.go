@@ -19,14 +19,12 @@ type packageAddCommand struct {
 
 func newPackageAddCommand() *packageAddCommand {
 	var cmd = &cobra.Command{
-		Use:        "add NAME [NAME...]",
-		Short:      "Add one or more packages",
-		Deprecated: "command 'package add' will be deprecated in the next release",
+		Use:                   "add NAME [NAME...]",
+		Short:                 "Add one or more packages",
+		DisableFlagsInUseLine: true,
+		Args:                  cobra.MinimumNArgs(1),
+		Deprecated:            "command 'package add' will be deprecated in the next release",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) < 1 {
-				return fmt.Errorf("missing package name")
-			}
-
 			for _, name := range args {
 				err := addPackage(name)
 				if err != nil {
