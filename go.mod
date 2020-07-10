@@ -8,7 +8,7 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/google/go-github/v31 v31.0.0
-	github.com/gookit/color v1.2.5
+	github.com/gookit/color v1.2.6
 	github.com/hashicorp/go-retryablehttp v0.6.6 // indirect
 	github.com/jedib0t/go-pretty/v6 v6.0.4
 	github.com/kr/text v0.2.0 // indirect
