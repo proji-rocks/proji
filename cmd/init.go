@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/nikoksr/proji/config"
+	"github.com/nikoksr/proji/internal/config"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -23,8 +23,8 @@ func newInitCommand() *initCommand {
 		Args:                  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			err := config.Deploy(
-				activeSession.version,
-				activeSession.fallbackVersion,
+				session.version,
+				session.fallbackVersion,
 				false,
 			)
 			if err != nil {

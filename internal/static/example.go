@@ -1,0 +1,3 @@
+package static
+
+const ExamplePackageConfig = ``

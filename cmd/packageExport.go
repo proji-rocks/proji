@@ -6,12 +6,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/nikoksr/proji/messages"
-
+	"github.com/nikoksr/proji/internal/message"
+	"github.com/nikoksr/proji/pkg/domain"
 	"github.com/pkg/errors"
-
-	"github.com/nikoksr/proji/storage/models"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -25,7 +22,7 @@ func newPackageExportCommand() *packageExportCommand {
 	var destination string
 
 	var cmd = &cobra.Command{
-		Use:   "export [LABEL...]",
+		Use:   "export LABEL [LABEL...]",
 		Short: "Export one or more packages",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if exportAll && example {
@@ -36,20 +33,20 @@ func newPackageExportCommand() *packageExportCommand {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Export an example package
 			if example {
-				file, err := exportExample(destination, activeSession.config.BasePath)
+				file, err := exportExample(destination, session.config.BasePath)
 				if err != nil {
 					return errors.Wrap(err, "failed to export example package")
 				}
-				messages.Successf("successfully exported example package to %s", file)
+				message.Successf("successfully exported example package to %s", file)
 				return nil
 			}
 
 			// Collect packages that will be exported
-			var packages []*models.Package
+			var packages []*domain.Package
+			var err error
 
 			if exportAll {
-				var err error
-				packages, err = activeSession.storageService.LoadPackages()
+				packages, err = session.packageService.LoadPackageList()
 				if err != nil {
 					return err
 				}
@@ -57,13 +54,9 @@ func newPackageExportCommand() *packageExportCommand {
 				if len(args) < 1 {
 					return fmt.Errorf("missing package label")
 				}
-
-				for _, label := range args {
-					pkg, err := activeSession.storageService.LoadPackage(label)
-					if err != nil {
-						return err
-					}
-					packages = append(packages, pkg)
+				packages, err = session.packageService.LoadPackageList(args...)
+				if err != nil {
+					return err
 				}
 			}
 
@@ -72,11 +65,12 @@ func newPackageExportCommand() *packageExportCommand {
 				if pkg.IsDefault {
 					continue
 				}
-				fileOut, err := pkg.ExportConfig(destination)
+
+				exportedTo, err := session.packageService.ExportPackageToConfig(*pkg, ".")
 				if err != nil {
-					messages.Warningf("failed to export package %s to %s, %s", pkg.Label, fileOut, err.Error())
+					message.Warningf("failed to export package %s to %s, %v", pkg.Label, exportedTo, err)
 				} else {
-					messages.Successf("successfully exported package %s to %s", pkg.Label, fileOut)
+					message.Successf("successfully exported package %s to %s", pkg.Label, exportedTo)
 				}
 			}
 			return nil

@@ -5,16 +5,12 @@ import (
 	"io"
 	"os"
 
-	"github.com/nikoksr/proji/messages"
-
-	"github.com/jedib0t/go-pretty/v6/text"
-	"github.com/pkg/errors"
-
-	"github.com/nikoksr/proji/util"
-
-	"github.com/nikoksr/proji/storage/models"
-
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/text"
+	"github.com/nikoksr/proji/internal/message"
+	"github.com/nikoksr/proji/internal/util"
+	"github.com/nikoksr/proji/pkg/domain"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -44,10 +40,10 @@ func newPackageShowCommand() *packageShowCommand {
 	return &packageShowCommand{cmd: cmd}
 }
 
-func showPackage(preloadedPackage *models.Package, label string) error {
+func showPackage(preloadedPackage *domain.Package, label string) error {
 	var err error
 	if preloadedPackage == nil {
-		preloadedPackage, err = activeSession.storageService.LoadPackage(label)
+		preloadedPackage, err = session.packageService.LoadPackage(label)
 		if err != nil {
 			return errors.Wrap(err, "failed to load package")
 		}
@@ -60,14 +56,14 @@ func showPackage(preloadedPackage *models.Package, label string) error {
 }
 
 func showPackages(labels ...string) error {
-	packages, err := activeSession.storageService.LoadPackages(labels...)
+	packages, err := session.packageService.LoadPackageList(labels...)
 	if err != nil {
 		return errors.Wrap(err, "failed to load package")
 	}
 	for _, pkg := range packages {
 		err = showPackage(pkg, pkg.Label)
 		if err != nil {
-			messages.Warningf("failed to show package %s, %s", pkg.Label, err.Error())
+			message.Warningf("failed to show package %s, %s", pkg.Label, err.Error())
 		}
 	}
 	return nil
@@ -76,10 +72,10 @@ func showPackages(labels ...string) error {
 func showBasicInfo(name, label, description string) {
 	fmt.Printf("\nName:  %s\n", name)
 	fmt.Printf("Label: %s\n", label)
-	fmt.Printf("Description: %s\n\n", text.WrapSoft(description, activeSession.maxTableColumnWidth))
+	fmt.Printf("Description: %s\n\n", text.WrapSoft(description, session.maxTableColumnWidth))
 }
 
-func showTemplates(out io.Writer, templates []*models.Template) {
+func showTemplates(out io.Writer, templates []*domain.Template) {
 	templatesTable := util.NewInfoTable(out)
 	templatesTable.SetTitle("TEMPLATES")
 	templatesTable.AppendHeader(table.Row{"Destination", "Template Path", "Is File", "Description"})
@@ -97,7 +93,7 @@ func showTemplates(out io.Writer, templates []*models.Template) {
 	templatesTable.Render()
 }
 
-func showPlugins(out io.Writer, plugins []*models.Plugin) {
+func showPlugins(out io.Writer, plugins []*domain.Plugin) {
 	pluginsTable := util.NewInfoTable(out)
 	pluginsTable.SetTitle("PLUGINS")
 	pluginsTable.AppendHeader(table.Row{"Path", "Execution Number", "Description"})
@@ -107,7 +103,7 @@ func showPlugins(out io.Writer, plugins []*models.Plugin) {
 			table.Row{
 				plugin.Path,
 				plugin.ExecNumber,
-				text.WrapSoft(plugin.Description, activeSession.maxTableColumnWidth),
+				text.WrapSoft(plugin.Description, session.maxTableColumnWidth),
 			},
 		)
 	}

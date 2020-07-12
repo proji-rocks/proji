@@ -5,12 +5,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/nikoksr/proji/messages"
+	"github.com/nikoksr/proji/pkg/domain"
 
-	"github.com/nikoksr/proji/storage/models"
+	"github.com/nikoksr/proji/internal/message"
 	"github.com/pkg/errors"
 
-	"github.com/nikoksr/proji/util"
+	"github.com/nikoksr/proji/internal/util"
 	"github.com/spf13/cobra"
 )
 
@@ -39,7 +39,7 @@ func newProjectAddCommand() *projectAddCommand {
 			if err != nil {
 				return errors.Wrap(err, "failed to add project")
 			}
-			messages.Successf("successfully added project at path %s", path)
+			message.Successf("successfully added project at path %s", path)
 			return nil
 		},
 	}
@@ -48,13 +48,13 @@ func newProjectAddCommand() *projectAddCommand {
 
 func addProject(label, path string) error {
 	name := filepath.Base(path)
-	pkg, err := activeSession.storageService.LoadPackage(label)
+	pkg, err := session.packageService.LoadPackage(label)
 	if err != nil {
 		return errors.Wrap(err, "failed to load package")
 	}
 
-	project := models.NewProject(name, path, pkg)
-	err = activeSession.storageService.SaveProject(project)
+	project := domain.NewProject(name, path, pkg)
+	err = session.projectService.StoreProject(project)
 	if err != nil {
 		return errors.Wrap(err, "failed to save package")
 	}

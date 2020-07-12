@@ -6,6 +6,7 @@ require (
 	github.com/cavaliercoder/grab v2.0.0+incompatible
 	github.com/denisenkom/go-mssqldb v0.0.0-20200620013148-b91950f658ec // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
+	github.com/golang/mock v1.4.3 // indirect
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/google/go-github/v31 v31.0.0
 	github.com/gookit/color v1.2.6
@@ -23,11 +24,12 @@ require (
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/spf13/pflag v1.0.5
+	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.6.1
 	github.com/xanzy/go-gitlab v0.33.0
 	github.com/yuin/gopher-lua v0.0.0-20200603152657-dc2b0ca8b37e
+	gocloud.dev v0.20.0 // indirect
 	golang.org/x/crypto v0.0.0-20200707235045-ab33eee955e0
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d

@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/nikoksr/proji/messages"
+	"github.com/nikoksr/proji/pkg/domain"
 
-	"github.com/nikoksr/proji/storage/models"
+	"github.com/nikoksr/proji/internal/message"
 	"github.com/spf13/cobra"
 )
 
@@ -28,9 +28,9 @@ func newPackageAddCommand() *packageAddCommand {
 			for _, name := range args {
 				err := addPackage(name)
 				if err != nil {
-					messages.Warningf("adding package %s failed, %s", name, err.Error())
+					message.Warningf("adding package %s failed, %s", name, err.Error())
 				} else {
-					messages.Infof("package %s was successfully added", name)
+					message.Infof("package %s was successfully added", name)
 				}
 			}
 			return nil
@@ -56,10 +56,11 @@ func addPackage(name string) error {
 		return err
 	}
 
-	pkg := models.NewPackage(name, label, false)
+	pkg := domain.NewPackage(name, label)
 	pkg.Templates = templates
 	pkg.Plugins = plugins
-	return activeSession.storageService.SavePackage(pkg)
+
+	return session.packageService.StorePackage(pkg)
 }
 
 func getLabel(reader *bufio.Reader) (string, error) {
@@ -77,9 +78,9 @@ func getLabel(reader *bufio.Reader) (string, error) {
 	return labels[0], nil
 }
 
-func getTemplates(reader *bufio.Reader) ([]*models.Template, error) {
+func getTemplates(reader *bufio.Reader) ([]*domain.Template, error) {
 	fmt.Println("> Templates (IsFile Destination [Template])")
-	templates := make([]*models.Template, 0)
+	templates := make([]*domain.Template, 0)
 	destinations := make(map[string]bool)
 
 InputLoop:
@@ -100,23 +101,23 @@ InputLoop:
 		case lenInput < 1:
 			break InputLoop
 		case lenInput < 2:
-			messages.Warningf("minimum of 2 arguments needed")
+			message.Warningf("minimum of 2 arguments needed")
 			continue InputLoop
 		case lenInput > 3:
-			messages.Warningf("more than 3 arguments given")
+			message.Warningf("more than 3 arguments given")
 			continue InputLoop
 		}
 
 		isFile, err := strconv.ParseBool(splittedInput[0])
 		if err != nil {
-			messages.Warningf("value given for 'IsFile' field is not a boolean (true|false)")
+			message.Warningf("value given for 'IsFile' field is not a boolean (true|false)")
 			continue InputLoop
 		}
 		destination := splittedInput[1]
 
 		// Check if dest exists
 		if _, ok := destinations[destination]; ok {
-			messages.Warningf("destination path %s was already defined", destination)
+			message.Warningf("destination path %s was already defined", destination)
 			continue InputLoop
 		}
 
@@ -127,7 +128,7 @@ InputLoop:
 
 		// Add folder(s) to map
 		destinations[destination] = true
-		templates = append(templates, &models.Template{
+		templates = append(templates, &domain.Template{
 			IsFile:      isFile,
 			Path:        path,
 			Destination: destination,
@@ -137,9 +138,9 @@ InputLoop:
 	return templates, nil
 }
 
-func getPlugins(reader *bufio.Reader) ([]*models.Plugin, error) {
+func getPlugins(reader *bufio.Reader) ([]*domain.Plugin, error) {
 	fmt.Println("> Plugins (Name Path Execution Number)")
-	plugins := make([]*models.Plugin, 0)
+	plugins := make([]*domain.Plugin, 0)
 	pluginPaths := make(map[string]bool)
 	execNumbers := make(map[int]bool)
 
@@ -159,7 +160,7 @@ func getPlugins(reader *bufio.Reader) ([]*models.Plugin, error) {
 		if lenInput < 1 {
 			break
 		} else if lenInput < 3 {
-			messages.Warningf("minimum of 3 arguments needed")
+			message.Warningf("minimum of 3 arguments needed")
 			continue
 		}
 
@@ -172,15 +173,15 @@ func getPlugins(reader *bufio.Reader) ([]*models.Plugin, error) {
 
 		execNumber, err := strconv.Atoi(splittedInput[1])
 		if err != nil {
-			messages.Warningf("value given for 'ExecNumber' field is not a integer")
+			message.Warningf("value given for 'ExecNumber' field is not a integer")
 			continue
 		}
 		if execNumber == 0 {
-			messages.Warningf("execution number may not be equal to zero")
+			message.Warningf("execution number may not be equal to zero")
 			continue
 		}
 		if _, ok := execNumbers[execNumber]; ok {
-			messages.Warningf("execution number %d was already given", execNumber)
+			message.Warningf("execution number %d was already given", execNumber)
 			continue
 		}
 		execNumbers[execNumber] = true
@@ -190,7 +191,7 @@ func getPlugins(reader *bufio.Reader) ([]*models.Plugin, error) {
 		if len(splittedInput) == 3 {
 			pluginDescription = splittedInput[2]
 		}
-		plugins = append(plugins, &models.Plugin{
+		plugins = append(plugins, &domain.Plugin{
 			Path:        pluginPath,
 			ExecNumber:  execNumber,
 			Description: pluginDescription,

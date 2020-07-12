@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/nikoksr/proji/util"
+	"github.com/nikoksr/proji/internal/util"
 	"github.com/pkg/errors"
 
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -28,7 +28,7 @@ func newProjectListCommand() *projectListCommand {
 }
 
 func listProjects() error {
-	projects, err := activeSession.storageService.LoadProjects()
+	projects, err := session.projectService.LoadProjectList()
 	if err != nil {
 		return errors.Wrap(err, "failed to load all projects")
 	}

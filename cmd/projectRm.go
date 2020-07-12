@@ -3,10 +3,10 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/nikoksr/proji/messages"
+	"github.com/nikoksr/proji/pkg/domain"
 
-	"github.com/nikoksr/proji/storage/models"
-	"github.com/nikoksr/proji/util"
+	"github.com/nikoksr/proji/internal/message"
+	"github.com/nikoksr/proji/internal/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -23,11 +23,11 @@ func newProjectRemoveCommand() *projectRemoveCommand {
 		Short: "Remove one or more projects",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Collect projects that will be removed
-			var projects []*models.Project
+			var projects []*domain.Project
 
 			if removeAllProjects {
 				var err error
-				projects, err = activeSession.storageService.LoadProjects()
+				projects, err = session.projectService.LoadProjectList()
 				if err != nil {
 					return errors.Wrap(err, "failed to load all projects")
 				}
@@ -37,7 +37,7 @@ func newProjectRemoveCommand() *projectRemoveCommand {
 				}
 
 				for _, path := range args {
-					project, err := activeSession.storageService.LoadProject(path)
+					project, err := session.projectService.LoadProject(path)
 					if err != nil {
 						return errors.Wrap(err, "failed to load project")
 					}
@@ -55,12 +55,12 @@ func newProjectRemoveCommand() *projectRemoveCommand {
 						continue
 					}
 				}
-				err := activeSession.storageService.RemoveProject(project.Path)
+				err := session.projectService.RemoveProject(project.Path)
 				if err != nil {
-					messages.Warningf("failed to remove project %s, %s", project.Path, err.Error())
+					message.Warningf("failed to remove project %s, %s", project.Path, err.Error())
 					continue
 				}
-				messages.Successf("successfully removed project %s", project.Path)
+				message.Successf("successfully removed project %s", project.Path)
 			}
 			return nil
 		},

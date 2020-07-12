@@ -1,10 +1,10 @@
 #!/bin/sh
 
 # Git init, add and commit project
-echo "> Initializing git-repo"
+echo "> Initializing git-remote"
 
 if [ -d ".git" ]; then
-    echo "Warning: Existing git repo was found."
+    echo "Warning: Existing git remote was found."
     exit
 fi
 

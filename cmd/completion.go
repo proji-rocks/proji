@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/nikoksr/proji/static"
+	"github.com/nikoksr/proji/internal/static"
 
 	"github.com/spf13/cobra"
 )
