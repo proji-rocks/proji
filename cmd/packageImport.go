@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	flagFilter             = "exclude"
+	flagFilter             = "filter"
 	flagConfig             = "config"
 	flagDirectoryStructure = "dir-structure"
 	flagRepoStructure      = "remote-structure"
@@ -78,7 +78,7 @@ func newPackageImportCommand() *packageImportCommand {
 	cmd.Flags().StringSliceVarP(&configs, flagConfig, "c", make([]string, 0), "import a package from a config file")
 	cmd.Flags().StringSliceVarP(&remoteRepos, flagRepoStructure, "r", make([]string, 0), "create an importable config based on on the structure of a remote repository")
 	cmd.Flags().StringSliceVarP(&directories, flagDirectoryStructure, "d", make([]string, 0), "create an importable config based on the structure of a local directory")
-	cmd.Flags().StringSliceVarP(&filters, flagFilter, "f", make([]string, 0), "filter imports with regex")
+	cmd.Flags().StringSliceVarP(&filters, flagFilter, "f", make([]string, 0), "filter imports with regex (only works with -l, -r, -d)")
 
 	_ = cmd.MarkFlagDirname(flagDirectoryStructure)
 	_ = cmd.MarkFlagFilename(flagConfig)
