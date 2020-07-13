@@ -2,15 +2,14 @@ package cmd
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/nikoksr/proji/internal/message"
+	"github.com/nikoksr/proji/internal/static"
 	"github.com/nikoksr/proji/pkg/domain"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 type packageExportCommand struct {
@@ -18,26 +17,26 @@ type packageExportCommand struct {
 }
 
 func newPackageExportCommand() *packageExportCommand {
-	var exportAll, example bool
+	var exportAll, template bool
 	var destination string
 
 	var cmd = &cobra.Command{
 		Use:   "export LABEL [LABEL...]",
 		Short: "Export one or more packages",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if exportAll && example {
-				return fmt.Errorf("the flags 'example' and 'all' cannot be passed at the same time")
+			if exportAll && template {
+				return fmt.Errorf("the flags 'template' and 'all' cannot be used at the same time")
 			}
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Export an example package
-			if example {
-				file, err := exportExample(destination, session.config.BasePath)
+			if template {
+				file, err := exportTemplate(destination, session.config.BasePath)
 				if err != nil {
-					return errors.Wrap(err, "failed to export example package")
+					return errors.Wrap(err, "failed to export config template")
 				}
-				message.Successf("successfully exported example package to %s", file)
+				message.Successf("successfully exported config template to %s", file)
 				return nil
 			}
 
@@ -77,42 +76,22 @@ func newPackageExportCommand() *packageExportCommand {
 		},
 	}
 
-	cmd.Flags().BoolVarP(&example, "example", "e", false, "Export an example package")
+	cmd.Flags().BoolVarP(&template, "template", "t", false, "Export a package config template")
 	cmd.Flags().BoolVarP(&exportAll, "all", "a", false, "Export all packages")
 	cmd.Flags().StringVarP(&destination, "destination", "d", ".", "Destination for the export")
+
 	_ = cmd.MarkFlagDirname("destination")
 
 	return &packageExportCommand{cmd: cmd}
 }
 
-func exportExample(destination, confPath string) (string, error) {
-	examplePath, ok := viper.Get("examples.path").(string)
-	if !ok {
-		return "", fmt.Errorf("could not read path of example config file")
-	}
-
-	examplePath = filepath.Join(confPath, examplePath)
-	sourceFileStat, err := os.Stat(examplePath)
+func exportTemplate(destination, confPath string) (string, error) {
+	destination = filepath.Join(destination, "proji-package-template.toml")
+	file, err := os.Create(destination)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "create config template")
 	}
-
-	if !sourceFileStat.Mode().IsRegular() {
-		return "", fmt.Errorf("%s is not a regular file", examplePath)
-	}
-
-	src, err := os.Open(examplePath)
-	if err != nil {
-		return "", err
-	}
-	defer src.Close()
-
-	dstPath := filepath.Join(destination, "/proji-package-example.toml")
-	dst, err := os.Create(dstPath)
-	if err != nil {
-		return "", err
-	}
-	defer dst.Close()
-	_, err = io.Copy(dst, src)
-	return dstPath, err
+	defer file.Close()
+	file.WriteString(static.PackageConfigTemplate)
+	return destination, err
 }
