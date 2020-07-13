@@ -16,7 +16,7 @@ type initCommand struct {
 func newInitCommand() *initCommand {
 	var cmd = &cobra.Command{
 		Use:                   "init",
-		Short:                 "Initialize central config folder",
+		Short:                 "Initialize proji",
 		Long:                  initHelp(),
 		Hidden:                true,
 		DisableFlagsInUseLine: true,
