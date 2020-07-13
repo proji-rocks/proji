@@ -1,99 +1,79 @@
-# Proji class template file.
+# Proji Example Package Config
 #
-# Import config files like this to proji with 'proji class import <file>'.
-# Proji will create a class based on this config file. The class can then be used over
-# and over again to create your new projects.
-# Export an existing class with 'proji class export <class-label>'. Proji will create
-# a config file of your class.
+# Import config files like this to proji with 'proji package import --config <file>'.
+# Proji will create a package based on this config file. The package can then always be used as
+# a template for new projects.
+# Export an existing package with 'proji package export <package-label>'. Proji will create
+# a config file of your package in your current working directory.
 #
-# Classes are like blueprints for the structure and behavior of projects. A class is created
-# once and can be used at any time to easily create new projects. This is what will save you
-# a lot of time in the future and make your projects evenly structured.
+# Packages are like blueprints for the structure and behavior of projects. A package is created
+# once and can be used as a template at any time to easily create new projects. This is what will save you
+# a lot of time over the long run and structure your projects consistently.
 #
 # NAME
-# The name is a long string describing the class' purpose. Not a text but a descriptive string.
-# name = "myTestClass" <- Good
-# name = "t1"          <- Bad, too short and not expressive
-name = "my-example"
+# The name is a long string describing the packages general purpose. Not like a descriptive paragraph but
+# more like a title that let's others know what your package is about.
+# name = "my-example-package" <- Good
+# name = "t1"                 <- Bad, too short and not expressive
+name = "my-example-package"
 
 # LABEL
-# The label is a very short string which is used to quickly and eaily use your class. It would
-# be annoying to always type the whole name when you want to use your class. Typically labels
-# are an abbreviation of the name or somthing in general that lets you quickly identifies your class.
-# A label has to be unique in proji. You can't have two identical labels.
-# e.g.: proji create YOUR-LABEL your-new-project1 your-new-project2
-# label = "mtc"                <- Good
-# label = "myTestClassLabel"   <- Bad - too long
-# label = "ilt"                <- Bad - unrelated to class name
-label = "mex"
+# The label is a very short string which is used as projis internal identifier for packages. Labels have to
+# be unique! You can't have two identical labels.
+# Usually the label is an abbreviation of the package name, but it can also simply be a short string that
+# quickly and uniquely identifies a class.
+# label = "mep"              <- Good
+# label = "myTestClassLabel" <- Bad - too long
+# label = "ilt"              <- Bad - unrelated to package name
+label = "mep"
 
-# FOLDERS
-# Folders to create in or copy to your projects base folder.
-# 'destination' is a relative path inside the project folder.
-# 'template' is a relative path to a folder in the templates folder (~/.config/proji/templates/).
-# If you don't want to create a folder by copying a template, just leave
-# out the template field and only specify the Destination. This will create an empty folder.
+# DESCRIPTION (optional)
+# An optional text field to describe your package in detail.
+description = "This is proji's example package."
 
-# No template, just create an empty folder.
-[[folder]]
-  destination = "src/"
-  template = ""
+# TEMPLATES
+# A template for a file or directory. Templates are stored in the template folder which you can find in
+# projis config folder. Simply place files or folders that you want to be used a template in this folder
+# and reference them here.
+# Notice that you don't have to specify a template. When no template is given proji will create a blank
+# file or folder.
+# You have to specify at least one template or the package will not be importable.
 
-[[folder]]
-  destination = "docs/"
-  template = ""
+# A file with a template, this creates a file at the given destination based on the file specified by the path field.
+[[template]]
+  is_file = true                 # is it a file or a folder?
+  destination = "README.md"      # name of the file that will be created
+  path = "my-readme-template.md" # the relative path to the template
+  description = ""               # optional template description
 
-[[folder]]
-  destination = "tests/"
-  template = ""
+# A file without a template, this creates a blank file.
+[[template]]
+  is_file = true
+  destination = "src/main.cpp"
+  path = ""
 
-# This is what a folder with a template would look like.
-# Proji would copy the template folder which must be located at ~/.config/proji/templates/
-# to the destination.
-# Copy template folder to destination and rename it.
-# [[folder]]
-#   destination = ".vscode"
-#   template = "vscode-py"
+# A folder without a template, this creates an empty folder.
+[[template]]
+  is_file = false
+  destination = "src"
+  path = ""
 
-# FILES
-# Files to create in or copy to your projects base folder.
-# See folders section above for more informations.
+# PLUGINS (optional)
+# Proji supports lua plugins, which make project generation almost infinitely expandable. A typical example of a
+# plugin is the initialization of a git repository.
+# Plugins are stored, similar to templates, in proji's main config folder in the plugins subfolder.
+#
+# With the exec_number field you can specify when a plugin should be executed. An exec_number less than zero (0) means
+# that a plugin will be executed before any template folders or files are created. An exec_number greater than zero
+# means that a plugin will be executed after all folders and files have been created. Plugins are executed in order of
+# their ascending exec_number. The exec_number may not be equal to zero(0).
+#
+# Order of plugins that will be executed before all templates. -n is executed first and -1 last.
+# -n -> -n + 1 -> ... -> -1
+#
+# Order of plugins that will be executed after all templates. 1 is executed first and n last.
+# 1 -> 2 -> ... -> n
 
-# Create an empty file called README.md.
-[[file]]
-  destination = "src/main.py"
-  template = ""
-
-[[file]]
-  destination = "README.md"
-  template = ""
-
-# Copy the template main.py to src/main.py inside the new project folder.
-# [[file]]
-#   destination = "src/main.py"
-#   template = "main.py"
-
-# SCRIPTS
-# Scripts you want to be executed after the project folders and files were created.
-# 'name' should be a script that lies inside the scripts folder (~/.config/proji/scripts/).
-# 'type' determines if the script will be executed before or after the creation of subfolders and files.
-#  Possible values: pre, post
-# 'execNumber' is an integer and determines the position of the script in the execution list.
-#  The script with the smallest exec number will be executed first and the script with the largest number will be executed last.
-# 'runAsSudo' is of type boolean and determines if you want the script to be executed with sudo or not.
-# 'args' is a string array which can hold arguments that you want to pass to your script. You can use the keyword __PROJECT_NAME__
-#  in order to pass the name of the current project to the script.
-
-[[script]]
-  name = "init_virtualenv.sh"
-  type = "post"
-  execNumber = 1
-  runAsSudo = false
-  args = []
-
-[[script]]
-  name = "init_git.sh"
-  type = "post"
-  execNumber = 2
-  runAsSudo = false
-  args = []
+[[plugin]]
+  path = "init-git.lua" # the relative path of the plugin
+  exec_number = 1       # the plugins execution order number
