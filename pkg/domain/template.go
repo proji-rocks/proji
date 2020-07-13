@@ -14,16 +14,16 @@ type Template struct {
 	UpdatedAt   time.Time      `toml:"-"`
 	DeletedAt   gorm.DeletedAt `gorm:"index" toml:"-"`
 	IsFile      bool           `gorm:"not null" toml:"is_file"`
-	Path        string         `gorm:"index:idx_template_path_destination,unique;not null" toml:"path"`
 	Destination string         `gorm:"index:idx_template_path_destination,unique;not null" toml:"destination"`
+	Path        string         `gorm:"index:idx_template_path_destination,unique;not null" toml:"path"`
 	Description string         `gorm:"size:255" toml:"description"`
 }
 
 func NewTemplate(path, destination, description string, isFile bool) *Template {
 	return &Template{
-		Path:        path,
-		Destination: destination,
-		Description: description,
 		IsFile:      isFile,
+		Destination: destination,
+		Path:        path,
+		Description: description,
 	}
 }
