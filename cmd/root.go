@@ -54,6 +54,7 @@ func newRootCommand() *rootCommand {
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			if disableColors {
 				message.DisableColors()
+				statuswriter.DisableColors()
 			}
 
 			// Prepare proji
