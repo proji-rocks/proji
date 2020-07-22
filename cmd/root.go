@@ -26,8 +26,6 @@ type sessionState struct {
 	config              *config.Config
 	packageService      domain.PackageService
 	projectService      domain.ProjectService
-	fallbackVersion     string
-	version             string
 	noColors            bool
 	maxTableColumnWidth int
 }
@@ -82,11 +80,9 @@ func newRootCommand() *rootCommand {
 	return &rootCommand{cmd: cmd}
 }
 
-func prepare() error {
+func prepare(cmdFlags *pflag.FlagSet) error {
 	if session == nil {
 		session = &sessionState{
-			fallbackVersion:     "0.19.2",
-			version:             "0.20.0",
 			noColors:            false,
 			maxTableColumnWidth: getMaxColumnWidth(),
 		}
