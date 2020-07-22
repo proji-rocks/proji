@@ -46,7 +46,7 @@ type rootCommand struct {
 func newRootCommand() *rootCommand {
 	var disableColors bool
 
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:           "proji",
 		Short:         "A powerful cross-platform CLI project templating tool.",
 		SilenceErrors: true,
@@ -171,7 +171,7 @@ func getTerminalWidth() (int, error) {
 }
 
 func getMaxColumnWidth() int {
-	//Load terminal width and set max column width for dynamic rendering
+	// Load terminal width and set max column width for dynamic rendering
 	terminalWidth, err := getTerminalWidth()
 	if err != nil {
 		message.Warningf("couldn't get terminal width. Falling back to default value, %s", err.Error())
