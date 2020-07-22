@@ -3,15 +3,15 @@ package database
 import (
 	"fmt"
 
-	"github.com/pkg/errors"
+	"gorm.io/gorm/logger"
 
 	"github.com/nikoksr/proji/pkg/domain"
+	"github.com/pkg/errors"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	mssql "gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 const (
@@ -40,6 +40,8 @@ func New(driver, connectionString string) (*Database, error) {
 	db.Connection, err = gorm.Open(
 		dialector,
 		&gorm.Config{
+			SkipDefaultTransaction: true,
+			PrepareStmt:            true,
 			Logger: logger.New(
 				nil,
 				logger.Config{
@@ -55,7 +57,7 @@ func New(driver, connectionString string) (*Database, error) {
 	return db, nil
 }
 
-func (dbs Database) Migrate() error {
+func (db Database) Migrate() error {
 	modelList := []interface{}{
 		&domain.Package{},
 		&domain.Plugin{},
@@ -63,7 +65,7 @@ func (dbs Database) Migrate() error {
 		&domain.Template{},
 	}
 	for _, model := range modelList {
-		err := dbs.Connection.AutoMigrate(model)
+		err := db.Connection.AutoMigrate(model)
 		if err != nil {
 			return fmt.Errorf("failed to auto-migrate domain, %s", err.Error())
 		}
