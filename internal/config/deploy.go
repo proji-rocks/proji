@@ -16,7 +16,7 @@ type mainConfigFolder struct {
 // creates a main config file from default values. Version determines from which version of proji
 // files should be downloaded. If version fails, it will try again and use the fallback version.
 // ForceUpdate should usually not be used and is only used internally to overwrite existing files if necessary.
-func Deploy(version, fallbackVersion string, forceUpdate bool) error {
+func Deploy() error {
 	defaultConfigFolder := newMainConfigFolder()
 	defaultConfigFolder.basePath = globalBasePath
 
