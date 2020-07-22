@@ -7,6 +7,8 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/spf13/pflag"
+
 	"github.com/spf13/viper"
 )
 
@@ -22,12 +24,16 @@ type DatabaseConnection struct {
 	DSN    string `mapstructure:"dsn"`
 }
 
-// Config represents central resources and information the app uses.
+type Import struct {
+	Exclude string `mapstructure:"exclude"`
+}
+
+// Config represents projis main config holding information about central resources the app uses.
 type Config struct {
 	Auth               *APIAuthentication  `mapstructure:"auth"`
 	BasePath           string              `mapstructure:"-"`
 	DatabaseConnection *DatabaseConnection `mapstructure:"database"`
-	ExcludedPaths      []string            `mapstructure:"import.exclude_folders"`
+	Import             *Import             `mapstructure:"import"`
 	provider           *viper.Viper        `mapstructure:"-"`
 }
 
@@ -55,7 +61,7 @@ func New(path string) *Config {
 }
 
 // LoadValues tries to load all configuration values.
-func (c *Config) LoadValues() error {
+func (c *Config) LoadValues(cmdFlags *pflag.FlagSet) error {
 	// Set config provider
 	c.setProvider()
 
@@ -66,7 +72,7 @@ func (c *Config) LoadValues() error {
 	c.setDefaultValues()
 
 	// Load config values
-	err := c.loadValues()
+	err := c.loadValues(cmdFlags)
 	if err != nil {
 		return err
 	}
@@ -100,9 +106,9 @@ func (c *Config) setSpecs() {
 func (c *Config) setDefaultValues() {
 	c.provider.SetDefault("auth.gh_token", "")
 	c.provider.SetDefault("auth.gl_token", "")
-	c.provider.SetDefault("import.exclude_folders", []string{})
 	c.provider.SetDefault("database.driver", defaultDatabaseDriver)
 	c.provider.SetDefault("database.dsn", filepath.Join(c.BasePath, defaultDatabaseDSN))
+	c.provider.SetDefault("import.exclude", `^(.git|.env|.idea|.vscode)$`)
 }
 
 // set should run after loadFile and loadEnvironmentVariables. It sets the loaded values as the final config.
@@ -111,12 +117,15 @@ func (c *Config) setFinalValues() error {
 }
 
 // loadValues loads config values from file and environment variables.
-func (c *Config) loadValues() error {
+func (c *Config) loadValues(cmdFlags *pflag.FlagSet) error {
 	err := c.loadFile()
 	if err != nil {
 		return err
 	}
 	c.loadEnvironmentVariables()
+	if cmdFlags.NFlag() > 0 {
+		return c.loadFlags(cmdFlags)
+	}
 	return nil
 }
 
@@ -134,6 +143,10 @@ func (c *Config) loadFile() error {
 // loadSettingsFromConfig tries to load the settings from the default config file. Skips if config file not found.
 func (c *Config) loadEnvironmentVariables() {
 	c.provider.AutomaticEnv()
+}
+
+func (c *Config) loadFlags(cmdFlags *pflag.FlagSet) error {
+	return c.provider.BindPFlag("import.exclude", cmdFlags.Lookup("exclude"))
 }
 
 func (c *Config) handleDatabaseDriverSpecialCase() {
