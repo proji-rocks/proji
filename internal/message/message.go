@@ -61,9 +61,19 @@ func Infof(format string, args ...interface{}) {
 	printPrefixedMessagef(os.Stdout, prefixInfo, format, args...)
 }
 
+// Sinfof prints a formatted information message.
+func Sinfof(format string, args ...interface{}) string {
+	return getPrefixedMessagef(prefixInfo, format, args...)
+}
+
 // Successf prints a formatted success message.
 func Successf(format string, args ...interface{}) {
 	printPrefixedMessagef(os.Stdout, prefixSuccess, format, args...)
+}
+
+// Ssuccessf prints a formatted success message.
+func Ssuccessf(format string, args ...interface{}) string {
+	return getPrefixedMessagef(prefixSuccess, format, args...)
 }
 
 // Warningf prints a formatted warning message.
@@ -71,10 +81,21 @@ func Warningf(format string, args ...interface{}) {
 	printPrefixedMessagef(os.Stdout, prefixWarning, format, args...)
 }
 
+// Swarningf prints a formatted warning message.
+func Swarningf(format string, args ...interface{}) string {
+	return getPrefixedMessagef(prefixWarning, format, args...)
+}
+
 // Errorf prints a formatted error message.
-func Errorf(format string, err error, args ...interface{}) {
+func Errorf(err error, format string, args ...interface{}) {
 	format = formatErrorMessage(format, err)
 	printPrefixedMessagef(os.Stderr, prefixError, format, args...)
+}
+
+// Serrorf prints a formatted error message.
+func Serrorf(err error, format string, args ...interface{}) string {
+	format = formatErrorMessage(format, err)
+	return getPrefixedMessagef(prefixError, format, args...)
 }
 
 func formatErrorMessage(format string, err error) string {
@@ -91,4 +112,8 @@ func printPrefixedMessagef(out io.Writer, prefix, format string, args ...interfa
 	if err != nil {
 		log.Fatalf("failed to print message to %v.\n", out)
 	}
+}
+
+func getPrefixedMessagef(prefix, format string, args ...interface{}) string {
+	return fmt.Sprintf(prefix+format, args...)
 }
