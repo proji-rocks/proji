@@ -18,7 +18,7 @@ type packageAddCommand struct {
 }
 
 func newPackageAddCommand() *packageAddCommand {
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                   "add NAME [NAME...]",
 		Short:                 "Add one or more packages",
 		DisableFlagsInUseLine: true,
@@ -28,9 +28,9 @@ func newPackageAddCommand() *packageAddCommand {
 			for _, name := range args {
 				err := addPackage(name)
 				if err != nil {
-					message.Warningf("adding package %s failed, %s", name, err.Error())
+					message.Warningf("failed to add package %s, %v", name, err)
 				} else {
-					message.Infof("package %s was successfully added", name)
+					message.Infof("successfully added package %s", name)
 				}
 			}
 			return nil

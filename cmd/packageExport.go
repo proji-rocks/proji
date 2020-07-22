@@ -20,7 +20,7 @@ func newPackageExportCommand() *packageExportCommand {
 	var exportAll, template bool
 	var destination string
 
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "export LABEL [LABEL...]",
 		Short: "Export one or more packages",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -32,7 +32,7 @@ func newPackageExportCommand() *packageExportCommand {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Export an example package
 			if template {
-				file, err := exportTemplate(destination, session.config.BasePath)
+				file, err := exportTemplate(destination)
 				if err != nil {
 					return errors.Wrap(err, "failed to export config template")
 				}
@@ -45,7 +45,7 @@ func newPackageExportCommand() *packageExportCommand {
 			var err error
 
 			if exportAll {
-				packages, err = session.packageService.LoadPackageList()
+				packages, err = session.packageService.LoadPackageList(true)
 				if err != nil {
 					return err
 				}
@@ -53,7 +53,7 @@ func newPackageExportCommand() *packageExportCommand {
 				if len(args) < 1 {
 					return fmt.Errorf("missing package label")
 				}
-				packages, err = session.packageService.LoadPackageList(args...)
+				packages, err = session.packageService.LoadPackageList(true, args...)
 				if err != nil {
 					return err
 				}
@@ -61,10 +61,6 @@ func newPackageExportCommand() *packageExportCommand {
 
 			// Export the packages
 			for _, pkg := range packages {
-				if pkg.IsDefault {
-					continue
-				}
-
 				exportedTo, err := session.packageService.ExportPackageToConfig(*pkg, ".")
 				if err != nil {
 					message.Warningf("failed to export package %s to %s, %v", pkg.Label, exportedTo, err)
@@ -85,13 +81,13 @@ func newPackageExportCommand() *packageExportCommand {
 	return &packageExportCommand{cmd: cmd}
 }
 
-func exportTemplate(destination, confPath string) (string, error) {
+func exportTemplate(destination string) (string, error) {
 	destination = filepath.Join(destination, "proji-package-template.toml")
 	file, err := os.Create(destination)
 	if err != nil {
 		return "", errors.Wrap(err, "create config template")
 	}
 	defer file.Close()
-	file.WriteString(static.PackageConfigTemplate)
+	_, err = file.WriteString(static.PackageConfigTemplate)
 	return destination, err
 }

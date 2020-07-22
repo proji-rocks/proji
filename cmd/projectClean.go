@@ -12,7 +12,7 @@ type projectCleanCommand struct {
 }
 
 func newProjectCleanCommand() *projectCleanCommand {
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                   "clean",
 		Short:                 "Clean up projects",
 		DisableFlagsInUseLine: true,

@@ -13,7 +13,7 @@ type versionCommand struct {
 }
 
 func newVersionCommand() *versionCommand {
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                   "version",
 		Short:                 "Print the version",
 		DisableFlagsInUseLine: true,

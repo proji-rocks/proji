@@ -9,7 +9,7 @@ type packageCommand struct {
 }
 
 func newPackageCommand() *packageCommand {
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "package",
 		Short: "Manage packages",
 	}

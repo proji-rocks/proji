@@ -15,7 +15,7 @@ type projectListCommand struct {
 }
 
 func newProjectListCommand() *projectListCommand {
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                   "ls",
 		Short:                 "List projects",
 		DisableFlagsInUseLine: true,

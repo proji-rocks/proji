@@ -16,7 +16,7 @@ type packageRemoveCommand struct {
 func newPackageRemoveCommand() *packageRemoveCommand {
 	var removeAllPackages, forceRemovePackages bool
 
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "rm LABEL [LABEL...]",
 		Short: "Remove one or more packages",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -51,7 +51,7 @@ func newPackageRemoveCommand() *packageRemoveCommand {
 				if err != nil {
 					message.Warningf("failed to remove package %s, %v", label, err)
 				} else {
-					message.Successf("successfully remove package %s", label)
+					message.Successf("successfully removed package %s", label)
 				}
 			}
 			return nil
@@ -63,7 +63,7 @@ func newPackageRemoveCommand() *packageRemoveCommand {
 }
 
 func getAllPackageLabels() ([]string, error) {
-	pkgs, err := session.packageService.LoadPackageList()
+	pkgs, err := session.packageService.LoadPackageList(false)
 	if err != nil {
 		return nil, errors.Wrap(err, "load packages")
 	}

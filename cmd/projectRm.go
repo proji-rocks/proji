@@ -18,7 +18,7 @@ type projectRemoveCommand struct {
 func newProjectRemoveCommand() *projectRemoveCommand {
 	var removeAllProjects, forceRemoveProjects bool
 
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "rm PATH [PATH...]",
 		Short: "Remove one or more projects",
 		RunE: func(cmd *cobra.Command, args []string) error {

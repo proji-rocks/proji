@@ -20,7 +20,7 @@ type projectCreateCommand struct {
 }
 
 func newProjectCreateCommand() *projectCreateCommand {
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                   "create LABEL NAME [NAME...]",
 		Short:                 "Create one or more projects",
 		DisableFlagsInUseLine: true,
@@ -36,7 +36,7 @@ func newProjectCreateCommand() *projectCreateCommand {
 			}
 
 			// Load package once for all projects
-			pkg, err := session.packageService.LoadPackage(label)
+			pkg, err := session.packageService.LoadPackage(true, label)
 			if err != nil {
 				return errors.Wrap(err, "failed to load package")
 			}

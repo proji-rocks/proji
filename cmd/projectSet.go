@@ -9,7 +9,7 @@ type projectSetCommand struct {
 }
 
 func newProjectSetCommand() *projectSetCommand {
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "set",
 		Short: "Set project information",
 	}

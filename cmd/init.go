@@ -14,7 +14,7 @@ type initCommand struct {
 }
 
 func newInitCommand() *initCommand {
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                   "init",
 		Short:                 "Initialize proji",
 		Long:                  initHelp(),
@@ -22,11 +22,7 @@ func newInitCommand() *initCommand {
 		DisableFlagsInUseLine: true,
 		Args:                  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := config.Deploy(
-				session.version,
-				session.fallbackVersion,
-				false,
-			)
+			err := config.Deploy()
 			if err != nil {
 				return errors.Wrap(err, "could not set up config folder")
 			}

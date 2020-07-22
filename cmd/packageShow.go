@@ -21,7 +21,7 @@ type packageShowCommand struct {
 func newPackageShowCommand() *packageShowCommand {
 	var showAll bool
 
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "show LABEL [LABEL...]",
 		Short: "Show details about one or more packages",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -43,7 +43,7 @@ func newPackageShowCommand() *packageShowCommand {
 func showPackage(preloadedPackage *domain.Package, label string) error {
 	var err error
 	if preloadedPackage == nil {
-		preloadedPackage, err = session.packageService.LoadPackage(label)
+		preloadedPackage, err = session.packageService.LoadPackage(true, label)
 		if err != nil {
 			return errors.Wrap(err, "failed to load package")
 		}
@@ -56,7 +56,7 @@ func showPackage(preloadedPackage *domain.Package, label string) error {
 }
 
 func showPackages(labels ...string) error {
-	packages, err := session.packageService.LoadPackageList(labels...)
+	packages, err := session.packageService.LoadPackageList(true, labels...)
 	if err != nil {
 		return errors.Wrap(err, "failed to load package")
 	}

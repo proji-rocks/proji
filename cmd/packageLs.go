@@ -14,7 +14,7 @@ type packageListCommand struct {
 }
 
 func newPackageListCommand() *packageListCommand {
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                   "ls",
 		Short:                 "List packages",
 		DisableFlagsInUseLine: true,
@@ -27,7 +27,7 @@ func newPackageListCommand() *packageListCommand {
 }
 
 func listPackages() error {
-	packages, err := session.packageService.LoadPackageList()
+	packages, err := session.packageService.LoadPackageList(false)
 	if err != nil {
 		return errors.Wrap(err, "failed to load all packages")
 	}
@@ -36,9 +36,6 @@ func listPackages() error {
 	packagesTable.AppendHeader(table.Row{"Name", "Label"})
 
 	for _, pkg := range packages {
-		if pkg.IsDefault {
-			continue
-		}
 		packagesTable.AppendRow(table.Row{pkg.Name, pkg.Label})
 	}
 	packagesTable.Render()

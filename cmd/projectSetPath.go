@@ -14,7 +14,7 @@ type projectSetPath struct {
 }
 
 func newProjectSetPathCommand() *projectSetPath {
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                   "path OLD-PATH NEW-PATH",
 		Short:                 "Set a new path",
 		DisableFlagsInUseLine: true,

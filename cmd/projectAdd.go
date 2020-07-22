@@ -19,7 +19,7 @@ type projectAddCommand struct {
 }
 
 func newProjectAddCommand() *projectAddCommand {
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                   "add LABEL PATH",
 		Short:                 "Add an existing project",
 		DisableFlagsInUseLine: true,
@@ -48,7 +48,7 @@ func newProjectAddCommand() *projectAddCommand {
 
 func addProject(label, path string) error {
 	name := filepath.Base(path)
-	pkg, err := session.packageService.LoadPackage(label)
+	pkg, err := session.packageService.LoadPackage(true, label)
 	if err != nil {
 		return errors.Wrap(err, "failed to load package")
 	}

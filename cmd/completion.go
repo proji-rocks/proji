@@ -13,7 +13,7 @@ type completionCommand struct {
 }
 
 func newCompletionCommand() *completionCommand {
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                   "completion [bash|zsh|fish|powershell]",
 		Short:                 "Load shell completions",
 		Long:                  static.CompletionHelpMessage,
@@ -36,5 +36,6 @@ func newCompletionCommand() *completionCommand {
 			return err
 		},
 	}
+
 	return &completionCommand{cmd: cmd}
 }
