@@ -1,21 +1,20 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
-
-	packagestore "github.com/nikoksr/proji/pkg/package/store"
-	projectservice "github.com/nikoksr/proji/pkg/project/service"
-	projectstore "github.com/nikoksr/proji/pkg/project/store"
-
-	packageservice "github.com/nikoksr/proji/pkg/package/service"
-	"github.com/pkg/errors"
 
 	"github.com/nikoksr/proji/internal/config"
 	"github.com/nikoksr/proji/internal/database"
 	"github.com/nikoksr/proji/internal/message"
+	"github.com/nikoksr/proji/internal/statuswriter"
 	"github.com/nikoksr/proji/pkg/domain"
+	packageservice "github.com/nikoksr/proji/pkg/package/service"
+	packagestore "github.com/nikoksr/proji/pkg/package/store"
+	projectservice "github.com/nikoksr/proji/pkg/project/service"
+	projectstore "github.com/nikoksr/proji/pkg/project/store"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
