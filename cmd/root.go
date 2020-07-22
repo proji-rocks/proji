@@ -35,7 +35,7 @@ type sessionState struct {
 func Execute() {
 	err := newRootCommand().cmd.Execute()
 	if err != nil {
-		message.Errorf("", err)
+		message.Errorf(err, "")
 	}
 }
 
