@@ -56,11 +56,8 @@ func newRootCommand() *rootCommand {
 				message.DisableColors()
 			}
 
-			// Leave one empty line above by default
-			// fmt.Println()
-
 			// Prepare proji
-			return prepare()
+			return prepare(cmd.Flags())
 		},
 	}
 
@@ -103,7 +100,7 @@ func prepare(cmdFlags *pflag.FlagSet) error {
 		err = config.Prepare()
 	default:
 		// On default load the main config and initialize the storage service
-		err = loadConfig()
+		err = loadConfig(cmdFlags)
 		if err != nil {
 			return err
 		}
@@ -112,11 +109,7 @@ func prepare(cmdFlags *pflag.FlagSet) error {
 	return err
 }
 
-func loadConfig() error {
-	if session == nil {
-		message.Errorf("could not initialize config", fmt.Errorf("session not found"))
-	}
-
+func loadConfig(cmdFlags *pflag.FlagSet) error {
 	// Prepare the config
 	err := config.Prepare()
 	if err != nil {
@@ -127,7 +120,7 @@ func loadConfig() error {
 	session.config = config.New(config.GetBaseConfigPath())
 
 	// Load the config
-	err = session.config.LoadValues()
+	err = session.config.LoadValues(cmdFlags)
 	if err != nil {
 		return errors.Wrap(err, "load config values")
 	}
