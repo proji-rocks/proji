@@ -4,12 +4,8 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"regexp"
-	"strconv"
 	"strings"
 	"testing"
-
-	"github.com/pkg/errors"
 
 	"github.com/cavaliercoder/grab"
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -19,16 +15,6 @@ import (
 func DoesPathExist(path string) bool {
 	_, err := os.Stat(path)
 	return !os.IsNotExist(err)
-}
-
-// StrToUInt converts a string into a uint.
-func StrToUInt(num string) (uint, error) {
-	// Parse the input
-	id64, err := strconv.ParseUint(num, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	return uint(id64), nil
 }
 
 // WantTo waits for a valid user input to confirm if he wants to do whatever was asked for.
@@ -53,16 +39,6 @@ func WantTo(question string) bool {
 			return false
 		}
 	}
-}
-
-// IsInSlice returns true if a given string is found in the given slice and false if not.
-func IsInSlice(slice []string, val string) bool {
-	for _, item := range slice {
-		if item == val {
-			return true
-		}
-	}
-	return false
 }
 
 // SkipNetworkBasedTests skips network/internet dependent tests when the env variable PROJI_SKIP_NETWORK_TESTS is set to 1.
@@ -106,16 +82,4 @@ func NewInfoTable(out io.Writer) table.Writer {
 	infoTable.SetAutoIndex(true)
 	infoTable.SetStyle(table.StyleRounded)
 	return infoTable
-}
-
-func StringsToRegex(stringList []string) ([]*regexp.Regexp, error) {
-	regexList := make([]*regexp.Regexp, 0, len(stringList))
-	for _, str := range stringList {
-		strAsRegex, err := regexp.Compile(str)
-		if err != nil {
-			return nil, errors.Wrap(err, "compile regexp")
-		}
-		regexList = append(regexList, strAsRegex)
-	}
-	return regexList, nil
 }
