@@ -1,7 +1,18 @@
 package packagestore
 
 import (
+	"context"
+	"database/sql"
+	"fmt"
+	"strings"
+	"sync"
+	"time"
+
+	"golang.org/x/sync/errgroup"
+
 	"github.com/nikoksr/proji/pkg/domain"
+	"github.com/pkg/errors"
+	"gopkg.in/guregu/null.v4"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -36,14 +47,27 @@ func (ps *packageStore) LoadPackage(label string) (*domain.Package, error) {
 	return &pkg, err
 }
 
-func (ps *packageStore) LoadPackageList(labels ...string) ([]*domain.Package, error) {
-	lenLabels := len(labels)
-	if lenLabels < 1 {
-		return ps.getAllPackages()
+func (ps packageStore) LoadPackage(loadDependencies bool, label string) (*domain.Package, error) {
+	conditions := fmt.Sprintf("label = '%s'", label)
+	if loadDependencies {
+		conditions = fmt.Sprintf("packages.label = '%s'", label)
 	}
-	packages := make([]*domain.Package, 0, lenLabels)
-	for _, label := range labels {
-		pkg, err := ps.LoadPackage(label)
+	return ps.loadPackage(loadDependencies, conditions)
+}
+
+func (ps packageStore) loadPackage(loadDependencies bool, conditions string) (*domain.Package, error) {
+	if loadDependencies {
+		return ps.deepQueryPackage(conditions)
+	}
+	return ps.queryPackage(conditions)
+}
+
+func (ps packageStore) LoadPackageList(loadDependencies bool, labels ...string) ([]*domain.Package, error) {
+	var err error
+	labelCount := len(labels)
+	if labelCount < 1 {
+		labels, err = ps.queryAllLabels()
+		labelCount = len(labels)
 		if err != nil {
 			return nil, err
 		}

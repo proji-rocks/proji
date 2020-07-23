@@ -27,12 +27,12 @@ func (ps packageService) StorePackage(pkg *domain.Package) error {
 	return ps.packageStore.StorePackage(pkg)
 }
 
-func (ps packageService) LoadPackage(label string) (*domain.Package, error) {
-	return ps.packageStore.LoadPackage(label)
+func (ps packageService) LoadPackage(loadDependencies bool, label string) (*domain.Package, error) {
+	return ps.packageStore.LoadPackage(loadDependencies, label)
 }
 
-func (ps packageService) LoadPackageList(labels ...string) ([]*domain.Package, error) {
-	return ps.packageStore.LoadPackageList(labels...)
+func (ps packageService) LoadPackageList(loadDependencies bool, labels ...string) ([]*domain.Package, error) {
+	return ps.packageStore.LoadPackageList(loadDependencies, labels...)
 }
 
 func (ps packageService) RemovePackage(label string) error {

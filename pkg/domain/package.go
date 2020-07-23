@@ -29,16 +29,16 @@ func NewPackage(name, label string) *Package {
 type PackageStore interface {
 	StorePackage(p *Package) error
 
-	LoadPackage(label string) (*Package, error)
-	LoadPackageList(labels ...string) ([]*Package, error)
+	LoadPackage(loadDependencies bool, label string) (*Package, error)
+	LoadPackageList(loadDependencies bool, labels ...string) ([]*Package, error)
 
 	RemovePackage(label string) error
 }
 
 type PackageService interface {
 	StorePackage(p *Package) error
-	LoadPackage(label string) (*Package, error)
-	LoadPackageList(labels ...string) ([]*Package, error)
+	LoadPackage(loadDependencies bool, label string) (*Package, error)
+	LoadPackageList(loadDependencies bool, labels ...string) ([]*Package, error)
 	RemovePackage(label string) error
 
 	ImportPackageFromConfig(path string) (*Package, error)
