@@ -195,7 +195,7 @@ There are four ways to create a new class:
 
 Proji offers the possibility to export and import classes through config files. The easiest way to create a new class would be to export the proji sample config and then adapt it to your needs. To do so, execute the command `proji class export --example`.
 
-Proji creates the file [proji-class-example.toml](assets/examples/example-class-export.toml) in the current working directory. If you open this file in a text editor, you will find a richly annotated configuration of an example class. This config should then be adapted according to your needs.
+Proji creates the file [proji-class-example.toml](examples/example-class-export.toml) in the current working directory. If you open this file in a text editor, you will find a richly annotated configuration of an example class. This config should then be adapted according to your needs.
 
 Once the config has been edited and saved, it can be imported using the `proji class import --config proji-class-example.toml` (or whatever you named the file) command. Proji then creates a new class based on the imported config.
 
@@ -235,7 +235,7 @@ Assuming our class has been assigned the label `py`, we will create three projec
 
 And voila, proji has created three new project directories where you can start your work immediately. The project directories are all built identically, have the same subdirectories and files, and all ran the same scripts.
 
-Take a look at the [python class config](assets/examples/proji-python.toml), the [git](assets/examples/init_git.sh) and [virtualenv](assets/examples/init_virtualenv.sh) scripts that were used in this example.
+Take a look at the [python class config](examples/proji-python.toml), the [git](examples/init_git.sh) and [virtualenv](examples/init_virtualenv.sh) scripts that were used in this example.
 
 ## Advanced Usage <a id="advanced_usage"></a>
 
