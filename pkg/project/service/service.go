@@ -33,7 +33,3 @@ func (ps projectService) UpdateProjectLocation(oldPath, newPath string) error {
 func (ps projectService) RemoveProject(path string) error {
 	return ps.projectStore.RemoveProject(path)
 }
-
-func (ps projectService) PurgeProject(path string) error {
-	return ps.projectStore.PurgeProject(path)
-}

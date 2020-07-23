@@ -38,7 +38,3 @@ func (ps packageService) LoadPackageList(labels ...string) ([]*domain.Package, e
 func (ps packageService) RemovePackage(label string) error {
 	return ps.packageStore.RemovePackage(label)
 }
-
-func (ps packageService) PurgePackage(label string) error {
-	return ps.packageStore.PurgePackage(label)
-}

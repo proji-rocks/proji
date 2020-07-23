@@ -70,16 +70,8 @@ func (ps *projectStore) UpdateProjectLocation(oldPath, newPath string) error {
 }
 
 func (ps *projectStore) RemoveProject(path string) error {
-	err := ps.db.Delete(&domain.Project{}, "path = ? AND deleted_at IS NULL", path).Error
-	if err == gorm.ErrRecordNotFound {
-		return &ProjectNotFoundError{Path: path}
-	}
-	return err
-}
-
-func (ps *projectStore) PurgeProject(path string) error {
-	err := ps.db.Unscoped().Delete(&domain.Project{}, "path = ?", path).Error
-	if err == gorm.ErrRecordNotFound {
+	tx := ps.db.Set("gorm:delete_option", "OPTION (OPTIMIZE FOR UNKNOWN)").Where("path = ?", path).Delete(&domain.Project{})
+	if errors.Is(tx.Error, gorm.ErrRecordNotFound) || tx.RowsAffected < 1 {
 		return &ProjectNotFoundError{Path: path}
 	}
 	return err
