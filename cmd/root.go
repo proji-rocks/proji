@@ -26,7 +26,6 @@ type sessionState struct {
 	config              *config.Config
 	packageService      domain.PackageService
 	projectService      domain.ProjectService
-	noColors            bool
 	maxTableColumnWidth int
 }
 
@@ -44,25 +43,18 @@ type rootCommand struct {
 }
 
 func newRootCommand() *rootCommand {
-	var disableColors bool
-
 	cmd := &cobra.Command{
 		Use:           "proji",
 		Short:         "A powerful cross-platform CLI project templating tool.",
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			if disableColors {
-				message.DisableColors()
-				statuswriter.DisableColors()
-			}
-
 			// Prepare proji
 			return prepare(cmd.Flags())
 		},
 	}
 
-	cmd.PersistentFlags().BoolVar(&disableColors, "no-colors", false, "disable text colors")
+	cmd.PersistentFlags().Bool("no-colors", false, "disable text colors")
 	cmd.AddCommand(
 		newCompletionCommand().cmd,
 		newInitCommand().cmd,
@@ -81,7 +73,6 @@ func newRootCommand() *rootCommand {
 func prepare(cmdFlags *pflag.FlagSet) error {
 	if session == nil {
 		session = &sessionState{
-			noColors:            false,
 			maxTableColumnWidth: getMaxColumnWidth(),
 		}
 	}
@@ -91,37 +82,39 @@ func prepare(cmdFlags *pflag.FlagSet) error {
 		return nil
 	}
 
+	// Prepare the config
+	err := config.Prepare()
+	if err != nil {
+		return errors.Wrap(err, "failed to prepare main config")
+	}
+
+	// Load the main config
+	err = loadConfig(cmdFlags)
+	if err != nil {
+		return errors.Wrap(err, "failed to load main config")
+	}
+
+	if session.config.Core.DisableColors {
+		message.DisableColors()
+		statuswriter.DisableColors()
+	}
+
 	// Evaluate preparation behaviour
-	var err error
 	switch os.Args[1] {
-	case "version", "help":
-		// Do nothing. Don't init config or storage on version or help. It's just not necessary.
-	case "init":
-		// Prepare the config because init needs a bare bone config to deploy the base config folder.
-		err = config.Prepare()
+	case "version", "help", "init":
+		// Do nothing. Don't init the storage on version, help or init. It's just not necessary.
 	default:
-		// On default load the main config and initialize the storage service
-		err = loadConfig(cmdFlags)
-		if err != nil {
-			return err
-		}
 		err = initServices()
 	}
 	return err
 }
 
 func loadConfig(cmdFlags *pflag.FlagSet) error {
-	// Prepare the config
-	err := config.Prepare()
-	if err != nil {
-		return errors.Wrap(err, "prepare config")
-	}
-
 	// Create the config
 	session.config = config.New(config.GetBaseConfigPath())
 
 	// Load the config
-	err = session.config.LoadValues(cmdFlags)
+	err := session.config.LoadValues(cmdFlags)
 	if err != nil {
 		return errors.Wrap(err, "load config values")
 	}

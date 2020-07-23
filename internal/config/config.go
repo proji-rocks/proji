@@ -18,12 +18,18 @@ type APIAuthentication struct {
 	GLToken string `mapstructure:"gl_token"`
 }
 
+// Import represents core settings of proji.
+type Core struct {
+	DisableColors bool `mapstructure:"disable_colors"`
+}
+
 // DatabaseConnection represents the configurable and database related values in the main config.
 type DatabaseConnection struct {
 	Driver string `mapstructure:"driver"`
 	DSN    string `mapstructure:"dsn"`
 }
 
+// Import represents package import related config settings.
 type Import struct {
 	Exclude string `mapstructure:"exclude"`
 }
@@ -32,6 +38,7 @@ type Import struct {
 type Config struct {
 	Auth               *APIAuthentication  `mapstructure:"auth"`
 	BasePath           string              `mapstructure:"-"`
+	Core               *Core               `mapstructure:"core"`
 	DatabaseConnection *DatabaseConnection `mapstructure:"database"`
 	Import             *Import             `mapstructure:"import"`
 	provider           *viper.Viper        `mapstructure:"-"`
@@ -106,6 +113,7 @@ func (c *Config) setSpecs() {
 func (c *Config) setDefaultValues() {
 	c.provider.SetDefault("auth.gh_token", "")
 	c.provider.SetDefault("auth.gl_token", "")
+	c.provider.SetDefault("core.disable_colors", false)
 	c.provider.SetDefault("database.driver", defaultDatabaseDriver)
 	c.provider.SetDefault("database.dsn", filepath.Join(c.BasePath, defaultDatabaseDSN))
 	c.provider.SetDefault("import.exclude", `^(.git|.env|.idea|.vscode)$`)
@@ -146,7 +154,24 @@ func (c *Config) loadEnvironmentVariables() {
 }
 
 func (c *Config) loadFlags(cmdFlags *pflag.FlagSet) error {
-	return c.provider.BindPFlag("import.exclude", cmdFlags.Lookup("exclude"))
+	// Flag names with their viper internal keys
+	flags := map[string]string{
+		"exclude":   "import.exclude",
+		"no-colors": "core.disable_colors",
+	}
+
+	for name, key := range flags {
+		flag := cmdFlags.Lookup(name)
+		if flag == nil {
+			// Flag not found
+			continue
+		}
+		err := c.provider.BindPFlag(key, flag)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (c *Config) handleDatabaseDriverSpecialCase() {
