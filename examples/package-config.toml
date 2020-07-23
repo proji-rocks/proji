@@ -75,5 +75,5 @@ description = "This is proji's example package."
 # 1 -> 2 -> ... -> n
 
 [[plugin]]
-  path = "init-git.lua" # the relative path of the plugin
+  path = "git-init.lua" # the relative path of the plugin
   exec_number = 1       # the plugins execution order number
