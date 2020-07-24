@@ -19,11 +19,11 @@ func New(db *gorm.DB) domain.ProjectStore {
 }
 
 func (ps *projectStore) StoreProject(project *domain.Project) error {
-	err := ps.db.First(project, "path = ?", project.Path).Error
+	err := ps.db.Where("path = ?", project.Path).First(project).Error
 	if err == nil {
 		return ErrProjectExists
 	}
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return ps.db.Create(project).Error
 	}
 	return err
@@ -31,11 +31,11 @@ func (ps *projectStore) StoreProject(project *domain.Project) error {
 
 func (ps *projectStore) LoadProject(path string) (*domain.Project, error) {
 	var project domain.Project
-	err := ps.db.Preload(clause.Associations).First(&project, "path = ?", path).Error
-	if err == gorm.ErrRecordNotFound {
-		return nil, &ProjectNotFoundError{Path: path}
+	tx := ps.db.Preload(clause.Associations).Where("path = ?", path).First(&project)
+	if errors.Is(tx.Error, gorm.ErrRecordNotFound) || tx.RowsAffected < 1 {
+		return nil, ErrProjectNotFound
 	}
-	return &project, err
+	return &project, tx.Error
 }
 
 func (ps *projectStore) LoadProjectList(paths ...string) ([]*domain.Project, error) {
@@ -68,7 +68,7 @@ func (ps *projectStore) UpdateProjectLocation(oldPath, newPath string) error {
 	if errors.Is(tx.Error, gorm.ErrRecordNotFound) || tx.RowsAffected < 1 {
 		return ErrProjectNotFound
 	}
-	return err
+	return tx.Error
 }
 
 func (ps *projectStore) RemoveProject(path string) error {
@@ -76,5 +76,5 @@ func (ps *projectStore) RemoveProject(path string) error {
 	if errors.Is(tx.Error, gorm.ErrRecordNotFound) || tx.RowsAffected < 1 {
 		return ErrProjectNotFound
 	}
-	return err
+	return tx.Error
 }
