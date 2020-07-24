@@ -15,8 +15,8 @@ import (
 
 type CodeRepository interface {
 	GetPackageConfig(url *url.URL) (string, error)
-	GetCollectionConfigs(url *url.URL, filters []*regexp.Regexp) ([]string, error)
-	GetTreeEntriesAsTemplates(url *url.URL, filters []*regexp.Regexp) ([]*domain.Template, error)
+	GetCollectionConfigs(url *url.URL, exclude *regexp.Regexp) ([]string, error)
+	GetTreeEntriesAsTemplates(url *url.URL, exclude *regexp.Regexp) ([]*domain.Template, error)
 }
 
 // ParseURL parses a regular URL of a remote repository into a "cleaned up" version.
@@ -36,14 +36,15 @@ func ParseURL(repoURL string) (*url.URL, error) {
 
 	// domainAbbreviations defines a map of domain abbreviations like 'gh:' and their associated full domains like
 	// 'https://github.com'.
-	var domainAbbreviations = map[string]string{
-		"gh:": "https://github.com",
-		"gl:": "https://gitlab.com",
+	domainAbbreviations := map[string]string{
+		"gh:": "https://github.com/",
+		"gl:": "https://gitlab.com/",
 	}
 	// Replace domain abbreviations like 'gh:' with the actual domain of the host
 	for abbreviation, fullDomain := range domainAbbreviations {
 		repoURL = strings.Replace(repoURL, abbreviation, fullDomain, 1)
 		if strings.HasPrefix(repoURL, abbreviation) {
+			fullDomain = strings.Trim(fullDomain, "/")
 			repoURL = strings.Replace(repoURL, abbreviation, fullDomain, 1)
 			break
 		}

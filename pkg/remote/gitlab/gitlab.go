@@ -17,7 +17,7 @@ import (
 
 const defaultTimeout = time.Second * 10
 
-// Service struct holds important data about a gitlab remote.
+// Service struct holds important data about a gitlab util.
 type Service struct {
 	isAuthenticated bool
 	client          *gl.Client
@@ -73,14 +73,10 @@ func (s Service) getRepository(url *url.URL) (*repo, error) {
 	}, nil
 }
 
-func (s Service) GetTreeEntriesAsTemplates(url *url.URL, filters []*regexp.Regexp) ([]*domain.Template, error) {
+func (s Service) GetTreeEntriesAsTemplates(url *url.URL, exclude *regexp.Regexp) ([]*domain.Template, error) {
 	repo, err := s.getRepository(url)
 	if err != nil {
 		return nil, errors.Wrap(err, "gitlab service")
-	}
-
-	if filters == nil {
-		filters = make([]*regexp.Regexp, 0)
 	}
 
 	treeEntries, err := repo.getTreeEntries()
@@ -90,19 +86,13 @@ func (s Service) GetTreeEntriesAsTemplates(url *url.URL, filters []*regexp.Regex
 	templates := make([]*domain.Template, 0)
 
 	for _, entry := range treeEntries {
-		skip := false
-		for _, filter := range filters {
-			if !skip {
-				skip = true
-			}
-			if filter.FindStringIndex(entry.Path) != nil {
-				skip = false
-				break
-			}
-		}
-		if skip {
+		// Check if exclude matches the path
+		doesMatch := exclude.MatchString(entry.Path)
+		if doesMatch {
 			continue
 		}
+
+		// Parse to template
 		isFile := false
 		if entry.Type == "blob" {
 			isFile = true
@@ -130,7 +120,7 @@ func (s Service) GetPackageConfig(url *url.URL) (string, error) {
 	return configPath, nil
 }
 
-func (s Service) GetCollectionConfigs(url *url.URL, filters []*regexp.Regexp) ([]string, error) {
+func (s Service) GetCollectionConfigs(url *url.URL, exclude *regexp.Regexp) ([]string, error) {
 	// Setup repo
 	repo, err := s.getRepository(url)
 	if err != nil {
@@ -144,7 +134,7 @@ func (s Service) GetCollectionConfigs(url *url.URL, filters []*regexp.Regexp) ([
 	}
 
 	// Filter out only files under configs/ path
-	return repo.downloadCollectionConfigs(treeEntries, filters)
+	return repo.downloadCollectionConfigs(treeEntries, exclude)
 }
 
 // downloadPackageConfig downloads the config file from the given url to the given destination. Returns an error if not
@@ -165,38 +155,35 @@ func (r repo) downloadPackageConfig(destination string, source *url.URL) (string
 	return destination, nil
 }
 
-func (r repo) downloadCollectionConfigs(treeEntries []*gl.TreeNode, filters []*regexp.Regexp) ([]string, error) {
+func (r repo) downloadCollectionConfigs(treeEntries []*gl.TreeNode, exclude *regexp.Regexp) ([]string, error) {
 	var configPaths []string
 	configsBasePath := filepath.Join(os.TempDir(), "proji/configs")
-	filters = append([]*regexp.Regexp{regexp.MustCompile(`configs/.*`)}, filters...)
 	for _, entry := range treeEntries {
-		for _, filter := range filters {
-			// Skip if doesn't match filter
-			if filter.FindStringIndex(entry.Path) == nil {
-				continue
-			}
-
-			// Parse package url from base url
-			packageURL := r.url
-			packageURL.Path = filepath.Join(packageURL.Path, entry.Path)
-
-			// Download config
-			configPath, err := r.downloadPackageConfig(configsBasePath, packageURL)
-			if err != nil {
-				return nil, err
-			}
-
-			// Add config path to list
-			configPaths = append(configPaths, configPath)
-			break
+		// Check if exclude matches the path
+		doesMatch := exclude.MatchString(entry.Path)
+		if doesMatch {
+			continue
 		}
+
+		// Parse package url from base url
+		packageURL := r.url
+		packageURL.Path = filepath.Join(packageURL.Path, entry.Path)
+
+		// Download config
+		configPath, err := r.downloadPackageConfig(configsBasePath, packageURL)
+		if err != nil {
+			return nil, err
+		}
+
+		// Add config path to list
+		configPaths = append(configPaths, configPath)
 	}
 	return configPaths, nil
 }
 
 // GetBaseURI returns the base URI of the remote
 // You can pass the relative path to a file of that remote to receive the complete raw url for said file.
-// Or you pass an empty string resulting in the base of the raw url for files of this remote.
+// Or you pass an empty string resulting in the base of the raw url for files of this util.
 func (r repo) getRawFileURL(filePath string) string {
 	filePath = strings.TrimPrefix(filePath, "/")
 	return fmt.Sprintf("https://gitlab.com/%s/%s/-/raw/%s/%s", r.owner, r.name, r.branch, filePath)
