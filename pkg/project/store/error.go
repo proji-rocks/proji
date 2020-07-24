@@ -1,29 +1,15 @@
 package projectstore
 
-import "fmt"
+import (
+	"errors"
+)
 
-// ProjectNotFoundError represents an error for the case that a query for a project returns a
+// ErrProjectNotFound represents an error for the case that a query for a project returns a
 // gorm.ErrRecordNotFound error.
-type ProjectNotFoundError struct {
-	Path string
-}
+var ErrProjectNotFound = errors.New("project not found")
 
-func (e *ProjectNotFoundError) Error() string {
-	return fmt.Sprintf("project at path '%s' not found", e.Path)
-}
+// ErrNoProjectsFound represents an error for the case that no projects were found by a query.
+var ErrNoProjectsFound = errors.New("no projects found")
 
-// NoProjectsFoundError represents an error for the case that no projects were found by a query.
-type NoProjectsFoundError struct{}
-
-func (e *NoProjectsFoundError) Error() string {
-	return "no projects were found"
-}
-
-// ProjectExistsError represents an error for the case that a query for a project returns no result.
-type ProjectExistsError struct {
-	Path string
-}
-
-func (e *ProjectExistsError) Error() string {
-	return fmt.Sprintf("a project is already assigned to the path '%s'", e.Path)
-}
+// ErrProjectExists represents an error for the case that a query for a project returns no result.
+var ErrProjectExists = errors.New("a project is already assigned to the path")

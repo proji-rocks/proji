@@ -31,10 +31,10 @@ func (ps packageStore) StorePackage(pkg *domain.Package) error {
 	// Check if package exists
 	err := ps.db.Where("label = ?", pkg.Label).First(pkg).Error
 	if err == nil {
-		return &PackageExistsError{Label: pkg.Label}
+		return ErrPackageExists
 	}
-	if err == gorm.ErrRecordNotFound {
-		return ps.db.Create(pkg).Error
+	if err != gorm.ErrRecordNotFound {
+		return err
 	}
 
 	tx := ps.db.Begin()
@@ -239,7 +239,7 @@ func (ps packageStore) queryPackage(conditions string) (*domain.Package, error) 
 	var description null.String
 	err := ps.db.Raw(query).Row().Scan(&name, &label, &description)
 	if err == sql.ErrNoRows {
-		return nil, PackageNotFoundError
+		return nil, ErrPackageNotFound
 	}
 	if err != nil {
 		return nil, err
@@ -313,10 +313,10 @@ func (ps packageStore) deepQueryPackage(conditions string) (pkg *domain.Package,
 		}
 	}
 	if rows.Err() != nil {
-		return nil, err
+		return nil, rows.Err()
 	}
 	if !gotPkgInfo {
-		return nil, PackageNotFoundError
+		return nil, ErrPackageNotFound
 	}
 	return pkg, nil
 }
@@ -359,7 +359,7 @@ func (ps packageStore) RemovePackage(label string) error {
 	tx = tx.Select("id").Where("label = ?", label).First(&pkg)
 	if errors.Is(tx.Error, gorm.ErrRecordNotFound) || tx.RowsAffected < 1 {
 		tx.Rollback()
-		return PackageNotFoundError
+		return ErrPackageNotFound
 	}
 	if tx.Error != nil {
 		tx.Rollback()
@@ -376,7 +376,7 @@ func (ps packageStore) RemovePackage(label string) error {
 	err = tx.Delete(pkg).Error
 	if errors.Is(tx.Error, gorm.ErrRecordNotFound) || tx.RowsAffected < 1 {
 		tx.Rollback()
-		return PackageNotFoundError
+		return ErrPackageNotFound
 	}
 	if err != nil {
 		tx.Rollback()

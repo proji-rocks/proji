@@ -1,6 +1,8 @@
 package projectstore
 
 import (
+	"errors"
+
 	"github.com/nikoksr/proji/pkg/domain"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -19,7 +21,7 @@ func New(db *gorm.DB) domain.ProjectStore {
 func (ps *projectStore) StoreProject(project *domain.Project) error {
 	err := ps.db.First(project, "path = ?", project.Path).Error
 	if err == nil {
-		return &ProjectExistsError{Path: project.Path}
+		return ErrProjectExists
 	}
 	if err == gorm.ErrRecordNotFound {
 		return ps.db.Create(project).Error
@@ -55,16 +57,16 @@ func (ps *projectStore) LoadProjectList(paths ...string) ([]*domain.Project, err
 func (ps *projectStore) loadAllProjects() ([]*domain.Project, error) {
 	var projects []*domain.Project
 	err := ps.db.Preload(clause.Associations).Find(&projects).Error
-	if err == gorm.ErrRecordNotFound {
-		return nil, &NoProjectsFoundError{}
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, ErrNoProjectsFound
 	}
 	return projects, err
 }
 
 func (ps *projectStore) UpdateProjectLocation(oldPath, newPath string) error {
-	err := ps.db.Model(&domain.Project{Path: oldPath}).Update("path", newPath).Error
-	if err == gorm.ErrRecordNotFound {
-		return &ProjectNotFoundError{Path: oldPath}
+	tx := ps.db.Model(&domain.Project{Path: oldPath}).Update("path", newPath)
+	if errors.Is(tx.Error, gorm.ErrRecordNotFound) || tx.RowsAffected < 1 {
+		return ErrProjectNotFound
 	}
 	return err
 }
@@ -72,7 +74,7 @@ func (ps *projectStore) UpdateProjectLocation(oldPath, newPath string) error {
 func (ps *projectStore) RemoveProject(path string) error {
 	tx := ps.db.Set("gorm:delete_option", "OPTION (OPTIMIZE FOR UNKNOWN)").Where("path = ?", path).Delete(&domain.Project{})
 	if errors.Is(tx.Error, gorm.ErrRecordNotFound) || tx.RowsAffected < 1 {
-		return &ProjectNotFoundError{Path: path}
+		return ErrProjectNotFound
 	}
 	return err
 }

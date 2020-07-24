@@ -56,8 +56,7 @@ func newProjectCreateCommand() *projectCreateCommand {
 				message.Warningf("failed to create project, %s", projectName, err.Error())
 
 				// Check if error is because of a project is already associated with this path. Continue loop if so.
-				_, projectExists := err.(*projectstore.ProjectExistsError)
-				if !projectExists {
+				if errors.Is(err, projectstore.ErrProjectExists) {
 					continue
 				}
 
@@ -96,7 +95,7 @@ func createProject(name, path string, pkg *domain.Package) error {
 	return nil
 }
 
-// replaceProject should usually be executed after a attempt to create a new project failed with an ProjectExistsError.
+// replaceProject should usually be executed after a attempt to create a new project failed with an ErrProjectExists.
 // It will remove the given project from storage and save the new one, effectively replacing everything that's
 // associated with the given project path.
 func replaceProject(name, path string, pkg *domain.Package) error {
