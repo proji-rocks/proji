@@ -15,7 +15,7 @@ import (
 // ImportFromRepoStructure imports a package from a given URL. The URL should point to a remote remote of one of the following code
 // platforms: github, gitlab. Proji will imitate the structure and content of the remote and create a package
 // based on it.
-func (ps packageService) ImportPackageFromRepositoryStructure(url *url.URL, filters []*regexp.Regexp) (*domain.Package, error) {
+func (ps packageService) ImportPackageFromRepositoryStructure(url *url.URL, exclude *regexp.Regexp) (*domain.Package, error) {
 	// Get code repo
 	codeRepo, err := remote.NewCodeRepository(url, ps.authentication)
 	if err != nil {
@@ -29,7 +29,7 @@ func (ps packageService) ImportPackageFromRepositoryStructure(url *url.URL, filt
 	pkg := domain.NewPackage(name, label)
 
 	// Get templates from repo tree entries
-	pkg.Templates, err = codeRepo.GetTreeEntriesAsTemplates(url, filters)
+	pkg.Templates, err = codeRepo.GetTreeEntriesAsTemplates(url, exclude)
 	if err != nil {
 		return nil, errors.Wrap(err, "get templates from tree entries")
 	}

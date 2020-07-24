@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (ps packageService) ImportPackagesFromCollection(url *url.URL, filters []*regexp.Regexp) ([]*domain.Package, error) {
+func (ps packageService) ImportPackagesFromCollection(url *url.URL, exclude *regexp.Regexp) ([]*domain.Package, error) {
 	// Get code repo
 	codeRepo, err := remote.NewCodeRepository(url, ps.authentication)
 	if err != nil {
@@ -19,7 +19,7 @@ func (ps packageService) ImportPackagesFromCollection(url *url.URL, filters []*r
 	}
 
 	// Download package configs collection and get their path
-	configFiles, err := codeRepo.GetCollectionConfigs(url, filters)
+	configFiles, err := codeRepo.GetCollectionConfigs(url, exclude)
 	if err != nil {
 		return nil, errors.Wrap(err, "get package configs")
 	}

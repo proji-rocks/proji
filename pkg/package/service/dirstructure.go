@@ -13,15 +13,10 @@ import (
 
 // ImportFromFolderStructure imports a package from a given directory. Proji will imitate the
 // structure and content of the directory and create a package based on it.
-func (ps packageService) ImportPackageFromDirectoryStructure(path string, filters []*regexp.Regexp) (*domain.Package, error) {
+func (ps packageService) ImportPackageFromDirectoryStructure(path string, exclude *regexp.Regexp) (*domain.Package, error) {
 	// Validate that the directory exists
 	if !util.DoesPathExist(path) {
 		return nil, fmt.Errorf("given directory does not exist")
-	}
-
-	// No filters given
-	if filters == nil {
-		filters = make([]*regexp.Regexp, 0)
 	}
 
 	// Set package name from directory base name
@@ -43,9 +38,9 @@ func (ps packageService) ImportPackageFromDirectoryStructure(path string, filter
 			return err
 		}
 
-		// Skip if path matches a filter
-		skipPath := doesPathMatchFilter(currentPath, filters)
-		if skipPath {
+		// Skip if path matches exclude
+		doesMatch := exclude.MatchString(relPath)
+		if doesMatch {
 			return filepath.SkipDir
 		}
 
@@ -54,6 +49,7 @@ func (ps packageService) ImportPackageFromDirectoryStructure(path string, filter
 		if info.IsDir() {
 			isFile = false
 		}
+
 		pkg.Templates = append(pkg.Templates, &domain.Template{IsFile: isFile, Path: "", Destination: relPath})
 		return nil
 	})
@@ -67,14 +63,4 @@ func (ps packageService) ImportPackageFromDirectoryStructure(path string, filter
 		return nil, errors.Wrap(err, "package validation")
 	}
 	return pkg, nil
-}
-
-func doesPathMatchFilter(path string, filters []*regexp.Regexp) bool {
-	for _, filter := range filters {
-		if filter.FindStringIndex(path) != nil {
-			return true
-
-		}
-	}
-	return false
 }
