@@ -3,8 +3,6 @@ package packagestore
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -69,40 +67,25 @@ func (ps packageStore) StorePackage(pkg *domain.Package) error {
 }
 
 func storeTemplates(tx *gorm.DB, templates []*domain.Template, packageID uint) error {
-	var err error
 	insertTemplateStmt := "INSERT OR IGNORE INTO templates (created_at, updated_at, is_file, destination, path, description) VALUES (?, ?, ?, ?, ?, ?)"
 	insertAssociationStmt := "INSERT OR IGNORE INTO package_templates (package_id, template_id) VALUES (?, ?)"
 	queryIDStmt := "SELECT id from templates WHERE destination = ? AND path = ?"
 	for _, template := range templates {
 		now := time.Now()
-		err = tx.Exec(insertTemplateStmt, now, now, template.IsFile, template.Destination, template.Path, template.Description).Error
+		err := tx.Exec(insertTemplateStmt, now, now, template.IsFile, template.Destination, template.Path, template.Description).Error
 		if err != nil {
 			return err
 		}
 
-		// TODO: Possibly improve. Maybe select can be done outside of loop once.
-		rows, err := tx.Raw(queryIDStmt, template.Destination, template.Path).Rows()
+		var id null.Int
+		err = tx.Raw(queryIDStmt, template.Destination, template.Path).Row().Scan(&id)
 		if err != nil {
 			return err
 		}
-		if rows.Err() != nil {
+		if !id.Valid {
 			return err
 		}
-		for rows.Next() {
-			var id null.Int
-			err = rows.Scan(&id)
-			if err != nil {
-				return err
-			}
-			if !id.Valid {
-				return err
-			}
-			template.ID = uint(id.Int64)
-		}
-		err = rows.Close()
-		if err != nil {
-			return err
-		}
+		template.ID = uint(id.Int64)
 
 		err = tx.Exec(insertAssociationStmt, packageID, template.ID).Error
 		if err != nil {
@@ -124,29 +107,15 @@ func storePlugins(tx *gorm.DB, plugins []*domain.Plugin, packageID uint) error {
 			return err
 		}
 
-		// TODO: Possibly improve. Maybe select can be done outside of loop once.
-		rows, err := tx.Raw(queryIDStmt, plugin.Path).Rows()
+		var id null.Int
+		err = tx.Raw(queryIDStmt, plugin.Path).Row().Scan(&id)
 		if err != nil {
 			return err
 		}
-		if rows.Err() != nil {
+		if !id.Valid {
 			return err
 		}
-		for rows.Next() {
-			var id null.Int
-			err = rows.Scan(&id)
-			if err != nil {
-				return err
-			}
-			if !id.Valid {
-				return err
-			}
-			plugin.ID = uint(id.Int64)
-		}
-		err = rows.Close()
-		if err != nil {
-			return err
-		}
+		plugin.ID = uint(id.Int64)
 
 		err = tx.Exec(insertAssociationStmt, packageID, plugin.ID).Error
 		if err != nil {
@@ -157,18 +126,18 @@ func storePlugins(tx *gorm.DB, plugins []*domain.Plugin, packageID uint) error {
 }
 
 func (ps packageStore) LoadPackage(loadDependencies bool, label string) (*domain.Package, error) {
-	conditions := fmt.Sprintf("label = '%s'", label)
+	conditions := "WHERE label = ?"
 	if loadDependencies {
-		conditions = fmt.Sprintf("packages.label = '%s'", label)
+		conditions = "WHERE packages.label = ?"
 	}
-	return ps.loadPackage(loadDependencies, conditions)
+	return ps.loadPackage(loadDependencies, conditions, label)
 }
 
-func (ps packageStore) loadPackage(loadDependencies bool, conditions string) (*domain.Package, error) {
+func (ps packageStore) loadPackage(loadDependencies bool, conditions string, values ...string) (*domain.Package, error) {
 	if loadDependencies {
-		return ps.deepQueryPackage(conditions)
+		return ps.deepQueryPackage(conditions, values...)
 	}
-	return ps.queryPackage(conditions)
+	return ps.queryPackage(conditions, values...)
 }
 
 func (ps packageStore) LoadPackageList(loadDependencies bool, labels ...string) ([]*domain.Package, error) {
@@ -224,20 +193,11 @@ LEFT OUTER JOIN plugins
 	ON package_plugins.plugin_id = plugins.id`
 )
 
-func buildQuery(query, conditions string) string {
-	conditions = strings.TrimSpace(conditions)
-	if len(conditions) > 1 {
-		query = fmt.Sprintf("%s WHERE %s", query, conditions)
-	}
-	return query
-}
-
 // loadAllPackages loads and returns all packages found in the database.
-func (ps packageStore) queryPackage(conditions string) (*domain.Package, error) {
-	query := buildQuery(defaultPackageQueryBase, conditions)
+func (ps packageStore) queryPackage(conditions string, values ...string) (*domain.Package, error) {
 	var name, label string
 	var description null.String
-	err := ps.db.Raw(query).Row().Scan(&name, &label, &description)
+	err := ps.db.Raw(defaultPackageQueryBase+conditions, values).Row().Scan(&name, &label, &description)
 	if err == sql.ErrNoRows {
 		return nil, ErrPackageNotFound
 	}
@@ -247,9 +207,8 @@ func (ps packageStore) queryPackage(conditions string) (*domain.Package, error) 
 	return &domain.Package{Name: name, Label: label, Description: description.String}, nil
 }
 
-func (ps packageStore) deepQueryPackage(conditions string) (pkg *domain.Package, err error) {
-	query := buildQuery(defaultPackageDeepQueryBase, conditions)
-	rows, err := ps.db.Raw(query).Rows()
+func (ps packageStore) deepQueryPackage(conditions string, values ...string) (pkg *domain.Package, err error) {
+	rows, err := ps.db.Raw(defaultPackageDeepQueryBase+conditions, values).Rows()
 	if err != nil {
 		return nil, err
 	}

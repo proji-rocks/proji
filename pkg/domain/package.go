@@ -42,10 +42,10 @@ type PackageService interface {
 	RemovePackage(label string) error
 
 	ImportPackageFromConfig(path string) (*Package, error)
-	ImportPackageFromDirectoryStructure(path string, filters []*regexp.Regexp) (*Package, error)
-	ImportPackageFromRepositoryStructure(url *url.URL, filters []*regexp.Regexp) (*Package, error)
+	ImportPackageFromDirectoryStructure(path string, exclude *regexp.Regexp) (*Package, error)
+	ImportPackageFromRepositoryStructure(url *url.URL, exclude *regexp.Regexp) (*Package, error)
 	ImportPackageFromRemote(url *url.URL) (*Package, error)
-	ImportPackagesFromCollection(url *url.URL, filters []*regexp.Regexp) ([]*Package, error)
+	ImportPackagesFromCollection(url *url.URL, exclude *regexp.Regexp) ([]*Package, error)
 
 	ExportPackageToConfig(pkg Package, destination string) (string, error)
 }
