@@ -3,10 +3,9 @@ package cmd
 import (
 	"os"
 
-	"github.com/nikoksr/proji/util"
-	"github.com/pkg/errors"
-
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/nikoksr/proji/internal/util"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +14,7 @@ type packageListCommand struct {
 }
 
 func newPackageListCommand() *packageListCommand {
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                   "ls",
 		Short:                 "List packages",
 		DisableFlagsInUseLine: true,
@@ -28,7 +27,7 @@ func newPackageListCommand() *packageListCommand {
 }
 
 func listPackages() error {
-	packages, err := activeSession.storageService.LoadPackages()
+	packages, err := session.packageService.LoadPackageList(false)
 	if err != nil {
 		return errors.Wrap(err, "failed to load all packages")
 	}
@@ -37,9 +36,6 @@ func listPackages() error {
 	packagesTable.AppendHeader(table.Row{"Name", "Label"})
 
 	for _, pkg := range packages {
-		if pkg.IsDefault {
-			continue
-		}
 		packagesTable.AppendRow(table.Row{pkg.Name, pkg.Label})
 	}
 	packagesTable.Render()

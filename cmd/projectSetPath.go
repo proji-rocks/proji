@@ -3,7 +3,7 @@ package cmd
 import (
 	"path/filepath"
 
-	"github.com/nikoksr/proji/messages"
+	"github.com/nikoksr/proji/internal/message"
 	"github.com/pkg/errors"
 
 	"github.com/spf13/cobra"
@@ -14,7 +14,7 @@ type projectSetPath struct {
 }
 
 func newProjectSetPathCommand() *projectSetPath {
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                   "path OLD-PATH NEW-PATH",
 		Short:                 "Set a new path",
 		DisableFlagsInUseLine: true,
@@ -30,11 +30,11 @@ func newProjectSetPathCommand() *projectSetPath {
 				return err
 			}
 
-			err = activeSession.storageService.UpdateProjectLocation(oldPath, newPath)
+			err = session.projectService.UpdateProjectLocation(oldPath, newPath)
 			if err != nil {
 				return errors.Wrap(err, "failed setting project path")
 			}
-			messages.Successf("successfully set path of project at %s to %s", oldPath, newPath)
+			message.Successf("successfully set path of project at %s to %s", oldPath, newPath)
 			return nil
 		},
 	}

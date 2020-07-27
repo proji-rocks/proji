@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/nikoksr/proji/messages"
-	"github.com/nikoksr/proji/util"
+	"github.com/nikoksr/proji/internal/message"
+	"github.com/nikoksr/proji/internal/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -12,7 +12,7 @@ type projectCleanCommand struct {
 }
 
 func newProjectCleanCommand() *projectCleanCommand {
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                   "clean",
 		Short:                 "Clean up projects",
 		DisableFlagsInUseLine: true,
@@ -25,7 +25,7 @@ func newProjectCleanCommand() *projectCleanCommand {
 }
 
 func cleanProjects() error {
-	projects, err := activeSession.storageService.LoadProjects()
+	projects, err := session.projectService.LoadProjectList()
 	if err != nil {
 		return errors.Wrap(err, "failed to load all projects")
 	}
@@ -36,9 +36,9 @@ func cleanProjects() error {
 			continue
 		}
 		// Remove the project
-		err := activeSession.storageService.RemoveProject(project.Path)
+		err := session.projectService.RemoveProject(project.Path)
 		if err != nil {
-			messages.Warningf("failed to remove project with path %s, %s", project.Path, err.Error())
+			message.Warningf("failed to remove project with path %s, %v", project.Path, err)
 		}
 	}
 	return nil
