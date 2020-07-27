@@ -1,27 +1,31 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
-	"github.com/nikoksr/proji/messages"
-
-	"github.com/nikoksr/proji/config"
-	"github.com/nikoksr/proji/storage"
+	"github.com/nikoksr/proji/internal/config"
+	"github.com/nikoksr/proji/internal/database"
+	"github.com/nikoksr/proji/internal/message"
+	"github.com/nikoksr/proji/internal/statuswriter"
+	"github.com/nikoksr/proji/pkg/domain"
+	packageservice "github.com/nikoksr/proji/pkg/package/service"
+	packagestore "github.com/nikoksr/proji/pkg/package/store"
+	projectservice "github.com/nikoksr/proji/pkg/project/service"
+	projectstore "github.com/nikoksr/proji/pkg/project/store"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
 //nolint:gochecknoglobals
-var activeSession *session
+var session *sessionState
 
-// session represents central resources and information the app uses.
-type session struct {
+// sessionState represents central resources and information the app uses.
+type sessionState struct {
 	config              *config.Config
-	storageService      storage.Service
-	fallbackVersion     string
-	version             string
-	noColors            bool
+	packageService      domain.PackageService
+	projectService      domain.ProjectService
 	maxTableColumnWidth int
 }
 
@@ -30,7 +34,7 @@ type session struct {
 func Execute() {
 	err := newRootCommand().cmd.Execute()
 	if err != nil {
-		messages.Errorf("", err)
+		message.Errorf(err, "")
 	}
 }
 
@@ -39,27 +43,18 @@ type rootCommand struct {
 }
 
 func newRootCommand() *rootCommand {
-	var disableColors bool
-
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:           "proji",
 		Short:         "A powerful cross-platform CLI project templating tool.",
 		SilenceErrors: true,
 		SilenceUsage:  true,
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			if disableColors {
-				messages.DisableColors()
-			}
-
-			// Leave one empty line above by default
-			// fmt.Println()
-
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// Prepare proji
-			prepare()
+			return prepare(cmd.Flags())
 		},
 	}
 
-	cmd.PersistentFlags().BoolVar(&disableColors, "no-colors", false, "disable text colors")
+	cmd.PersistentFlags().Bool("no-colors", false, "disable text colors")
 	cmd.AddCommand(
 		newCompletionCommand().cmd,
 		newInitCommand().cmd,
@@ -75,80 +70,83 @@ func newRootCommand() *rootCommand {
 	return &rootCommand{cmd: cmd}
 }
 
-func prepare() {
-	if activeSession == nil {
-		activeSession = &session{
-			config:              nil,
-			storageService:      nil,
-			fallbackVersion:     "0.19.2",
-			version:             "0.20.0",
-			noColors:            false,
+func prepare(cmdFlags *pflag.FlagSet) error {
+	if session == nil {
+		session = &sessionState{
 			maxTableColumnWidth: getMaxColumnWidth(),
 		}
 	}
 
 	// Skip preparation if no args were given
 	if len(os.Args) < 2 {
-		return
+		return nil
+	}
+
+	// Prepare the config
+	err := config.Prepare()
+	if err != nil {
+		return errors.Wrap(err, "failed to prepare main config")
+	}
+
+	// Load the main config
+	err = loadConfig(cmdFlags)
+	if err != nil {
+		return errors.Wrap(err, "failed to load main config")
+	}
+
+	if session.config.Core.DisableColors {
+		message.DisableColors()
+		statuswriter.DisableColors()
 	}
 
 	// Evaluate preparation behaviour
 	switch os.Args[1] {
-	case "version", "help":
-		// Don't init config or storage on version or help. It's just not necessary.
-		return
-	case "init":
-		// Setup the config because init needs a bare bone config to deploy the base config folder.
-		setupConfig()
+	case "version", "help", "init":
+		// Do nothing. Don't init the storage on version, help or init. It's just not necessary.
 	default:
-		// On default load the main config and initialize the storage service
-		loadConfig()
-		initStorageService()
+		err = initServices()
 	}
+	return err
 }
 
-func setupConfig() {
-	err := config.Setup()
-	if err != nil {
-		messages.Errorf("failed to setup config", err)
-		os.Exit(1)
-	}
-}
-
-func loadConfig() {
-	if activeSession == nil {
-		messages.Errorf("couldn't initialize config", fmt.Errorf("session not found"))
-	}
-
-	// Run config setup
-	setupConfig()
-
+func loadConfig(cmdFlags *pflag.FlagSet) error {
 	// Create the config
-	activeSession.config = config.New(config.GetBaseConfigPath())
+	session.config = config.New(config.GetBaseConfigPath())
 
 	// Load the config
-	err := activeSession.config.Load()
+	err := session.config.LoadValues(cmdFlags)
 	if err != nil {
-		messages.Errorf("loading config failed", err)
-		os.Exit(1)
+		return errors.Wrap(err, "load config values")
 	}
+	return nil
 }
 
-func initStorageService() {
-	var err error
-	activeSession.storageService, err = storage.NewService(
-		activeSession.config.DatabaseConnection.Driver,
-		activeSession.config.DatabaseConnection.DSN,
-	)
+func initServices() error {
+	// Connect to database
+	db, err := database.New(session.config.DatabaseConnection.Driver, session.config.DatabaseConnection.DSN)
 	if err != nil {
-		messages.Errorf(
-			"could not connect to %s database with dsn %s, %s",
-			err,
-			activeSession.config.DatabaseConnection.Driver,
-			activeSession.config.DatabaseConnection.DSN,
-		)
-		os.Exit(1)
+		return errors.Wrap(err, "connect to database")
 	}
+
+	// Run database migration
+	err = db.Migrate()
+	if err != nil {
+		return errors.Wrap(err, "migrate database")
+	}
+
+	// Create the services
+	createServices(db)
+	return nil
+}
+
+func createServices(db *database.Database) {
+	// Package Service
+	packageStore := packagestore.New(db.Connection)
+	session.packageService = packageservice.New(session.config.Auth, packageStore)
+
+	// Project Service
+	projectStore := projectstore.New(db.Connection)
+	session.projectService = projectservice.New(projectStore)
 }
 
 func getTerminalWidth() (int, error) {
@@ -160,10 +158,10 @@ func getTerminalWidth() (int, error) {
 }
 
 func getMaxColumnWidth() int {
-	//Load terminal width and set max column width for dynamic rendering
+	// Load terminal width and set max column width for dynamic rendering
 	terminalWidth, err := getTerminalWidth()
 	if err != nil {
-		messages.Warningf("couldn't get terminal width. Falling back to default value, %s", err.Error())
+		message.Warningf("couldn't get terminal width. Falling back to default value, %s", err.Error())
 		return 50
 	}
 	return terminalWidth / 2

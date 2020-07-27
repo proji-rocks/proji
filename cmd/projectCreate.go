@@ -4,13 +4,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/nikoksr/proji/messages"
+	projectstore "github.com/nikoksr/proji/pkg/project/store"
 
-	"github.com/nikoksr/proji/storage"
+	"github.com/nikoksr/proji/pkg/domain"
+
+	"github.com/nikoksr/proji/internal/message"
 	"github.com/pkg/errors"
 
-	"github.com/nikoksr/proji/storage/models"
-	"github.com/nikoksr/proji/util"
+	"github.com/nikoksr/proji/internal/util"
 	"github.com/spf13/cobra"
 )
 
@@ -19,7 +20,7 @@ type projectCreateCommand struct {
 }
 
 func newProjectCreateCommand() *projectCreateCommand {
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                   "create LABEL NAME [NAME...]",
 		Short:                 "Create one or more projects",
 		DisableFlagsInUseLine: true,
@@ -35,28 +36,27 @@ func newProjectCreateCommand() *projectCreateCommand {
 			}
 
 			// Load package once for all projects
-			pkg, err := activeSession.storageService.LoadPackage(label)
+			pkg, err := session.packageService.LoadPackage(true, label)
 			if err != nil {
 				return errors.Wrap(err, "failed to load package")
 			}
 
 			for _, projectName := range projectNames {
-				messages.Infof("creating project %s", projectName)
+				message.Infof("creating project %s", projectName)
 
 				// Try to create the project
 				projectPath := filepath.Join(workingDirectory, projectName)
 				err := createProject(projectName, projectPath, pkg)
 				if err == nil {
-					messages.Successf("successfully created project %s", projectName)
+					message.Successf("successfully created project %s", projectName)
 					continue
 				}
 
 				// Print error message
-				messages.Warningf("failed to create project, %s", projectName, err.Error())
+				message.Warningf("failed to create project, %s", projectName, err.Error())
 
 				// Check if error is because of a project is already associated with this path. Continue loop if so.
-				_, projectExists := err.(*storage.ProjectExistsError)
-				if !projectExists {
+				if errors.Is(err, projectstore.ErrProjectExists) {
 					continue
 				}
 
@@ -68,9 +68,9 @@ func newProjectCreateCommand() *projectCreateCommand {
 				// Try to replace the project
 				err = replaceProject(projectName, projectPath, pkg)
 				if err != nil {
-					messages.Warningf("failed to replace project %s, %s", projectName, err.Error())
+					message.Warningf("failed to replace project %s, %s", projectName, err.Error())
 				} else {
-					messages.Successf("successfully replaced project %s", projectName)
+					message.Successf("successfully replaced project %s", projectName)
 				}
 			}
 			return nil
@@ -82,31 +82,31 @@ func newProjectCreateCommand() *projectCreateCommand {
 
 // createProject is a small wrapper function which takes a project name, path and its associated package,
 // creates the project directory and tries to save it to storage.
-func createProject(name, path string, pkg *models.Package) error {
-	project := models.NewProject(name, path, pkg)
-	err := project.Create(activeSession.config.BasePath)
+func createProject(name, path string, pkg *domain.Package) error {
+	project := domain.NewProject(name, path, pkg)
+	err := session.projectService.CreateProject(session.config.BasePath, project)
 	if err != nil {
-		return errors.Wrap(err, "failed to create project")
+		return errors.Wrap(err, "create project")
 	}
-	err = activeSession.storageService.SaveProject(project)
+	err = session.projectService.StoreProject(project)
 	if err != nil {
-		return errors.Wrap(err, "failed to save project")
+		return errors.Wrap(err, "save project")
 	}
 	return nil
 }
 
-// replaceProject should usually be executed after a attempt to create a new project failed with an ProjectExistsError.
+// replaceProject should usually be executed after a attempt to create a new project failed with an ErrProjectExists.
 // It will remove the given project from storage and save the new one, effectively replacing everything that's
 // associated with the given project path.
-func replaceProject(name, path string, pkg *models.Package) error {
-	err := activeSession.storageService.RemoveProject(path)
+func replaceProject(name, path string, pkg *domain.Package) error {
+	err := session.projectService.RemoveProject(path)
 	if err != nil {
-		return errors.Wrap(err, "failed to remove project")
+		return errors.Wrap(err, "remove project")
 	}
-	project := models.NewProject(name, path, pkg)
-	err = activeSession.storageService.SaveProject(project)
+	project := domain.NewProject(name, path, pkg)
+	err = session.projectService.StoreProject(project)
 	if err != nil {
-		return errors.Wrap(err, "failed to save project")
+		return errors.Wrap(err, "save project")
 	}
 	return nil
 }
