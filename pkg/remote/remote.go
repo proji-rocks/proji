@@ -42,12 +42,10 @@ func ParseURL(repoURL string) (*url.URL, error) {
 	}
 	// Replace domain abbreviations like 'gh:' with the actual domain of the host
 	for abbreviation, fullDomain := range domainAbbreviations {
-		repoURL = strings.Replace(repoURL, abbreviation, fullDomain, 1)
-		if strings.HasPrefix(repoURL, abbreviation) {
-			fullDomain = strings.Trim(fullDomain, "/")
-			repoURL = strings.Replace(repoURL, abbreviation, fullDomain, 1)
-			break
+		if !strings.HasPrefix(repoURL, abbreviation) {
+			continue
 		}
+		repoURL = strings.Replace(repoURL, abbreviation, fullDomain, 1)
 	}
 
 	// Parse to URL structure
