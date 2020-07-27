@@ -45,7 +45,10 @@ func ParseURL(repoURL string) (*url.URL, error) {
 		if !strings.HasPrefix(repoURL, abbreviation) {
 			continue
 		}
-		repoURL = strings.Replace(repoURL, abbreviation, fullDomain, 1)
+		repoURL = strings.TrimPrefix(repoURL, abbreviation)
+		repoURL = strings.TrimPrefix(repoURL, "/")
+		repoURL = fullDomain + repoURL
+		// repoURL = strings.Replace(repoURL, abbreviation, fullDomain, 1)
 	}
 
 	// Parse to URL structure
