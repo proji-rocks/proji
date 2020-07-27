@@ -316,7 +316,7 @@ func (ps packageStore) RemovePackage(label string) error {
 
 	var pkg domain.Package
 	tx = tx.Select("id").Where("label = ?", label).First(&pkg)
-	if errors.Is(tx.Error, gorm.ErrRecordNotFound) || tx.RowsAffected < 1 {
+	if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		tx.Rollback()
 		return ErrPackageNotFound
 	}
