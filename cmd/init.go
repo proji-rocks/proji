@@ -2,9 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"path/filepath"
 	"runtime"
 
-	"github.com/nikoksr/proji/config"
+	"github.com/nikoksr/proji/internal/config"
+	"github.com/nikoksr/proji/internal/message"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -14,19 +17,15 @@ type initCommand struct {
 }
 
 func newInitCommand() *initCommand {
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                   "init",
-		Short:                 "Initialize central config folder",
+		Short:                 "Initialize proji",
 		Long:                  initHelp(),
 		Hidden:                true,
 		DisableFlagsInUseLine: true,
 		Args:                  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := config.Deploy(
-				activeSession.version,
-				activeSession.fallbackVersion,
-				false,
-			)
+			err := config.Deploy()
 			if err != nil {
 				return errors.Wrap(err, "could not set up config folder")
 			}
@@ -37,47 +36,39 @@ func newInitCommand() *initCommand {
 }
 
 func initHelp() string {
-	// OS specific conf path.
-	confPath := config.GetBaseConfigPath()
-
-	// OS specific help command.
-	helpMsg := "It is possible to set up the config folder manually.\n\n"
+	err := config.Prepare()
+	if err != nil {
+		log.Println(message.Serrorf(err, "failed to prepare config"))
+	}
+	configDirectoryPath := config.GetBaseConfigPath()
+	configPath := filepath.Join(configDirectoryPath, "config.toml")
+	dbPath := filepath.Join(configDirectoryPath, "db")
+	pluginsPath := filepath.Join(configDirectoryPath, "plugins")
+	templatesPath := filepath.Join(configDirectoryPath, "templates")
+	helpMsg := "In the case that proji's initialization fails you can create its central config folder manually.\n\n"
 
 	switch runtime.GOOS {
 	case "darwin", "linux":
-		helpMsg += fmt.Sprintf(
-			" mkdir -p %s/db %s/examples %s/plugins %s/templates\n\n",
-			confPath,
-			confPath,
-			confPath,
-			confPath,
+		helpMsg += fmt.Sprintf(" • mkdir -p %s %s %s\n",
+			dbPath,
+			pluginsPath,
+			templatesPath,
 		)
 		helpMsg += fmt.Sprintf(
-			" curl -o %s/config.toml https://raw.githubusercontent.com/nikoksr/proji/master/assets/examples/example-config.toml\n\n",
-			confPath,
-		)
-		helpMsg += fmt.Sprintf(
-			" curl -o %s/examples/proji-package.toml https://raw.githubusercontent.com/nikoksr/proji/master/assets/examples/example-package-export.toml\n\n",
-			confPath,
+			" • curl https://github.com/nikoksr/proji/examples/main-config.toml -o %s\n",
+			configPath,
 		)
 	case "windows":
 		helpMsg += fmt.Sprintf(
-			" md %s\\db %s\\examples %s\\plugins %s\\templates\n\n",
-			confPath,
-			confPath,
-			confPath,
-			confPath,
+			" • md %s %s %s\n",
+			dbPath,
+			pluginsPath,
+			templatesPath,
 		)
-		helpMsg += fmt.Sprintf(
-			" Download https://github.com/nikoksr/proji/blob/master/assets/examples/example-config.toml to %s\\config.toml\n",
-			confPath,
-		)
-		helpMsg += fmt.Sprintf(
-			" Download https://github.com/nikoksr/proji/blob/master/assets/examples/example-package-export.toml to %s\\examples\\proji-package.toml\n\n",
-			confPath,
-		)
+		helpMsg += " • Download the main config from: https://github.com/nikoksr/proji/examples/main-config.toml\n"
+		helpMsg += fmt.Sprintf(" • Move it to: %s\n", configPath)
 	default:
-		helpMsg = "Your platform is not supported, so no help is available at the moment.\n\n"
+		return "Your operating system is not supported, sorry!\n"
 	}
 	helpMsg += "\nFor more help visit: https://github.com/nikoksr/proji\n\n"
 	return helpMsg

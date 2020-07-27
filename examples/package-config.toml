@@ -1,0 +1,79 @@
+# Proji Example Package Config
+#
+# Import config files like this to proji with 'proji package import --config <file>'.
+# Proji will create a package based on this config file. The package can then always be used as
+# a template for new projects.
+# Export an existing package with 'proji package export <package-label>'. Proji will create
+# a config file of your package in your current working directory.
+#
+# Packages are like blueprints for the structure and behavior of projects. A package is created
+# once and can be used as a template at any time to easily create new projects. This is what will save you
+# a lot of time over the long run and structure your projects consistently.
+#
+# NAME
+# The name is a long string describing the packages general purpose. Not like a descriptive paragraph but
+# more like a title that let's others know what your package is about.
+# name = "my-example-package" <- Good
+# name = "t1"                 <- Bad, too short and not expressive
+name = "my-example-package"
+
+# LABEL
+# The label is a very short string which is used as projis internal identifier for packages. Labels have to
+# be unique! You can't have two identical labels.
+# Usually the label is an abbreviation of the package name, but it can also simply be a short string that
+# quickly and uniquely identifies a class.
+# label = "mep"              <- Good
+# label = "myTestClassLabel" <- Bad - too long
+# label = "ilt"              <- Bad - unrelated to package name
+label = "mep"
+
+# DESCRIPTION (optional)
+# An optional text field to describe your package in detail.
+description = "This is proji's example package."
+
+# TEMPLATES
+# A template for a file or directory. Templates are stored in the template folder which you can find in
+# projis config folder. Simply place files or folders that you want to be used a template in this folder
+# and reference them here.
+# Notice that you don't have to specify a template. When no template is given proji will create a blank
+# file or folder.
+# You have to specify at least one template or the package will not be importable.
+
+# A file with a template, this creates a file at the given destination based on the file specified by the path field.
+[[template]]
+  is_file = true                 # is it a file or a folder?
+  destination = "README.md"      # name of the file that will be created
+  path = "my-readme-template.md" # the relative path to the template
+  description = ""               # optional template description
+
+# A file without a template, this creates a blank file.
+[[template]]
+  is_file = true
+  destination = "src/main.cpp"
+  path = ""
+
+# A folder without a template, this creates an empty folder.
+[[template]]
+  is_file = false
+  destination = "src"
+  path = ""
+
+# PLUGINS (optional)
+# Proji supports lua plugins, which make project generation almost infinitely expandable. A typical example of a
+# plugin is the initialization of a git repository.
+# Plugins are stored, similar to templates, in proji's main config folder in the plugins subfolder.
+#
+# With the exec_number field you can specify when a plugin should be executed. An exec_number less than zero (0) means
+# that a plugin will be executed before any template folders or files are created. An exec_number greater than zero
+# means that a plugin will be executed after all folders and files have been created. Plugins are executed in order of
+# their ascending exec_number. The exec_number may not be equal to zero(0).
+#
+# Order of plugins that will be executed before all templates. -n is executed first and -1 last.
+# -n -> -n + 1 -> ... -> -1
+#
+# Order of plugins that will be executed after all templates. 1 is executed first and n last.
+# 1 -> 2 -> ... -> n
+
+[[plugin]]
+  path = "git-init.lua" # the relative path of the plugin
+  exec_number = 1       # the plugins execution order number

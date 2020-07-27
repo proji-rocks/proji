@@ -21,7 +21,7 @@ cover: test
 
 # gofmt and goimports all go files
 fmt:
-	find . -name '*.go' -not -wholename './vendor/*' | while read -r file; do gofmt -w -s "$$file"; goimports -w "$$file"; done
+	find . -name '*.go' -not -wholename './vendor/*' | while read -r file; do gofumports -w "$$file"; done
 .PHONY: fmt
 
 # Run all the linters
