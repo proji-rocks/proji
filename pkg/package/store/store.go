@@ -197,7 +197,7 @@ LEFT OUTER JOIN plugins
 func (ps packageStore) queryPackage(conditions string, values ...string) (*domain.Package, error) {
 	var name, label string
 	var description null.String
-	err := ps.db.Raw(defaultPackageQueryBase+conditions, values).Row().Scan(&name, &label, &description)
+	err := ps.db.Raw(defaultPackageQueryBase+" "+conditions, values).Row().Scan(&name, &label, &description)
 	if err == sql.ErrNoRows {
 		return nil, ErrPackageNotFound
 	}
@@ -208,7 +208,7 @@ func (ps packageStore) queryPackage(conditions string, values ...string) (*domai
 }
 
 func (ps packageStore) deepQueryPackage(conditions string, values ...string) (pkg *domain.Package, err error) {
-	rows, err := ps.db.Raw(defaultPackageDeepQueryBase+conditions, values).Rows()
+	rows, err := ps.db.Raw(defaultPackageDeepQueryBase+" "+conditions, values).Rows()
 	if err != nil {
 		return nil, err
 	}
