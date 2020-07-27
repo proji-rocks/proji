@@ -14,14 +14,14 @@ func TestDoesPathExist(t *testing.T) {
 		exists bool
 	}{
 		{path: "./util_test.go", exists: true},
-		{path: "../README.md", exists: true},
+		{path: "../../README.md", exists: true},
 		{path: "../../READMENOT.md", exists: false},
 		{path: "./CrYpTicFiLe.txt", exists: false},
 	}
 
 	for _, test := range tests {
 		exists := DoesPathExist(test.path)
-		assert.Equal(t, test.exists, exists)
+		assert.Equalf(t, test.exists, exists, "path %s expected: %v got: %v\n", test.path, test.exists, exists)
 	}
 }
 
