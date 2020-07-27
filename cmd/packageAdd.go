@@ -23,6 +23,7 @@ func newPackageAddCommand() *packageAddCommand {
 		Short:                 "Add one or more packages",
 		DisableFlagsInUseLine: true,
 		Args:                  cobra.MinimumNArgs(1),
+		Aliases:               []string{"a"},
 		Deprecated:            "command 'package add' will be deprecated in the next release",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			for _, name := range args {

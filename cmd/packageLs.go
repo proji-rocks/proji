@@ -17,6 +17,7 @@ func newPackageListCommand() *packageListCommand {
 	cmd := &cobra.Command{
 		Use:                   "ls",
 		Short:                 "List packages",
+		Aliases:               []string{"l"},
 		DisableFlagsInUseLine: true,
 		Args:                  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {

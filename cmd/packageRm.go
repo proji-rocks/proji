@@ -17,8 +17,9 @@ func newPackageRemoveCommand() *packageRemoveCommand {
 	var removeAllPackages, forceRemovePackages bool
 
 	cmd := &cobra.Command{
-		Use:   "rm LABEL [LABEL...]",
-		Short: "Remove one or more packages",
+		Use:     "rm LABEL [LABEL...]",
+		Short:   "Remove one or more packages",
+		Aliases: []string{"r"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Collect packages that will be removed
 			var err error

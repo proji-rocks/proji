@@ -19,8 +19,9 @@ func newProjectRemoveCommand() *projectRemoveCommand {
 	var removeAllProjects, forceRemoveProjects bool
 
 	cmd := &cobra.Command{
-		Use:   "rm PATH [PATH...]",
-		Short: "Remove one or more projects",
+		Use:     "rm PATH [PATH...]",
+		Short:   "Remove one or more projects",
+		Aliases: []string{"r"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Collect projects that will be removed
 			var projects []*domain.Project

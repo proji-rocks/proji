@@ -29,8 +29,12 @@ func newPackageImportCommand() *packageImportCommand {
 	var remoteRepos, directories, configs, packages, collections []string
 
 	cmd := &cobra.Command{
-		Use:   "import LOCATION [LOCATION...]",
-		Short: "Import one or more packages",
+		Use:     "import FROM [FROM...]",
+		Short:   "Import one or more packages",
+		Aliases: []string{"i"},
+		Example: `  proji package import gh:nikoksr/proji-official-collection/configs/nikoksr/go.toml
+  proji package import -r https://github.com/torvalds/linux
+  proji package import -d .`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if cmd.Flags().NFlag() == 0 {
 				if len(args) < 1 {

@@ -22,6 +22,7 @@ func newProjectAddCommand() *projectAddCommand {
 	cmd := &cobra.Command{
 		Use:                   "add LABEL PATH",
 		Short:                 "Add an existing project",
+		Aliases:               []string{"a"},
 		DisableFlagsInUseLine: true,
 		Args:                  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {

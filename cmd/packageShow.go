@@ -22,8 +22,9 @@ func newPackageShowCommand() *packageShowCommand {
 	var showAll bool
 
 	cmd := &cobra.Command{
-		Use:   "show LABEL [LABEL...]",
-		Short: "Show details about one or more packages",
+		Use:     "show LABEL [LABEL...]",
+		Short:   "Show details about one or more packages",
+		Aliases: []string{"s"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if !showAll && len(args) < 1 {
 				return fmt.Errorf("missing package label")

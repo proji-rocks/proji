@@ -10,8 +10,9 @@ type projectSetCommand struct {
 
 func newProjectSetCommand() *projectSetCommand {
 	cmd := &cobra.Command{
-		Use:   "set",
-		Short: "Set project information",
+		Use:     "set",
+		Short:   "Set project information",
+		Aliases: []string{"s"},
 	}
 
 	cmd.AddCommand(newProjectSetPathCommand().cmd)
