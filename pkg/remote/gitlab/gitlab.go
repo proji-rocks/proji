@@ -2,6 +2,7 @@ package gitlab
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -21,14 +22,28 @@ const defaultTimeout = time.Second * 10
 type Service struct {
 	isAuthenticated bool
 	client          *gl.Client
-	repo            *repo
 }
 
 // New creates a new gitlab remote instance.
 func New(authToken string) (*Service, error) {
 	s := &Service{}
 	var err error
-	s.client, err = gl.NewClient(authToken)
+	httpClient := &http.Client{Timeout: defaultTimeout}
+
+	if len(strings.TrimSpace(authToken)) > 0 {
+		s.client, err = gl.NewOAuthClient(
+			authToken,
+			gl.WithHTTPClient(httpClient),
+		)
+		s.isAuthenticated = true
+	} else {
+		s.client, err = gl.NewClient(
+			"",
+			gl.WithHTTPClient(httpClient),
+		)
+		s.isAuthenticated = false
+	}
+
 	if err != nil {
 		return nil, errors.Wrap(err, "gitlab client")
 	}
@@ -156,7 +171,7 @@ func (r repo) downloadPackageConfig(destination string, source *url.URL) (string
 }
 
 func (r repo) downloadCollectionConfigs(treeEntries []*gl.TreeNode, exclude *regexp.Regexp) ([]string, error) {
-	var configPaths []string
+	configPaths := make([]string, 0)
 	configsBasePath := filepath.Join(os.TempDir(), "proji/configs")
 	for _, entry := range treeEntries {
 		// Check if exclude matches the path

@@ -20,13 +20,12 @@ func (r repo) getTreeEntries() ([]*gl.TreeNode, error) {
 	treeEntries := make([]*gl.TreeNode, 0)
 	pid := r.owner + "/" + r.name
 	recursive := true
-	nextPage := 1
 
 	listTreeOptions := &gl.ListTreeOptions{
 		Recursive: &recursive,
 		Ref:       &r.branch,
 		ListOptions: gl.ListOptions{
-			Page:    nextPage,
+			Page:    1,
 			PerPage: 100,
 		},
 	}
@@ -42,7 +41,7 @@ func (r repo) getTreeEntries() ([]*gl.TreeNode, error) {
 		if resp.NextPage == 0 {
 			break
 		}
-		nextPage = resp.NextPage
+		listTreeOptions.ListOptions.Page = resp.NextPage
 	}
 	return treeEntries, nil
 }
