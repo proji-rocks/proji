@@ -15,6 +15,7 @@ func newProjectCleanCommand() *projectCleanCommand {
 	cmd := &cobra.Command{
 		Use:                   "clean",
 		Short:                 "Clean up projects",
+		Aliases:               []string{"cln"},
 		DisableFlagsInUseLine: true,
 		Args:                  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {

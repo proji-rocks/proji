@@ -23,6 +23,7 @@ func newProjectCreateCommand() *projectCreateCommand {
 	cmd := &cobra.Command{
 		Use:                   "create LABEL NAME [NAME...]",
 		Short:                 "Create one or more projects",
+		Aliases:               []string{"c"},
 		DisableFlagsInUseLine: true,
 		Args:                  cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {

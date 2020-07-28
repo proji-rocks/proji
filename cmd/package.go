@@ -10,8 +10,9 @@ type packageCommand struct {
 
 func newPackageCommand() *packageCommand {
 	cmd := &cobra.Command{
-		Use:   "package",
-		Short: "Manage packages",
+		Use:     "package",
+		Aliases: []string{"p", "pkg"},
+		Short:   "Manage packages",
 	}
 
 	cmd.AddCommand(

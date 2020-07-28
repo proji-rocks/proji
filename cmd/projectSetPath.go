@@ -17,6 +17,7 @@ func newProjectSetPathCommand() *projectSetPath {
 	cmd := &cobra.Command{
 		Use:                   "path OLD-PATH NEW-PATH",
 		Short:                 "Set a new path",
+		Aliases:               []string{"p"},
 		DisableFlagsInUseLine: true,
 		Args:                  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
