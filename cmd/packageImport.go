@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/nikoksr/proji/pkg/domain"
+	packagestore "github.com/nikoksr/proji/pkg/package/store"
+
 	"github.com/nikoksr/proji/internal/statuswriter"
 
 	"github.com/nikoksr/proji/internal/message"
@@ -92,116 +95,113 @@ func newPackageImportCommand() *packageImportCommand {
 
 func importPackage(status *statuswriter.Sink, path, importType string, exclude *regexp.Regexp) {
 	defer status.Close()
-	var name, label string
+	var pkg *domain.Package
 	var err error
 
 	status.Write(message.Sinfof("importing %s %s\n", importType, path))
 
 	switch importType {
 	case flagConfig:
-		name, label, err = importPackageFromConfig(status, path)
+		pkg, err = importPackageFromConfig(status, path)
 	case flagDirectoryStructure:
-		name, label, err = importPackageFromDirectoryStructure(status, path, exclude)
+		pkg, err = importPackageFromDirectoryStructure(status, path, exclude)
 	case flagRepoStructure:
-		name, label, err = importPackageFromRepoStructure(status, path, exclude)
+		pkg, err = importPackageFromRepoStructure(status, path, exclude)
 	case flagPackage:
-		name, label, err = importPackageFromRemote(status, path)
+		pkg, err = importPackageFromRemote(status, path)
 	case flagCollection:
 		importPackagesFromCollection(status, path, exclude)
 		return
 	default:
 		err = fmt.Errorf("import type %s not supported", importType)
 	}
+	if errors.Is(err, packagestore.ErrPackageExists) && importType != flagConfig {
+		handleDuplicatePackage(status, pkg)
+		return
+	}
 	if err != nil {
 		status.Write(message.Serrorf(err, "failed to import package from %s %s", importType, path))
 		return
 	}
-	if importType == flagCollection {
+	if importType != flagCollection {
 		// Collections handle messages on its own
-		return
+		status.Write(message.Ssuccessf("successfully imported package %s [%s]", pkg.Name, pkg.Label))
 	}
-	status.Write(message.Ssuccessf("successfully imported package %s [%s]", name, label))
 }
 
-func importPackageFromConfig(status *statuswriter.Sink, path string) (string, string, error) {
+func importPackageFromConfig(status *statuswriter.Sink, path string) (*domain.Package, error) {
 	// Import the package
 	pkg, err := session.packageService.ImportPackageFromConfig(path)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
 	// Save the package
 	status.Write(message.Sinfof("storing package %s [%s]", pkg.Name, pkg.Label))
 	err = session.packageService.StorePackage(pkg)
-	if err != nil {
-		return "", "", err
-	}
-	return pkg.Name, pkg.Label, nil
+	return pkg, err
 }
 
-func importPackageFromDirectoryStructure(status *statuswriter.Sink, path string, exclude *regexp.Regexp) (string, string, error) {
+func importPackageFromDirectoryStructure(status *statuswriter.Sink, path string, exclude *regexp.Regexp) (*domain.Package, error) {
 	// Import the package
 	pkg, err := session.packageService.ImportPackageFromDirectoryStructure(path, exclude)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
 	// Save the package
 	status.Write(message.Sinfof("storing package %s [%s]", pkg.Name, pkg.Label))
 	err = session.packageService.StorePackage(pkg)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
-	return pkg.Name, pkg.Label, nil
+	return pkg, err
 }
 
-func importPackageFromRepoStructure(status *statuswriter.Sink, url string, exclude *regexp.Regexp) (string, string, error) {
+func importPackageFromRepoStructure(status *statuswriter.Sink, url string, exclude *regexp.Regexp) (*domain.Package, error) {
 	// Parse url string to object
 	status.Write(message.Sinfof("parsing url"))
 	parsedURL, err := remote.ParseURL(url)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
 	// Import the package
 	status.Write(message.Sinfof("creating package from repository structure of %s", parsedURL.String()))
 	pkg, err := session.packageService.ImportPackageFromRepositoryStructure(parsedURL, exclude)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
 	// Save the package
 	status.Write(message.Sinfof("storing package %s [%s]", pkg.Name, pkg.Label))
 	err = session.packageService.StorePackage(pkg)
-	if err != nil {
-		return "", "", err
-	}
-	return pkg.Name, pkg.Label, nil
+	return pkg, err
 }
 
-func importPackageFromRemote(status *statuswriter.Sink, url string) (string, string, error) {
+func importPackageFromRemote(status *statuswriter.Sink, url string) (*domain.Package, error) {
 	// Parse url string to object
 	status.Write(message.Sinfof("parsing url"))
 	parsedURL, err := remote.ParseURL(url)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
 	// Import the package
 	status.Write(message.Sinfof("importing package from %s", parsedURL.String()))
 	pkg, err := session.packageService.ImportPackageFromRemote(parsedURL)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
 	// Save the package
 	status.Write(message.Sinfof("storing package %s [%s]", pkg.Name, pkg.Label))
 	err = session.packageService.StorePackage(pkg)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 	message.Successf("successfully imported package %s", pkg.Name)
-	return pkg.Name, pkg.Label, nil
+	return pkg, err
 }
 
 func importPackagesFromCollection(status *statuswriter.Sink, url string, exclude *regexp.Regexp) {
@@ -226,6 +226,10 @@ func importPackagesFromCollection(status *statuswriter.Sink, url string, exclude
 	for _, pkg := range pkgs {
 		status.Write(message.Sinfof("storing package %s [%s]", pkg.Name, pkg.Label))
 		err = session.packageService.StorePackage(pkg)
+		if errors.Is(err, packagestore.ErrPackageExists) {
+			handleDuplicatePackage(status, pkg)
+			continue
+		}
 		if err != nil {
 			status.Write(message.Serrorf(err, "failed to store package %s [%s]", pkg.Name, pkg.Label))
 		} else {
@@ -234,4 +238,31 @@ func importPackagesFromCollection(status *statuswriter.Sink, url string, exclude
 		}
 	}
 	status.Write(message.Ssuccessf("successfully imported %d of %d package from collection %s", successfulImports, len(pkgs), parsedURL.String()))
+}
+
+func handleDuplicatePackage(status *statuswriter.Sink, pkg *domain.Package) {
+	// Announce config export
+	status.Write(message.Swarningf(
+		"%v (label %s): exporting package config",
+		packagestore.ErrPackageExists,
+		pkg.Label),
+	)
+
+	// Try to export package config for editing
+	exportedTo, err := session.packageService.ExportPackageToConfig(*pkg, ".")
+	if err != nil {
+		status.Write(message.Serrorf(
+			err,
+			"%v (label %s): failed to export package config",
+			packagestore.ErrPackageExists,
+			pkg.Label),
+		)
+		return
+	}
+	status.Write(message.Swarningf(
+		"%v (label %s): exported package config to %s",
+		packagestore.ErrPackageExists,
+		pkg.Label,
+		exportedTo),
+	)
 }
