@@ -27,7 +27,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.6.1
-	github.com/xanzy/go-gitlab v0.33.0
+	github.com/xanzy/go-gitlab v0.34.1
 	github.com/yuin/gopher-lua v0.0.0-20200603152657-dc2b0ca8b37e
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
