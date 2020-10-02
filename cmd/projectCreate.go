@@ -54,7 +54,7 @@ func newProjectCreateCommand() *projectCreateCommand {
 				}
 
 				// Print error message
-				message.Warningf("failed to create project, %s", projectName, err.Error())
+				message.Warningf("failed to create project, %s, %s", projectName, err.Error())
 
 				// Check if error is because of a project is already associated with this path. Continue loop if so.
 				if errors.Is(err, projectstore.ErrProjectExists) {
