@@ -1,3 +1,5 @@
+> Note: I haven't had much time to work on proji lately due to my job and the current worldwide situation. I will continue to work on proji soon. Stay safe, everyone!
+
 <div align="center">
 <img
     width=300px
