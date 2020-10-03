@@ -75,7 +75,7 @@ As you can see proji would have saved you about **1:15 minutes and 230 keystroke
     <img src="assets/gifs/proji-demo-import-remote.gif" alt="Import a remote repository" width="800px">
 </p>
 
-You can easily import the structure of your favorite projects from [GitHub](https://github.com) and [GitLab](https://gitlab.com) as proji classes.
+You can easily import the structure of your favorite projects from [GitHub](https://github.com) and [GitLab](https://gitlab.com) as proji packages.
 
 ## Getting Started <a id="getting_started"></a>
 
@@ -169,65 +169,65 @@ Suppose I create python projects on a regular basis and want to have the same di
 
 That would not be too bad if you only create a new project every few weeks or months. However, if you want to create new projects more regularly, be it to test something quickly, learn something new, or quickly create an environment to reproduce and potentially solve a problem found on stackoverflow, then this process quickly becomes very tiring.
 
-### Setting up a Class <a id="setting_up_a_class"></a>
+### Setting up a Package <a id="setting_up_a_package"></a>
 
-To solve this problem with proji, we first have to create a so-called class. A class in proji defines the structure and behavior for projects of a particular topic (python in this example). It serves as a template through which proji will create new projects for you in the future. This class will determine which directories and files we always want to get created by proji and which scripts proji should execute. For example a script which automatically initializes git in the project, creates a develop branch and makes a first commit.
+To solve this problem with proji, we first have to create a so-called package. A package in proji defines the structure and behavior for projects of a particular topic (python in this example). It serves as a template through which proji will create new projects for you in the future. This package will determine which directories and files we always want to get created by proji and which scripts proji should execute. For example a script which automatically initializes git in the project, creates a develop branch and makes a first commit.
 
 Note that folders and files can either be created new and empty or be copied from a so-called template. In the config folder you can find the template folder (`~/.config/proji/templates/`) in which you can store folders and files that you want to use as templates. In our example we could put a python file into this folder. The file could contain a very basic python script something like a 'hello world' program. We can tell proji to always copy this file into our newly created python projects. The same goes for folders. The goal of the templates is to save you even more time.
 
-In addition, we can assign scripts to a proji class which will be executed in a desired and defined order. Scripts must be saved under `~/.config/proji/scripts/` and can then be referenced by name in the class config.
+In addition, we can assign scripts to a proji package which will be executed in a desired and defined order. Scripts must be saved under `~/.config/proji/scripts/` and can then be referenced by name in the package config.
 
 <br />
 
 > A collection of example configs can be found [here.](https://github.com/nikoksr/proji-examples)
 
-#### Structure of a Class
+#### Structure of a Package
 
--   **Name:** A name that describes the topic of the class (e.g. `python`)
--   **Label:** A label that serves as an abbreviation for easily calling the class (e.g. `py`)
+-   **Name:** A name that describes the topic of the package (e.g. `python`)
+-   **Label:** A label that serves as an abbreviation for easily calling the package (e.g. `py`)
 -   **Folders:** A list of folders to be created
 -   **Files:** A list of files to be created
 -   **Scripts:** A list of scripts to run after the project directory has been created
 
-#### Create a Class
+#### Create a Package
 
-There are four ways to create a new class:
+There are four ways to create a new package:
 
 ##### 1. Config file
 
-Proji offers the possibility to export and import classes through config files. The easiest way to create a new class would be to export the proji sample config and then adapt it to your needs. To do so, execute the command `proji class export --example`.
+Proji offers the possibility to export and import packages through config files. The easiest way to create a new package would be to export the proji sample config and then adapt it to your needs. To do so, execute the command `proji package export --template`.
 
-Proji creates the file [proji-class-example.toml](examples/example-class-export.toml) in the current working directory. If you open this file in a text editor, you will find a richly annotated configuration of an example class. This config should then be adapted according to your needs.
+Proji creates the file `proji-package-template.toml` in the current working directory. If you open this file in a text editor, you will find a richly annotated configuration of an example package. This config should then be adapted according to your needs.
 
-Once the config has been edited and saved, it can be imported using the `proji class import --config proji-class-example.toml` (or whatever you named the file) command. Proji then creates a new class based on the imported config.
+Once the config has been edited and saved, it can be imported using the `proji package import --config proji-package-template.toml` (or whatever you named the file) command. Proji then creates a new package based on the imported config.
 
 ##### 2. Local directory
 
-Proji can import the structure of a local directory as a class. It will analyze the directory and create a class config based on all sub-directories and files.
+Proji can import the structure of a local directory as a package. It will analyze the directory and create a package config based on all sub-directories and files.
 
-To do so, first create the config with `proji class import --directory path/to/dir`. Then edit the resulting config as needed in your editor of choice. For example, remove folders and files that you do not want to add to your class, or add files, folders, and scripts that are missing. When you are done, import the configuration as seen above with `proji class import --config proji-dir.toml`.
+To do so, first create the config with `proji package import --directory path/to/dir`. Then edit the resulting config as needed in your editor of choice. For example, remove folders and files that you do not want to add to your package, or add files, folders, and scripts that are missing. When you are done, import the configuration as seen above with `proji package import --config proji-dir.toml`.
 
 ##### 3. Remote repository
 
 Similar behaviour as the `directory` example but instead of importing the structure of a local directory you can import the structure of a remote repository. Currently tested and supported code hosting platforms are [github](https://github.com/) and [gitlab](https://gitlab.com).
 
-As an example, let's create a class based on this repository. First, run the command `proji class import --remote-repo https://github.com/nikoksr/proji`. Similar to the `directory` flag this will export a class config based on the remote repository. You can then edit the config to your liking and needs and import it afterwards with `proji class import --config proji-proji.toml`.
+As an example, let's create a package based on this repository. First, run the command `proji package import --remote-repo https://github.com/nikoksr/proji`. Similar to the `directory` flag this will export a package config based on the remote repository. You can then edit the config to your liking and needs and import it afterwards with `proji package import --config proji-proji.toml`.
 
-##### 4. Class add command (not recommended)
+##### 4. Package add command (not recommended)
 
-The third option is to use the `proji class add CLASS-NAME [CLASS-NAME...]` command to create one or more classes in an interactive CLI. Proji will query the necessary data for the new class from you and then create the new class based on that data.
+The third option is to use the `proji package add CLASS-NAME [CLASS-NAME...]` command to create one or more packages in an interactive CLI. Proji will query the necessary data for the new package from you and then create the new package based on that data.
 
 The advantage of the config file is that incorrect information can easily be corrected. For example, if you entered a script that does not exist or whose name was simply misspelled, you can easily change the name in the configuration file. This is not possible in the CLI menu. If the entry is incorrect, the creation process must be restarted.
 
 <h1></h1>
 
-After the class has been created or imported, we can use the command `proji class ls` to display a list of our available classes. The command `proji class show LABEL [LABEL...]` allows us to display a detailed view of one or more classes.
+After the package has been created or imported, we can use the command `proji package ls` to display a list of our available packages. The command `proji package show LABEL [LABEL...]` allows us to display a detailed view of one or more packages.
 
 ### Creating our first projects <a id="creating_our_first_projects"></a>
 
-Now that we have created our python class in proji, we can use it to easily create new projects. A class is created once and is then reused by proji over and over again, and although the process of creating a class might initially seem a bit complex, you will very soon start saving a lot of time and keystrokes and will improve the general consistency of your projects structures.
+Now that we have created our python package in proji, we can use it to easily create new projects. A package is created once and is then reused by proji over and over again, and although the process of creating a package might initially seem a bit complex, you will very soon start saving a lot of time and keystrokes and will improve the general consistency of your projects structures.
 
-Assuming our class has been assigned the label `py`, we will create three projects with the command `proji create py my-py-project-1 my-py-project-2 my-py-project-3`.
+Assuming our package has been assigned the label `py`, we will create three projects with the command `proji create py my-py-project-1 my-py-project-2 my-py-project-3`.
 
 <br />
 <p align="center">
@@ -237,29 +237,29 @@ Assuming our class has been assigned the label `py`, we will create three projec
 
 And voila, proji has created three new project directories where you can start your work immediately. The project directories are all built identically, have the same subdirectories and files, and all ran the same scripts.
 
-Take a look at the [python class config](examples/proji-python.toml), the [git](examples/init_git.sh) and [virtualenv](examples/init_virtualenv.sh) scripts that were used in this example.
+Take a look at the [python package config](examples/proji-python.toml), the [git](examples/init_git.sh) and [virtualenv](examples/init_virtualenv.sh) scripts that were used in this example.
 
 ## Advanced Usage <a id="advanced_usage"></a>
 
 Help for all commands is also available with `proji help`.
 
-### Class <a id="au_class"></a>
+### Package <a id="au_package"></a>
 
--   Add a class: `proji class add NAME`
+-   Add a package: `proji package add NAME`
 
--   Remove one or more classes: `proji class rm LABEL [LABEL...]`
+-   Remove one or more packages: `proji package rm LABEL [LABEL...]`
 
--   Import one or more classes from configs: `proji class import --config FILE [--config FILE...]`
+-   Import one or more packages from configs: `proji package import --config FILE [--config FILE...]`
 
--   Import one or more classes from directories: `proji class import --directory DIR [--directory DIR...]`
+-   Import one or more packages from directories: `proji package import --directory DIR [--directory DIR...]`
 
--   Import one or more classes from remote repositories: `proji class import --remote-repo URL [--remote-repo URL...]`
+-   Import one or more packages from remote repositories: `proji package import --remote-repo URL [--remote-repo URL...]`
 
--   Export one or more classes: `proji class export LABEL [LABEL...]`
+-   Export one or more packages: `proji package export LABEL [LABEL...]`
 
--   List all classes: `proji class ls`
+-   List all packages: `proji package ls`
 
--   Show details of one or more classes: `proji class show LABEL [LABEL...]`
+-   Show details of one or more packages: `proji package show LABEL [LABEL...]`
 
 ### Project <a id="au_project"></a>
 
