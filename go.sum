@@ -594,6 +594,8 @@ gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c h1:grhR+C34yXImVGp7EzNk+DTIk
 gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gorm.io/driver/mysql v0.3.1 h1:yvUT7Q0I3B9EHJ67NSp6cHbVwcdDHhVUsDAUiFFxRk0=
 gorm.io/driver/mysql v0.3.1/go.mod h1:A7H1JD9dKdcjeUTpTuWKEC+E1a74qzW7/zaXqKaTbfM=
+gorm.io/driver/mysql v0.3.2 h1:Kaa0S+IHW+4qow6dRAdekNYaKeGBboIkh44pYdLWjIE=
+gorm.io/driver/mysql v0.3.2/go.mod h1:jC/HyPAZJ0xqfGlOqYybd8oNPMtGrkNgvwjWuKDT7f0=
 gorm.io/driver/postgres v0.2.6 h1:hoE6SzA5wKOo6AYxz2V7ooxnzD6S6ToLAHHDDawt+b0=
 gorm.io/driver/postgres v0.2.6/go.mod h1:AsPyuhKFOplSmQwOPsycVKbe0dRxF8v18KZ7p9i8dIs=
 gorm.io/driver/sqlite v1.0.8 h1:omllgSb7/eh9D6lGvLZOdU1ZElxdXuO3dn3Rk+dQxUE=
@@ -609,6 +611,8 @@ gorm.io/gorm v0.2.24 h1:NKjfopoXim5xAHYkt/uN0n7ZNmyoXZ9FEZUX4ijzXlI=
 gorm.io/gorm v0.2.24/go.mod h1:0HFTzE/SqkGTzK6TlDPPQbAYCluiVvhzoA1+aVyzenw=
 gorm.io/gorm v0.2.25 h1:ESzqX6mEHClLI9FSj+U/QvEyzFoiDZt5P6C/hcI7Be8=
 gorm.io/gorm v0.2.25/go.mod h1:0HFTzE/SqkGTzK6TlDPPQbAYCluiVvhzoA1+aVyzenw=
+gorm.io/gorm v0.2.36 h1:mxqXJo5SET3VzKCilIqLL6ua4BtpReu/0PieEkEBu5M=
+gorm.io/gorm v0.2.36/go.mod h1:0HFTzE/SqkGTzK6TlDPPQbAYCluiVvhzoA1+aVyzenw=
 honnef.co/go/tools v0.0.0-20190102054323-c2f93a96b099/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 honnef.co/go/tools v0.0.0-20190106161140-3f1c8253044a/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 honnef.co/go/tools v0.0.0-20190418001031-e561f6794a2a/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
