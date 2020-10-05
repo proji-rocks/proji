@@ -11,7 +11,7 @@ require (
 	github.com/gookit/color v1.2.7
 	github.com/hashicorp/go-retryablehttp v0.6.6 // indirect
 	github.com/jackc/pgx/v4 v4.8.0 // indirect
-	github.com/jedib0t/go-pretty/v6 v6.0.4
+	github.com/jedib0t/go-pretty/v6 v6.0.5
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lib/pq v1.7.0 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
