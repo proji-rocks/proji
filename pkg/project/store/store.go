@@ -57,7 +57,7 @@ func (ps *projectStore) LoadProject(path string) (*domain.Project, error) {
 
 func (ps *projectStore) LoadProjectList(paths ...string) ([]*domain.Project, error) {
 	numPaths := len(paths)
-	if numPaths < 1 {
+	if numPaths < 1 && paths != nil {
 		return ps.loadAllProjects()
 	}
 	projects := make([]*domain.Project, 0, numPaths)
