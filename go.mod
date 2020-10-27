@@ -10,7 +10,6 @@ require (
 	github.com/google/go-github/v31 v31.0.0
 	github.com/gookit/color v1.3.1
 	github.com/hashicorp/go-retryablehttp v0.6.6 // indirect
-	github.com/jackc/pgx/v4 v4.8.0 // indirect
 	github.com/jedib0t/go-pretty/v6 v6.0.5
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lib/pq v1.7.0 // indirect
@@ -27,7 +26,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.6.1
-	github.com/xanzy/go-gitlab v0.33.0
+	github.com/xanzy/go-gitlab v0.39.0
 	github.com/yuin/gopher-lua v0.0.0-20200603152657-dc2b0ca8b37e
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
@@ -41,7 +40,7 @@ require (
 	gopkg.in/guregu/null.v4 v4.0.0
 	gopkg.in/ini.v1 v1.57.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c // indirect
-	gorm.io/driver/mysql v0.3.2	
+	gorm.io/driver/mysql v0.3.2
 	gorm.io/driver/postgres v0.2.9
 	gorm.io/driver/sqlite v1.0.8
 	gorm.io/driver/sqlserver v0.2.5
