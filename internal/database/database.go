@@ -3,8 +3,6 @@ package database
 import (
 	"fmt"
 
-	"gorm.io/gorm/logger"
-
 	"github.com/nikoksr/proji/pkg/domain"
 	"github.com/pkg/errors"
 	"gorm.io/driver/mysql"
@@ -12,6 +10,7 @@ import (
 	"gorm.io/driver/sqlite"
 	mssql "gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 const (
@@ -58,19 +57,7 @@ func New(driver, connectionString string) (*Database, error) {
 }
 
 func (db Database) Migrate() error {
-	modelList := []interface{}{
-		&domain.Package{},
-		&domain.Plugin{},
-		&domain.Project{},
-		&domain.Template{},
-	}
-	for _, model := range modelList {
-		err := db.Connection.AutoMigrate(model)
-		if err != nil {
-			return fmt.Errorf("failed to auto-migrate domain, %s", err.Error())
-		}
-	}
-	return nil
+	return db.Connection.AutoMigrate(&domain.Package{}, &domain.Project{})
 }
 
 // getDialector returns a sql dialector corresponding to a given driver. The dialector holds an opened
