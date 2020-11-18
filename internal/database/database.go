@@ -40,7 +40,6 @@ func New(driver, connectionString string) (*Database, error) {
 		dialector,
 		&gorm.Config{
 			SkipDefaultTransaction: true,
-			PrepareStmt:            true,
 			Logger: logger.New(
 				nil,
 				logger.Config{

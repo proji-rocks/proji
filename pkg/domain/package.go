@@ -15,8 +15,8 @@ type Package struct {
 	Name        string      `gorm:"not null;size:64" toml:"name"`
 	Label       string      `gorm:"index:idx_unq_package_label,unique;not null;size:16" toml:"label"`
 	Description string      `gorm:"size:255" toml:"description"`
-	Templates   []*Template `gorm:"many2many:package_templates;Constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" toml:"template"`
-	Plugins     []*Plugin   `gorm:"many2many:package_plugins;Constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" toml:"plugin"`
+	Templates   []*Template `gorm:"many2many:package_templates;" toml:"template"`
+	Plugins     []*Plugin   `gorm:"many2many:package_plugins;" toml:"plugin"`
 }
 
 func NewPackage(name, label string) *Package {
