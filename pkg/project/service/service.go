@@ -10,10 +10,10 @@ type projectService struct {
 	templateEngine *template_engine.TemplateEngine
 }
 
-func New(store domain.ProjectStore) domain.ProjectService {
+func New(store domain.ProjectStore, templateStartTag, templateEndTag string) domain.ProjectService {
 	return &projectService{
 		projectStore:   store,
-		templateEngine: template_engine.NewTemplateEngine("{{%", "%}}"),
+		templateEngine: template_engine.NewTemplateEngine(templateStartTag, templateEndTag),
 	}
 }
 
