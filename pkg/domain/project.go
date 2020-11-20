@@ -1,8 +1,6 @@
 package domain
 
-import (
-	"time"
-)
+import "time"
 
 // Project represents a project that was created by proji. It holds tags for gorm and toml defining its storage and
 // export/import behaviour.
@@ -12,7 +10,8 @@ type Project struct {
 	UpdatedAt time.Time `toml:"-"`
 	Name      string    `gorm:"size:64" toml:"name"`
 	Path      string    `gorm:"index:idx_unq_project_path,unique;not null" toml:"path"`
-	Package   *Package  `gorm:"ForeignKey:ID;References:ID" toml:"package"`
+	PackageID int       `toml:"-"`
+	Package   *Package  `toml:"package"`
 }
 
 func NewProject(name, path string, pkg *Package) *Project {
