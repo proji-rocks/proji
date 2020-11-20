@@ -2,15 +2,18 @@ package projectservice
 
 import (
 	"github.com/nikoksr/proji/pkg/domain"
+	"github.com/nikoksr/proji/pkg/template_engine"
 )
 
 type projectService struct {
-	projectStore domain.ProjectStore
+	projectStore   domain.ProjectStore
+	templateEngine *template_engine.TemplateEngine
 }
 
 func New(store domain.ProjectStore) domain.ProjectService {
 	return &projectService{
-		projectStore: store,
+		projectStore:   store,
+		templateEngine: template_engine.NewTemplateEngine("{{%", "%}}"),
 	}
 }
 
