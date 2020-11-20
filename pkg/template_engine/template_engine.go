@@ -13,23 +13,26 @@ import (
 	"github.com/valyala/fasttemplate"
 )
 
-// CreateTemplatesInProject creates given templates inside of a project directory. It checks if a template has
+type TemplateEngine struct {
+	StartTag string
+	EndTag   string
+	SeenTags map[string]string
+}
+
+func NewTemplateEngine(startTag, endTag string) *TemplateEngine {
+	return &TemplateEngine{
+		StartTag: startTag,
+		EndTag:   endTag,
+		SeenTags: make(map[string]string, 0),
+	}
+}
+
+// CreateFilesInProjectFolder creates given templates inside of a project directory. It checks if a template has
 // a template file assigned to it and if that is the case, it parses the template file and writes it into the project
 // directory. When no template file is assigned it just creates an empty file or folder at the destination path
 // specified by the template.
-func CreateFilesInProjectFolder(templatesBasePath, projectPath string, templates []*domain.Template) error {
-	return createTemplatesInProject(templatesBasePath, projectPath, templates)
-}
-
-func createTemplatesInProject(templatesBasePath, projectPath string, templates []*domain.Template) error {
+func (e *TemplateEngine) CreateFilesInProjectFolder(templatesBasePath, projectPath string, templates []*domain.Template) error {
 	var err error
-	e := domain.TemplateEngine{
-		StartTag: "{{%",
-		EndTag:   "%}}",
-		SeenTags: map[string]string{
-			"project-name": filepath.Base(projectPath),
-		},
-	}
 
 	for _, template := range templates {
 		if isEmptyTemplate(template) {
@@ -60,7 +63,7 @@ func createTemplatesInProject(templatesBasePath, projectPath string, templates [
 	return nil
 }
 
-func (e *domain.TemplateEngine) createEmptyTemplate(template *domain.Template) error {
+func (e *TemplateEngine) createEmptyTemplate(template *domain.Template) error {
 	var err error
 	if template.IsFile {
 		// Create file
@@ -72,7 +75,7 @@ func (e *domain.TemplateEngine) createEmptyTemplate(template *domain.Template) e
 	return err
 }
 
-func (e *domain.TemplateEngine) parseTemplateFile(path, destination string) error {
+func (e *TemplateEngine) parseTemplateFile(path, destination string) error {
 	// Load the template file
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -80,14 +83,14 @@ func (e *domain.TemplateEngine) parseTemplateFile(path, destination string) erro
 	}
 
 	// Parse the template
-	t, err := fasttemplate.NewTemplate(string(b), e.startTag, e.endTag)
+	t, err := fasttemplate.NewTemplate(string(b), e.StartTag, e.EndTag)
 	if err != nil {
 		return errors.Wrap(err, "parse template")
 	}
 	s := t.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
 		// Check if space holder was already replaced once
 		tag = normalizePlaceholder(tag)
-		value, exists := e.seenTags[tag]
+		value, exists := e.SeenTags[tag]
 		if !exists {
 			// If not found, read in a replacement for the placeholder
 			_, err = fmt.Printf("%s: ", strings.Title(tag))
@@ -98,7 +101,7 @@ func (e *domain.TemplateEngine) parseTemplateFile(path, destination string) erro
 			if err != nil {
 				return -1, errors.Wrap(err, "read placeholder replacement")
 			}
-			e.seenTags[tag] = value
+			e.SeenTags[tag] = value
 		}
 		return w.Write([]byte(value))
 	})
@@ -113,7 +116,7 @@ func (e *domain.TemplateEngine) parseTemplateFile(path, destination string) erro
 	return err
 }
 
-func (e *domain.TemplateEngine) parseTemplateFolder(path, destination string) error {
+func (e *TemplateEngine) parseTemplateFolder(path, destination string) error {
 	return filepath.Walk(path, func(currentPath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
