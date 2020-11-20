@@ -1,4 +1,4 @@
-package template
+package template_engine
 
 import (
 	"fmt"
@@ -13,26 +13,20 @@ import (
 	"github.com/valyala/fasttemplate"
 )
 
-type engine struct {
-	startTag string
-	endTag   string
-	seenTags map[string]string
-}
-
 // CreateTemplatesInProject creates given templates inside of a project directory. It checks if a template has
 // a template file assigned to it and if that is the case, it parses the template file and writes it into the project
 // directory. When no template file is assigned it just creates an empty file or folder at the destination path
 // specified by the template.
-func CreateTemplatesInProject(templatesBasePath, projectPath string, templates []*domain.Template) error {
+func CreateFilesInProjectFolder(templatesBasePath, projectPath string, templates []*domain.Template) error {
 	return createTemplatesInProject(templatesBasePath, projectPath, templates)
 }
 
 func createTemplatesInProject(templatesBasePath, projectPath string, templates []*domain.Template) error {
 	var err error
-	e := engine{
-		startTag: "{{%",
-		endTag:   "%}}",
-		seenTags: map[string]string{
+	e := domain.TemplateEngine{
+		StartTag: "{{%",
+		EndTag:   "%}}",
+		SeenTags: map[string]string{
 			"project-name": filepath.Base(projectPath),
 		},
 	}
@@ -66,7 +60,7 @@ func createTemplatesInProject(templatesBasePath, projectPath string, templates [
 	return nil
 }
 
-func (e *engine) createEmptyTemplate(template *domain.Template) error {
+func (e *domain.TemplateEngine) createEmptyTemplate(template *domain.Template) error {
 	var err error
 	if template.IsFile {
 		// Create file
@@ -78,7 +72,7 @@ func (e *engine) createEmptyTemplate(template *domain.Template) error {
 	return err
 }
 
-func (e *engine) parseTemplateFile(path, destination string) error {
+func (e *domain.TemplateEngine) parseTemplateFile(path, destination string) error {
 	// Load the template file
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -119,7 +113,7 @@ func (e *engine) parseTemplateFile(path, destination string) error {
 	return err
 }
 
-func (e *engine) parseTemplateFolder(path, destination string) error {
+func (e *domain.TemplateEngine) parseTemplateFolder(path, destination string) error {
 	return filepath.Walk(path, func(currentPath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
