@@ -34,11 +34,14 @@ type ProjectStore interface {
 }
 
 type ProjectService interface {
+	CreateProject(configRootPath string, project *Project) (err error)
+
 	StoreProject(p *Project) error
+
 	LoadProject(path string) (*Project, error)
 	LoadProjectList(paths ...string) ([]*Project, error)
-	UpdateProjectLocation(oldPath, newPath string) error
-	RemoveProject(path string) error
 
-	CreateProject(configRootPath string, project *Project) (err error)
+	UpdateProjectLocation(oldPath, newPath string) error
+
+	RemoveProject(path string) error
 }

@@ -146,7 +146,11 @@ func createServices(db *database.Database) {
 
 	// Project Service
 	projectStore := projectstore.New(db.Connection)
-	session.projectService = projectservice.New(projectStore)
+	session.projectService = projectservice.New(
+		projectStore,
+		session.config.Template.StartTag,
+		session.config.Template.EndTag,
+	)
 }
 
 func getTerminalWidth() (int, error) {

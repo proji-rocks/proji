@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/spf13/pflag"
-
 	"github.com/spf13/viper"
 )
 
@@ -18,7 +17,7 @@ type APIAuthentication struct {
 	GLToken string `mapstructure:"gl_token"`
 }
 
-// Import represents core settings of proji.
+// Core represents core settings of proji.
 type Core struct {
 	DisableColors bool `mapstructure:"disable_colors"`
 }
@@ -34,19 +33,28 @@ type Import struct {
 	Exclude string `mapstructure:"exclude"`
 }
 
-// Config represents projis main config holding information about central resources the app uses.
+// Template represents the configurable and database related values in the main config.
+type Template struct {
+	StartTag string `mapstructure:"start_tag"`
+	EndTag   string `mapstructure:"end_tag"`
+}
+
+// Config represents proji's main config holding information about central resources the app uses.
 type Config struct {
 	Auth               *APIAuthentication  `mapstructure:"auth"`
 	BasePath           string              `mapstructure:"-"`
 	Core               *Core               `mapstructure:"core"`
 	DatabaseConnection *DatabaseConnection `mapstructure:"database"`
 	Import             *Import             `mapstructure:"import"`
+	Template           *Template           `mapstructure:"template"`
 	provider           *viper.Viper        `mapstructure:"-"`
 }
 
 const (
 	defaultDatabaseDriver = "sqlite3"
 	defaultDatabaseDSN    = "/db/proji.sqlite3"
+	defaultStartTag       = "{{%"
+	defaultEndTag         = "%}}"
 )
 
 //nolint:gochecknoglobals
@@ -117,6 +125,8 @@ func (c *Config) setDefaultValues() {
 	c.provider.SetDefault("database.driver", defaultDatabaseDriver)
 	c.provider.SetDefault("database.dsn", filepath.Join(c.BasePath, defaultDatabaseDSN))
 	c.provider.SetDefault("import.exclude", `^(.git|.env|.idea|.vscode)$`)
+	c.provider.SetDefault("template.start_tag", defaultStartTag)
+	c.provider.SetDefault("template.end_tag", defaultEndTag)
 }
 
 // set should run after loadFile and loadEnvironmentVariables. It sets the loaded values as the final config.

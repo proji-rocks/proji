@@ -22,3 +22,9 @@
 	# named sources. If you pass a valid regex to the exclude flag it will overwrite the regex specified in your config during runtime but not
 	# persistently.
 	exclude = "^(.git|.env|.idea|.vscode)$"
+
+[template]
+	# Start/opening and end/closing tag for the template engine to recognize. These should be as unique but short
+	# as possible; something like '-' for a tag would be pretty bad.
+	start_tag = "{{!"
+	end_tag = "!}}"

@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 
 	"github.com/nikoksr/proji/pkg/domain"
-	"github.com/otiai10/copy"
 	"github.com/pkg/errors"
 	lua "github.com/yuin/gopher-lua"
 )
@@ -37,7 +36,7 @@ func (ps projectService) CreateProject(configRootPath string, project *domain.Pr
 		}
 	}()
 
-	// Run plugins before creation of subfolders and files
+	// Run plugins before creation of sub-folders and files
 	pluginsRootPath := filepath.Join(configRootPath, "plugins")
 	err = preRunPlugins(pluginsRootPath, project.Package.Plugins)
 	if err != nil {
@@ -45,7 +44,8 @@ func (ps projectService) CreateProject(configRootPath string, project *domain.Pr
 	}
 
 	// Create sub-folders and files
-	err = createFilesAndFolders(configRootPath, project.Package.Templates)
+	templatesRootPath := filepath.Join(configRootPath, "templates")
+	err = ps.templateEngine.CreateFilesInProjectFolder(templatesRootPath, project.Path, project.Package.Templates)
 	if err != nil {
 		return err
 	}
@@ -57,33 +57,6 @@ func (ps projectService) CreateProject(configRootPath string, project *domain.Pr
 // createProjectRootFolder tries to create the root project folder.
 func createProjectRootFolder(path string) error {
 	return os.Mkdir(path, os.ModePerm)
-}
-
-func createFilesAndFolders(configRootPath string, templates []*domain.Template) error {
-	baseTemplatesPath := filepath.Join(configRootPath, "/templates/")
-	for _, template := range templates {
-		if len(template.Path) > 0 {
-			// Copy template file or folder
-			err := copy.Copy(filepath.Join(baseTemplatesPath, template.Path), template.Destination)
-			if err != nil {
-				return err
-			}
-		}
-		if template.IsFile {
-			// Create file
-			_, err := os.Create(template.Destination)
-			if err != nil {
-				return err
-			}
-		} else {
-			// Create folder
-			err := os.MkdirAll(template.Destination, os.ModePerm)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
 }
 
 func preRunPlugins(pluginsRootPath string, plugins []*domain.Plugin) error {
