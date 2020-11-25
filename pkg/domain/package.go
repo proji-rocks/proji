@@ -48,4 +48,5 @@ type PackageService interface {
 	ImportPackagesFromCollection(url *url.URL, exclude *regexp.Regexp) ([]*Package, error)
 
 	ExportPackageToConfig(pkg Package, destination string) (string, error)
+	ExportPackageToTemporaryConfig(pkg Package) (string, error)
 }

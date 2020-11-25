@@ -2,6 +2,7 @@ package packageservice
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -50,6 +51,16 @@ func (ps packageService) ExportPackageToConfig(pkg domain.Package, destination s
 	// return confName, toml.NewEncoder(conf).Order(toml.OrderPreserve).Encode(pkg)
 	return confName, toml.NewEncoder(conf).Encode(pkg)
 }
+
+func (ps packageService) ExportPackageToTemporaryConfig(pkg domain.Package) (string, error) {
+	configFile, err := ioutil.TempFile("", fmt.Sprintf("%s-%s-*.toml", "proji", pkg.Name))
+	if err != nil {
+		return "", fmt.Errorf("create temporary config file: %v", err)
+	}
+	defer configFile.Close()
+
+	// return configFile.Name(), toml.NewEncoder(configFile).Order(toml.OrderPreserve).Encode(pkg)
+	return configFile.Name(), toml.NewEncoder(configFile).Encode(pkg)
 }
 
 func isConfigPathValid(path string) error {
