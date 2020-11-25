@@ -46,7 +46,10 @@ func (ps packageService) ExportPackageToConfig(pkg domain.Package, destination s
 		return confName, err
 	}
 	defer conf.Close()
-	return confName, toml.NewEncoder(conf).Order(toml.OrderPreserve).Encode(pkg)
+
+	// return confName, toml.NewEncoder(conf).Order(toml.OrderPreserve).Encode(pkg)
+	return confName, toml.NewEncoder(conf).Encode(pkg)
+}
 }
 
 func isConfigPathValid(path string) error {
