@@ -17,7 +17,7 @@ type packageExportCommand struct {
 }
 
 func newPackageExportCommand() *packageExportCommand {
-	var exportAll, template bool
+	var exportAll, template, json bool
 	var destination string
 
 	cmd := &cobra.Command{
@@ -62,7 +62,7 @@ func newPackageExportCommand() *packageExportCommand {
 
 			// Export the packages
 			for _, pkg := range packages {
-				exportedTo, err := session.packageService.ExportPackageToConfig(*pkg, ".")
+				exportedTo, err := session.packageService.ExportPackageToConfig(*pkg, ".", json)
 				if err != nil {
 					message.Warningf("failed to export package %s to %s, %v", pkg.Label, exportedTo, err)
 				} else {
@@ -75,6 +75,7 @@ func newPackageExportCommand() *packageExportCommand {
 
 	cmd.Flags().BoolVarP(&template, "template", "t", false, "Export a package config template")
 	cmd.Flags().BoolVarP(&exportAll, "all", "a", false, "Export all packages")
+	cmd.Flags().BoolVarP(&json, "json", "j", false, "Export to a Json file")
 	cmd.Flags().StringVarP(&destination, "destination", "d", ".", "Destination for the export")
 
 	_ = cmd.MarkFlagDirname("destination")

@@ -9,14 +9,14 @@ import (
 // Package represents a proji package; the central item of proji's project creation mechanism. It holds tags for gorm and
 // toml defining its storage and export/import behaviour.
 type Package struct {
-	ID          uint        `gorm:"primarykey" toml:"-"`
-	CreatedAt   time.Time   `toml:"-"`
-	UpdatedAt   time.Time   `toml:"-"`
-	Name        string      `gorm:"not null;size:64" toml:"name"`
-	Label       string      `gorm:"index:idx_unq_package_label,unique;not null;size:16" toml:"label"`
-	Description string      `gorm:"size:255" toml:"description"`
-	Templates   []*Template `gorm:"many2many:package_templates;" toml:"template"`
-	Plugins     []*Plugin   `gorm:"many2many:package_plugins;" toml:"plugin"`
+	ID          uint        `gorm:"primarykey" toml:"-" json:"-"`
+	CreatedAt   time.Time   `toml:"-" json:"-"`
+	UpdatedAt   time.Time   `toml:"-" json:"-"`
+	Name        string      `gorm:"not null;size:64" toml:"name" json:"name"`
+	Label       string      `gorm:"index:idx_unq_package_label,unique;not null;size:16" toml:"label" json:"label"`
+	Description string      `gorm:"size:255" toml:"description" json:"description"`
+	Templates   []*Template `gorm:"many2many:package_templates;" toml:"template" json:"template"`
+	Plugins     []*Plugin   `gorm:"many2many:package_plugins;" toml:"plugin" json:"plugin"`
 }
 
 func NewPackage(name, label string) *Package {
@@ -47,5 +47,5 @@ type PackageService interface {
 	ImportPackageFromRemote(url *url.URL) (*Package, error)
 	ImportPackagesFromCollection(url *url.URL, exclude *regexp.Regexp) ([]*Package, error)
 
-	ExportPackageToConfig(pkg Package, destination string) (string, error)
+	ExportPackageToConfig(pkg Package, destination string, json bool) (string, error)
 }

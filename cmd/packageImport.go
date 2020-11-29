@@ -249,7 +249,7 @@ func handleDuplicatePackage(status *statuswriter.Sink, pkg *domain.Package) {
 	)
 
 	// Try to export package config for editing
-	exportedTo, err := session.packageService.ExportPackageToConfig(*pkg, ".")
+	exportedTo, err := session.packageService.ExportPackageToConfig(*pkg, ".", false)
 	if err != nil {
 		status.Write(message.Serrorf(
 			err,

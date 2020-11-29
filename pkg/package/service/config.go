@@ -1,7 +1,9 @@
 package packageservice
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,22 +15,19 @@ import (
 
 func (ps packageService) ImportPackageFromConfig(path string) (*domain.Package, error) {
 	// Validate file path
-	err := isConfigPathValid(path)
+	isJson, err := checkConfigPath(path)
 	if err != nil {
 		return nil, err
 	}
 
-	// Load file
-	file, err := toml.LoadFile(path)
-	if err != nil {
-		return nil, err
-	}
-
-	// Unmarshal config into package
 	pkg := domain.NewPackage("", "")
-	err = file.Unmarshal(pkg)
+	if !isJson {
+		err = ps.unmarshalToml(path, pkg)
+	} else {
+		err = ps.unmarshalJson(path, pkg)
+	}
 	if err != nil {
-		return nil, err
+		return pkg, err
 	}
 
 	// Validate package
@@ -39,29 +38,73 @@ func (ps packageService) ImportPackageFromConfig(path string) (*domain.Package, 
 	return pkg, nil
 }
 
-func (ps packageService) ExportPackageToConfig(pkg domain.Package, destination string) (string, error) {
-	confName := filepath.Join(destination, "proji-"+pkg.Name+".toml")
+func (ps packageService) ExportPackageToConfig(pkg domain.Package, destination string, json bool) (string, error) {
+	fileExtension := ".toml"
+	if json {
+		fileExtension = ".json"
+	}
+	confName := filepath.Join(destination, "proji-"+pkg.Name+fileExtension)
 	conf, err := os.Create(confName)
 	if err != nil {
 		return confName, err
 	}
 	defer conf.Close()
-	return confName, toml.NewEncoder(conf).Order(toml.OrderPreserve).Encode(pkg)
+
+	if !json {
+		return confName, ps.getTomlEncoderFunction(conf)(pkg)
+	}
+	return confName, ps.getJsonEncoderFunction(conf)(pkg)
 }
 
-func isConfigPathValid(path string) error {
+func (ps packageService) getTomlEncoderFunction(conf *os.File) func(v interface{}) error {
+	return toml.NewEncoder(conf).Order(toml.OrderPreserve).Encode
+}
+
+func (ps packageService) getJsonEncoderFunction(conf *os.File) func(v interface{}) error {
+	return json.NewEncoder(conf).Encode
+}
+
+func (ps packageService) unmarshalToml(path string, pkg *domain.Package) error {
+	// Load file
+	file, err := toml.LoadFile(path)
+	if err != nil {
+		return err
+	}
+
+	// Unmarshal config into package
+	err = file.Unmarshal(pkg)
+	return err
+}
+
+func (ps packageService) unmarshalJson(path string, pkg *domain.Package) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	bytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(bytes, pkg)
+	return err
+}
+
+func checkConfigPath(path string) (json bool, err error) {
+	isJson := strings.HasSuffix(path, ".json")
 	// Check if it is a toml file
-	if !strings.HasSuffix(path, ".toml") {
-		return fmt.Errorf("config file has to be of type 'toml'")
+	if !strings.HasSuffix(path, ".toml") && !isJson {
+		return false, fmt.Errorf("config file has to be of type 'toml' or 'json'")
 	}
 
 	// Check if file is empty
 	conf, err := os.Stat(path)
 	if err != nil {
-		return errors.Wrap(err, "config file info")
+		return false, errors.Wrap(err, "config file info")
 	}
 	if conf.Size() == 0 {
-		return fmt.Errorf("config file is empty")
+		return false, fmt.Errorf("config file is empty")
 	}
-	return nil
+	return isJson, nil
 }

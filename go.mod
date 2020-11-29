@@ -7,6 +7,7 @@ require (
 	github.com/denisenkom/go-mssqldb v0.9.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/golang/protobuf v1.4.3 // indirect
+	github.com/golangci/golangci-lint v1.33.0 // indirect
 	github.com/google/go-github/v31 v31.0.0
 	github.com/gookit/color v1.3.2
 	github.com/hashicorp/go-retryablehttp v0.6.8 // indirect
@@ -28,6 +29,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
+	github.com/valyala/fasttemplate v1.2.1
 	github.com/xanzy/go-gitlab v0.39.0
 	github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da
 	golang.org/x/crypto v0.0.0-20201117144127-c1f2f97bffc9
