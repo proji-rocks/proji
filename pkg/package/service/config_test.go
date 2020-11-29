@@ -39,7 +39,7 @@ description = "Test package"
 )
 
 func TestExportPackageToConfig(t *testing.T) {
-	dest := t.TempDir()
+	dest := filepath.Join(os.TempDir(), "proji-TestExportPackageToConfig")
 	err := os.MkdirAll(dest, os.ModePerm)
 	assert.NoError(t, err, "Unable to create temporary file")
 
@@ -89,9 +89,11 @@ func TestExportPackageToConfig(t *testing.T) {
 }
 
 func TestImportPackageFromConfig(t *testing.T) {
-	dest := t.TempDir()
+	dest := filepath.Join(os.TempDir(), "proji-TestImportPackageFromConfig")
+	err := os.MkdirAll(dest, os.ModePerm)
+	assert.NoError(t, err, "error when creating temp directory")
 	tomlPath := filepath.Join(dest, "proji-golang.toml")
-	err := ioutil.WriteFile(tomlPath, []byte(packageAsToml), os.ModePerm)
+	err = ioutil.WriteFile(tomlPath, []byte(packageAsToml), os.ModePerm)
 	assert.NoError(t, err, "error when creating temp file %s", tomlPath)
 	jsonPath := filepath.Join(dest, "proji-golang.json")
 	err = ioutil.WriteFile(jsonPath, []byte(packageAsJson), os.ModePerm)
