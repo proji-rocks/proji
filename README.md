@@ -195,11 +195,11 @@ There are four ways to create a new package:
 
 ##### 1. Config file
 
-Proji offers the possibility to export and import packages through config files. The easiest way to create a new package would be to export the proji sample config and then adapt it to your needs. To do so, execute the command `proji package export --template`.
+Proji offers the possibility to export and import packages through config files. The easiest way to create a new package would be to export the proji sample config and then adapt it to your needs. To do so, execute the command `proji package export --example`.
 
-Proji creates the file `proji-package-template.toml` in the current working directory. If you open this file in a text editor, you will find a richly annotated configuration of an example package. This config should then be adapted according to your needs.
+Proji creates the file `proji-package-example.toml` in the current working directory. If you open this file in a text editor, you will find a richly annotated configuration of an example package. This config should then be adapted according to your needs.
 
-Once the config has been edited and saved, it can be imported using the `proji package import --config proji-package-template.toml` (or whatever you named the file) command. Proji then creates a new package based on the imported config.
+Once the config has been edited and saved, it can be imported using the `proji package import --config proji-package-example.toml` (or whatever you named the file) command. Proji then creates a new package based on the imported config.
 
 ##### 2. Local directory
 
