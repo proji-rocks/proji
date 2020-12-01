@@ -38,9 +38,9 @@ func (ps packageService) ImportPackageFromConfig(path string) (*domain.Package, 
 	return pkg, nil
 }
 
-func (ps packageService) ExportPackageToConfig(pkg domain.Package, destination string, json bool) (string, error) {
+func (ps packageService) ExportPackageToConfig(pkg domain.Package, destination string, asJson bool) (string, error) {
 	fileExtension := ".toml"
-	if json {
+	if asJson {
 		fileExtension = ".json"
 	}
 	confName := filepath.Join(destination, "proji-"+pkg.Name+fileExtension)
@@ -50,7 +50,7 @@ func (ps packageService) ExportPackageToConfig(pkg domain.Package, destination s
 	}
 	defer conf.Close()
 
-	if !json {
+	if !asJson {
 		return confName, ps.getTomlEncoderFunction(conf)(pkg)
 	}
 	return confName, ps.getJsonEncoderFunction(conf)(pkg)
@@ -91,8 +91,8 @@ func (ps packageService) unmarshalJson(path string, pkg *domain.Package) error {
 	return err
 }
 
-func checkConfigPath(path string) (json bool, err error) {
-	isJson := strings.HasSuffix(path, ".json")
+func checkConfigPath(path string) (isJson bool, err error) {
+	isJson = strings.HasSuffix(path, ".json")
 	// Check if it is a toml file
 	if !strings.HasSuffix(path, ".toml") && !isJson {
 		return false, fmt.Errorf("config file has to be of type 'toml' or 'json'")

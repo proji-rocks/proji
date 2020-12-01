@@ -47,5 +47,5 @@ type PackageService interface {
 	ImportPackageFromRemote(url *url.URL) (*Package, error)
 	ImportPackagesFromCollection(url *url.URL, exclude *regexp.Regexp) ([]*Package, error)
 
-	ExportPackageToConfig(pkg Package, destination string, json bool) (string, error)
+	ExportPackageToConfig(pkg Package, destination string, asJson bool) (string, error)
 }

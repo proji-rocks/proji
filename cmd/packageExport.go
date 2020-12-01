@@ -17,7 +17,7 @@ type packageExportCommand struct {
 }
 
 func newPackageExportCommand() *packageExportCommand {
-	var exportAll, template, json bool
+	var exportAll, template, asJson bool
 	var destination string
 
 	cmd := &cobra.Command{
@@ -33,7 +33,7 @@ func newPackageExportCommand() *packageExportCommand {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Export an example package
 			if template {
-				file, err := exportTemplate(destination)
+				file, err := exportExample(destination)
 				if err != nil {
 					return errors.Wrap(err, "failed to export config template")
 				}
@@ -62,7 +62,7 @@ func newPackageExportCommand() *packageExportCommand {
 
 			// Export the packages
 			for _, pkg := range packages {
-				exportedTo, err := session.packageService.ExportPackageToConfig(*pkg, ".", json)
+				exportedTo, err := session.packageService.ExportPackageToConfig(*pkg, ".", asJson)
 				if err != nil {
 					message.Warningf("failed to export package %s to %s, %v", pkg.Label, exportedTo, err)
 				} else {
@@ -73,9 +73,9 @@ func newPackageExportCommand() *packageExportCommand {
 		},
 	}
 
-	cmd.Flags().BoolVarP(&template, "template", "t", false, "Export a package config template")
+	cmd.Flags().BoolVarP(&template, "example", "e", false, "Export a package config example")
 	cmd.Flags().BoolVarP(&exportAll, "all", "a", false, "Export all packages")
-	cmd.Flags().BoolVarP(&json, "json", "j", false, "Export to a Json file")
+	cmd.Flags().BoolVarP(&asJson, "json", "j", false, "Export to a Json file")
 	cmd.Flags().StringVarP(&destination, "destination", "d", ".", "Destination for the export")
 
 	_ = cmd.MarkFlagDirname("destination")
@@ -83,8 +83,8 @@ func newPackageExportCommand() *packageExportCommand {
 	return &packageExportCommand{cmd: cmd}
 }
 
-func exportTemplate(destination string) (string, error) {
-	destination = filepath.Join(destination, "proji-package-template.toml")
+func exportExample(destination string) (string, error) {
+	destination = filepath.Join(destination, "proji-package-example.toml")
 	file, err := os.Create(destination)
 	if err != nil {
 		return "", errors.Wrap(err, "create config template")
