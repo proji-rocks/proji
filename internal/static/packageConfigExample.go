@@ -1,6 +1,6 @@
 package static
 
-const PackageConfigTemplate = `name = ""
+const PackageConfigExample = `name = ""
 label = ""
 description = ""
 

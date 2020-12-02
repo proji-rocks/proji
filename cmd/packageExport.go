@@ -17,7 +17,7 @@ type packageExportCommand struct {
 }
 
 func newPackageExportCommand() *packageExportCommand {
-	var exportAll, template, asJson bool
+	var exportAll, example, asJson bool
 	var destination string
 
 	cmd := &cobra.Command{
@@ -25,19 +25,19 @@ func newPackageExportCommand() *packageExportCommand {
 		Short:   "Export one or more packages",
 		Aliases: []string{"e"},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if exportAll && template {
-				return fmt.Errorf("the flags 'template' and 'all' cannot be used at the same time")
+			if exportAll && example {
+				return fmt.Errorf("the flags 'example' and 'all' cannot be used at the same time")
 			}
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Export an example package
-			if template {
+			if example {
 				file, err := exportExample(destination)
 				if err != nil {
-					return errors.Wrap(err, "failed to export config template")
+					return errors.Wrap(err, "failed to export config example")
 				}
-				message.Successf("successfully exported config template to %s", file)
+				message.Successf("successfully exported config example to %s", file)
 				return nil
 			}
 
@@ -73,7 +73,7 @@ func newPackageExportCommand() *packageExportCommand {
 		},
 	}
 
-	cmd.Flags().BoolVarP(&template, "example", "e", false, "Export a package config example")
+	cmd.Flags().BoolVarP(&example, "example", "e", false, "Export a package config example")
 	cmd.Flags().BoolVarP(&exportAll, "all", "a", false, "Export all packages")
 	cmd.Flags().BoolVarP(&asJson, "json", "j", false, "Export to a Json file")
 	cmd.Flags().StringVarP(&destination, "destination", "d", ".", "Destination for the export")
@@ -87,9 +87,9 @@ func exportExample(destination string) (string, error) {
 	destination = filepath.Join(destination, "proji-package-example.toml")
 	file, err := os.Create(destination)
 	if err != nil {
-		return "", errors.Wrap(err, "create config template")
+		return "", errors.Wrap(err, "create config example")
 	}
 	defer file.Close()
-	_, err = file.WriteString(static.PackageConfigTemplate)
+	_, err = file.WriteString(static.PackageConfigExample)
 	return destination, err
 }
