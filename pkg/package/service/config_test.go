@@ -34,7 +34,32 @@ description = "Test package"
   description = ""
 `
 
-	packageAsJson = `{"name":"golang","label":"go","description":"Test package","template":[{"is_file":false,"destination":"cmd","path":"","description":"cmd folder"},{"is_file":true,"destination":"main.go","path":"main.go","description":"entry file"}],"plugin":[{"path":"git-init.lua","exec_number":1,"description":""}]}
+	packageAsJson = `{
+  "name": "golang",
+  "label": "go",
+  "description": "Test package",
+  "template": [
+    {
+      "is_file": false,
+      "destination": "cmd",
+      "path": "",
+      "description": "cmd folder"
+    },
+    {
+      "is_file": true,
+      "destination": "main.go",
+      "path": "main.go",
+      "description": "entry file"
+    }
+  ],
+  "plugin": [
+    {
+      "path": "git-init.lua",
+      "exec_number": 1,
+      "description": ""
+    }
+  ]
+}
 `
 )
 

@@ -61,7 +61,9 @@ func (ps packageService) getTomlEncoderFunction(conf *os.File) func(v interface{
 }
 
 func (ps packageService) getJsonEncoderFunction(conf *os.File) func(v interface{}) error {
-	return json.NewEncoder(conf).Encode
+	encoder := json.NewEncoder(conf)
+	encoder.SetIndent("", "  ")
+	return encoder.Encode
 }
 
 func (ps packageService) unmarshalToml(path string, pkg *domain.Package) error {
