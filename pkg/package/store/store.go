@@ -6,10 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/sync/errgroup"
-
 	"github.com/nikoksr/proji/pkg/domain"
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 	"gopkg.in/guregu/null.v4"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -212,10 +211,15 @@ func (ps packageStore) deepQueryPackage(conditions string, values ...string) (pk
 	if err != nil {
 		return nil, err
 	}
+
 	defer func() {
 		e := rows.Close()
 		if e != nil {
-			err = e
+			if err != nil {
+				err = errors.Wrap(err, e.Error())
+			} else {
+				err = e
+			}
 		}
 	}()
 
@@ -288,12 +292,18 @@ func (ps packageStore) queryAllLabels() ([]string, error) {
 	if rows.Err() != nil {
 		return nil, err
 	}
+
 	defer func() {
 		e := rows.Close()
 		if e != nil {
-			err = e
+			if err != nil {
+				err = errors.Wrap(err, e.Error())
+			} else {
+				err = e
+			}
 		}
 	}()
+
 	var labels []string
 	for rows.Next() {
 		var label string

@@ -62,14 +62,13 @@ func editPackageConfig(packageLabel string) (err error) {
 		return fmt.Errorf("export package to temporary config file: %v", err)
 	}
 	defer func() {
-		ferr := os.Remove(configFile)
-		if ferr == nil {
-			return
-		}
-		if err != nil {
-			err = errors.Wrap(err, ferr.Error())
-		} else {
-			err = ferr
+		e := os.Remove(configFile)
+		if e != nil {
+			if err != nil {
+				err = errors.Wrap(err, e.Error())
+			} else {
+				err = e
+			}
 		}
 	}()
 
