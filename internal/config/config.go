@@ -7,6 +7,8 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/pkg/errors"
+	"github.com/skratchdot/open-golang/open"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -260,4 +262,35 @@ func RelativePathToAbsoluteConfigPath(configFolderPath, relativePath string) str
 	// User defined path like 'db/proji.sqlite3'. Gets prefixed with config folder path. This has to be a relative
 	// path or else the above will trigger.
 	return filepath.Join(configFolderPath, relativePath)
+}
+
+// OpenInEditor tries to open a given config file in the systems default editor. If the attempt to open the config
+// in the systems default editor for the files type the function will try to open the the config file in a text editor
+// that's available on the os by default - 'TextEdit' on macOS for example.
+func OpenInEditor(configPath string) error {
+	// Try to open in default editor for file extension
+	err := open.Run(configPath)
+	if err == nil {
+		return nil
+	}
+
+	// If failed to open file with native open-command, try to open in systems default text editor.
+	switch runtime.GOOS {
+	case "linux":
+		return err // No default fallback editor under linux
+	case "darwin":
+		err = open.RunWith(configPath, "TextEdit") // Use TextEdit as fallback editor on macOS
+	case "windows":
+		err = open.RunWith(configPath, "Notepad.exe") // Use Notepad.exe as fallback editor on macOS
+	default:
+		return fmt.Errorf("OS %s is not supported yet. Please create an issue at "+
+			"https://github.com/nikoksr/proji to request the support of your OS", runtime.GOOS)
+	}
+
+	// If an error occurred, make it more expressive
+	if err != nil {
+		err = errors.Wrap(fmt.Errorf("trying to open config with fallback editor"), err.Error())
+	}
+
+	return err
 }

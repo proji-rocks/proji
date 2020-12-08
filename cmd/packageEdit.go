@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/nikoksr/proji/internal/config"
 	"github.com/nikoksr/proji/internal/message"
-	"github.com/skratchdot/open-golang/open"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -48,7 +49,7 @@ func newPackageEditCommand() *packageEditCommand {
 	return &packageEditCommand{cmd: cmd}
 }
 
-func editPackageConfig(packageLabel string) error {
+func editPackageConfig(packageLabel string) (err error) {
 	// Try to load the package; implicitly checks if a package is even associated to the given label.
 	pkg, err := session.packageService.LoadPackage(true, packageLabel)
 	if err != nil {
@@ -60,10 +61,20 @@ func editPackageConfig(packageLabel string) error {
 	if err != nil {
 		return fmt.Errorf("export package to temporary config file: %v", err)
 	}
-	defer os.Remove(configFile)
+	defer func() {
+		ferr := os.Remove(configFile)
+		if ferr == nil {
+			return
+		}
+		if err != nil {
+			err = errors.Wrap(err, ferr.Error())
+		} else {
+			err = ferr
+		}
+	}()
 
 	// Open config in system's default text editor and wait for it to start.
-	err = open.Run(configFile)
+	err = config.OpenInEditor(configFile)
 	if err != nil {
 		return fmt.Errorf("open package config in text editor: %v", err)
 	}
