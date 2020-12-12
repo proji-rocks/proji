@@ -2,6 +2,7 @@ package packageservice
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -39,6 +40,25 @@ func (ps packageService) ImportPackageFromConfig(path string) (*domain.Package, 
 	return pkg, nil
 }
 
+func (ps packageService) ImportPackageFromString(input string) (*domain.Package, error) {
+	tree, err := toml.Load(input)
+	if err != nil {
+		return nil, err
+	}
+
+	pkg := domain.NewPackage("", "")
+	err = tree.Unmarshal(pkg)
+	if err != nil {
+		return nil, err
+	}
+
+	err = isPackageValid(pkg)
+	if err != nil {
+		return nil, errors.Wrap(err, "package validation")
+	}
+	return pkg, nil
+}
+
 func (ps packageService) ExportPackageToConfig(pkg domain.Package, destination string) (string, error) {
 	confName := filepath.Join(destination, "proji-"+pkg.Name+".toml")
 	conf, err := os.Create(confName)
@@ -46,7 +66,15 @@ func (ps packageService) ExportPackageToConfig(pkg domain.Package, destination s
 		return confName, err
 	}
 	defer conf.Close()
-	return confName, toml.NewEncoder(conf).Order(toml.OrderPreserve).Encode(pkg)
+	return confName, ps.exportPackageToWriter(pkg, conf)
+}
+
+func (ps packageService) ExportPackageToStdout(pkg domain.Package) error {
+	return ps.exportPackageToWriter(pkg, os.Stdout)
+}
+
+func (ps packageService) exportPackageToWriter(pkg domain.Package, w io.Writer) error {
+	return toml.NewEncoder(w).Order(toml.OrderPreserve).Encode(pkg)
 }
 
 func isConfigPathValid(path string) error {

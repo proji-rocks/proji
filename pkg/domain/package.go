@@ -46,6 +46,8 @@ type PackageService interface {
 	ImportPackageFromRepositoryStructure(url *url.URL, exclude *regexp.Regexp) (*Package, error)
 	ImportPackageFromRemote(url *url.URL) (*Package, error)
 	ImportPackagesFromCollection(url *url.URL, exclude *regexp.Regexp) ([]*Package, error)
+	ImportPackageFromString(input string) (*Package, error)
 
 	ExportPackageToConfig(pkg Package, destination string) (string, error)
+	ExportPackageToStdout(pkg Package) error
 }

@@ -17,7 +17,7 @@ type packageExportCommand struct {
 }
 
 func newPackageExportCommand() *packageExportCommand {
-	var exportAll, template bool
+	var exportAll, template, stdout bool
 	var destination string
 
 	cmd := &cobra.Command{
@@ -60,13 +60,19 @@ func newPackageExportCommand() *packageExportCommand {
 				}
 			}
 
+			var exportDest = &destination
+			if stdout {
+				exportDest = nil
+			}
 			// Export the packages
 			for _, pkg := range packages {
-				exportedTo, err := session.packageService.ExportPackageToConfig(*pkg, ".")
-				if err != nil {
-					message.Warningf("failed to export package %s to %s, %v", pkg.Label, exportedTo, err)
-				} else {
-					message.Successf("successfully exported package %s to %s", pkg.Label, exportedTo)
+				exportedTo, err := exportPackage(pkg, exportDest)
+				if err != nil && exportedTo != nil {
+					message.Warningf("failed to export package %s to %s, %v", pkg.Label, *exportedTo, err)
+				} else if err != nil {
+					message.Warningf("failed to export package %s, %v", pkg.Label, err)
+				} else if exportedTo != nil {
+					message.Successf("successfully exported package %s to %s", pkg.Label, *exportedTo)
 				}
 			}
 			return nil
@@ -76,10 +82,19 @@ func newPackageExportCommand() *packageExportCommand {
 	cmd.Flags().BoolVarP(&template, "template", "t", false, "Export a package config template")
 	cmd.Flags().BoolVarP(&exportAll, "all", "a", false, "Export all packages")
 	cmd.Flags().StringVarP(&destination, "destination", "d", ".", "Destination for the export")
+	cmd.Flags().BoolVarP(&stdout, "stdout", "o", false, "Export package(s) to stout")
 
 	_ = cmd.MarkFlagDirname("destination")
 
 	return &packageExportCommand{cmd: cmd}
+}
+
+func exportPackage(pkg *domain.Package, destination *string) (*string, error) {
+	if destination != nil {
+		exportedTo, err := session.packageService.ExportPackageToConfig(*pkg, *destination)
+		return &exportedTo, err
+	}
+	return nil, session.packageService.ExportPackageToStdout(*pkg)
 }
 
 func exportTemplate(destination string) (string, error) {
