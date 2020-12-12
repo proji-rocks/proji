@@ -82,7 +82,7 @@ func newPackageExportCommand() *packageExportCommand {
 	cmd.Flags().BoolVarP(&template, "template", "t", false, "Export a package config template")
 	cmd.Flags().BoolVarP(&exportAll, "all", "a", false, "Export all packages")
 	cmd.Flags().StringVarP(&destination, "destination", "d", ".", "Destination for the export")
-	cmd.Flags().BoolVarP(&stdout, "stdout", "o", false, "Export package(s) to stout")
+	cmd.Flags().BoolVarP(&stdout, "stdout", "o", false, "Export package(s) to stdout")
 
 	_ = cmd.MarkFlagDirname("destination")
 
