@@ -32,7 +32,7 @@ type packageImportCommand struct {
 
 func newPackageImportCommand() *packageImportCommand {
 	var remoteRepos, directories, configs, packages, collections []string
-	var stdin bool
+	var fromStdin bool
 
 	cmd := &cobra.Command{
 		Use:     "import FROM [FROM...]",
@@ -71,7 +71,7 @@ func newPackageImportCommand() *packageImportCommand {
 				return errors.Wrap(err, "compile regex exclude")
 			}
 
-			if stdin {
+			if fromStdin {
 				importPackageFromStdin()
 				return nil
 			}
@@ -93,7 +93,7 @@ func newPackageImportCommand() *packageImportCommand {
 	cmd.Flags().StringSliceVarP(&remoteRepos, flagRepoStructure, "r", make([]string, 0), "create an importable config based on on the structure of a remote repository")
 	cmd.Flags().StringSliceVarP(&directories, flagDirectoryStructure, "d", make([]string, 0), "create an importable config based on the structure of a local directory")
 	cmd.Flags().StringP(flagExclude, "e", "", "regex pattern to exclude paths from import (only works with -c, -r, -d)")
-	cmd.Flags().BoolVarP(&stdin, flagStdin, "i", false, "import a configuration from standard input")
+	cmd.Flags().BoolVarP(&fromStdin, flagStdin, "i", false, "import a configuration from standard input")
 
 	_ = cmd.MarkFlagDirname(flagDirectoryStructure)
 	_ = cmd.MarkFlagFilename(flagConfig)
