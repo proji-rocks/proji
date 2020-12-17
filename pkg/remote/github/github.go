@@ -11,11 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nikoksr/proji/internal/util"
-
-	"github.com/nikoksr/proji/pkg/domain"
-
 	gh "github.com/google/go-github/v31/github"
+	"github.com/nikoksr/proji/internal/util"
+	"github.com/nikoksr/proji/pkg/domain"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 )
@@ -50,14 +48,12 @@ func (s Service) getRepository(url *url.URL) (*repo, error) {
 	//  - /[nikoksr]/[proji]/tree/[master]	-> extracts owner, remote and branch name
 	regex := regexp.MustCompile(`/([^/]+)/([^/]+)(?:/tree/([^/]+))?`)
 	specs := regex.FindStringSubmatch(url.Path)
-
 	if specs == nil {
 		return nil, fmt.Errorf("could not parse url")
 	}
 
 	owner := specs[1]
 	repoName := specs[2]
-
 	if owner == "" || repoName == "" {
 		return nil, fmt.Errorf("could not extract user and/or repository name")
 	}
@@ -70,10 +66,20 @@ func (s Service) getRepository(url *url.URL) (*repo, error) {
 		client: s.client,
 	}
 
-	err := currentRepo.setSHA(context.Background())
+	// Set a branch if none was given
+	ctx := context.Background()
+	err := currentRepo.setBranch(ctx, s.isAuthenticated)
+	if err != nil {
+		return nil, errors.Wrap(err, "set branch name")
+	}
+
+	// Set the repositories sha equal to the latest commit sha of the active branch. This is required by the gh api
+	// library.
+	err = currentRepo.setSHA(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "repository commit sha")
 	}
+
 	return currentRepo, nil
 }
 
