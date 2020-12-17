@@ -281,7 +281,7 @@ func OpenInEditor(configPath string) error {
 	case "darwin":
 		err = open.RunWith(configPath, "TextEdit") // Use TextEdit as fallback editor on macOS
 	case "windows":
-		err = open.RunWith(configPath, "Notepad.exe") // Use Notepad.exe as fallback editor on macOS
+		err = open.RunWith(configPath, "notepad.exe") // Use notepad as fallback editor on Windows
 	default:
 		return fmt.Errorf("OS %s is not supported yet. Please create an issue at "+
 			"https://github.com/nikoksr/proji to request the support of your OS", runtime.GOOS)
