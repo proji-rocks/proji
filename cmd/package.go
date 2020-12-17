@@ -17,6 +17,7 @@ func newPackageCommand() *packageCommand {
 
 	cmd.AddCommand(
 		newPackageAddCommand().cmd,
+		newPackageEditCommand().cmd,
 		newPackageExportCommand().cmd,
 		newPackageImportCommand().cmd,
 		newPackageListCommand().cmd,

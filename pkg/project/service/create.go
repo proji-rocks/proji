@@ -30,9 +30,13 @@ func (ps projectService) CreateProject(configRootPath string, project *domain.Pr
 	}
 
 	defer func() {
-		newErr := os.Chdir(workingDirectory)
-		if newErr != nil {
-			err = newErr
+		e := os.Chdir(workingDirectory)
+		if e != nil {
+			if err != nil {
+				err = errors.Wrap(err, e.Error())
+			} else {
+				err = e
+			}
 		}
 	}()
 
