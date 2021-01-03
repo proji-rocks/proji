@@ -49,5 +49,6 @@ type PackageService interface {
 	ImportPackageFromString(input string) (*Package, error)
 
 	ExportPackageToConfig(pkg Package, destination string) (string, error)
-	ExportPackageToStdout(pkg Package) error
+	ExportPackageToTemporaryConfig(pkg Package) (string, error)
+  ExportPackageToStdout(pkg Package) error
 }

@@ -23,7 +23,7 @@ func newPackageExportCommand() *packageExportCommand {
 	cmd := &cobra.Command{
 		Use:     "export LABEL [LABEL...]",
 		Short:   "Export one or more packages",
-		Aliases: []string{"e"},
+		Aliases: []string{"x"},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if exportAll && template {
 				return fmt.Errorf("the flags 'template' and 'all' cannot be used at the same time")
