@@ -57,7 +57,14 @@ func newPackageImportCommand() *packageImportCommand {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			importTypes := map[string][]string{
+			// Compile exclude flag value to regex
+			regexExclude, err := regexp.Compile(session.config.Import.Exclude)
+			if err != nil {
+				return errors.Wrap(err, "compile regex exclude")
+			}
+
+			// Associate different import types with their lists of config origins
+			importTypesAndOrigins := map[string][]string{
 				flagConfig:             configs,
 				flagDirectoryStructure: directories,
 				flagRepoStructure:      remoteRepos,
@@ -65,25 +72,22 @@ func newPackageImportCommand() *packageImportCommand {
 				flagCollection:         collections,
 			}
 
-			// Compile exclude flag value to regex
-			regexExclude, err := regexp.Compile(session.config.Import.Exclude)
-			if err != nil {
-				return errors.Wrap(err, "compile regex exclude")
+			// Other imports have to be skipped in case of a stdin import because they might pollute stdin and
+			// potentially make the package import fail.
+			if fromStdin {
+				importTypesAndOrigins = map[string][]string{flagStdin: {""}}
 			}
 
-			if fromStdin {
-				importPackageFromStdin()
-				return nil
-			}
-			// Import configs
+			// Loop over all import types and try to import packages from their associated config origins
 			sw := statuswriter.New()
 			sw.Run()
-			for importType, paths := range importTypes {
-				for _, path := range paths {
-					go importPackageWithPath(sw.NewSink(), path, importType, regexExclude)
+			for importType, origins := range importTypesAndOrigins {
+				for _, origin := range origins {
+					go importPackage(sw.NewSink(), origin, importType, regexExclude)
 				}
 			}
 			sw.Wait()
+
 			return nil
 		},
 	}
@@ -101,7 +105,7 @@ func newPackageImportCommand() *packageImportCommand {
 	return &packageImportCommand{cmd: cmd}
 }
 
-func importPackageWithPath(status *statuswriter.Sink, path, importType string, exclude *regexp.Regexp) {
+func importPackage(status *statuswriter.Sink, path, importType string, exclude *regexp.Regexp) {
 	defer status.Close()
 	var pkg *domain.Package
 	var err error
@@ -118,6 +122,8 @@ func importPackageWithPath(status *statuswriter.Sink, path, importType string, e
 		pkg, err = importPackageFromRemote(status, path)
 	case flagCollection:
 		importPackagesFromCollection(status, path, exclude)
+	case flagStdin:
+		pkg, err = importPackageFromStdin(status)
 	default:
 		err = fmt.Errorf("import type %s not supported", importType)
 	}
@@ -246,29 +252,26 @@ func importPackagesFromCollection(status *statuswriter.Sink, url string, exclude
 	status.Write(message.Ssuccessf("successfully imported %d of %d package from collection %s", successfulImports, len(pkgs), parsedURL.String()))
 }
 
-func importPackageFromStdin() {
-	sw := statuswriter.New()
+func importPackageFromStdin(status *statuswriter.Sink) (*domain.Package, error) {
+	// Scan package config from stdin into string
+	status.Write(message.Sinfof("importing package from stdin"))
 	scanner := bufio.NewScanner(os.Stdin)
 	input := ""
 	for scanner.Scan() {
 		input += scanner.Text() + "\n"
 	}
-	sw.Run()
-	status := sw.NewSink()
-	defer sw.Wait()
-	defer status.Close()
+
+	// Import actual package from the string
 	pkg, err := session.packageService.ImportPackageFromString(input)
 	if err != nil {
-		status.Write(message.Serrorf(err, "failed to import package from standard input"))
-		return
-	}
-	err = session.packageService.StorePackage(pkg)
-	if err != nil {
-		status.Write(message.Serrorf(err, "failed to store package"))
-		return
+		return nil, err
 	}
 
-	status.Write(message.Ssuccessf("successfully imported package %s [%s]", pkg.Name, pkg.Label))
+	// Save the package
+	status.Write(message.Sinfof("storing package %s [%s]", pkg.Name, pkg.Label))
+	err = session.packageService.StorePackage(pkg)
+
+	return pkg, err
 }
 
 func handleDuplicatePackage(status *statuswriter.Sink, pkg *domain.Package) {

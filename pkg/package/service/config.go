@@ -82,8 +82,8 @@ func (ps packageService) ExportPackageToTemporaryConfig(pkg domain.Package) (str
 		return "", fmt.Errorf("create temporary config file: %v", err)
 	}
 	defer configFile.Close()
-  
-  return configFile.Name(), exportPackageToWriter(pkg, conf)
+
+  return configFile.Name(), exportPackageToWriter(pkg, configFile)
 }
 
 func (ps packageService) ExportPackageToStdout(pkg domain.Package) error {
