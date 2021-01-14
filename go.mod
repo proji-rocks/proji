@@ -27,7 +27,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/valyala/fasttemplate v1.2.1
 	github.com/xanzy/go-gitlab v0.40.1
 	github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da
