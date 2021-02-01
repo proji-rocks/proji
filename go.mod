@@ -10,7 +10,6 @@ require (
 	github.com/google/go-github/v31 v31.0.0
 	github.com/gookit/color v1.3.3
 	github.com/hashicorp/go-retryablehttp v0.6.8 // indirect
-	github.com/jackc/pgx/v4 v4.9.2 // indirect
 	github.com/jedib0t/go-pretty/v6 v6.0.5
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lib/pq v1.7.0 // indirect
@@ -45,8 +44,8 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c // indirect
 	gorm.io/driver/mysql v1.0.3
-	gorm.io/driver/postgres v1.0.5
+	gorm.io/driver/postgres v1.0.8
 	gorm.io/driver/sqlite v1.1.4
 	gorm.io/driver/sqlserver v1.0.5
-	gorm.io/gorm v1.20.8
+	gorm.io/gorm v1.20.12
 )
