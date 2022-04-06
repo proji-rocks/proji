@@ -9,7 +9,6 @@ require (
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/google/go-github/v31 v31.0.0
 	github.com/gookit/color v1.3.3
-	github.com/hashicorp/go-retryablehttp v0.6.8 // indirect
 	github.com/jackc/pgx/v4 v4.9.2 // indirect
 	github.com/jedib0t/go-pretty/v6 v6.0.5
 	github.com/kr/text v0.2.0 // indirect
@@ -29,7 +28,7 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
 	github.com/valyala/fasttemplate v1.2.1
-	github.com/xanzy/go-gitlab v0.40.1
+	github.com/xanzy/go-gitlab v0.62.0
 	github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da
 	golang.org/x/crypto v0.0.0-20201124201722-c8d3bf9c5392
 	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b // indirect
