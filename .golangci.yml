@@ -1,17 +1,63 @@
-# This file contains all available configuration options
-# with their default values.
-
-# options for analysis running
 run:
-  tests: false
+  go: '1.18'
+  timeout: '5m'
+  build-tags:
+    - 'all'
+  skip-dirs:
+    - 'docs'
+  skip-dirs-use-default: false
+  modules-download-mode: 'readonly'
+  allow-parallel-runners: true
 
 linters:
-  enable-all: true
-  disable:
-    - wsl
-    - lll
-    - funlen
-    - godox
-    - gomnd
-    - gocognit
-    - goerr113
+  enable:
+    - 'asciicheck'
+    - 'bodyclose'
+    - 'deadcode'
+    - 'depguard'
+    - 'dogsled'
+    - 'errcheck'
+    - 'errorlint'
+    - 'exportloopref'
+    - 'gofmt'
+    - 'gofumpt'
+    - 'goheader'
+    - 'goimports'
+    - 'gomodguard'
+    - 'goprintffuncname'
+    - 'gosec'
+    - 'gosimple'
+    - 'govet'
+    - 'ineffassign'
+    - 'makezero'
+    - 'misspell'
+    - 'noctx'
+    - 'paralleltest'
+    - 'prealloc'
+    - 'predeclared'
+    - 'revive'
+    - 'sqlclosecheck'
+    - 'staticcheck'
+    - 'structcheck'
+    - 'stylecheck'
+    - 'typecheck'
+    - 'unconvert'
+    - 'unused'
+    - 'varcheck'
+    - 'whitespace'
+
+issues:
+  exclude:
+    - '^S1023:' # staticcheck: redundant returns help with http handlers
+    - '^SA3000:' # staticcheck: not required in Go 11.4+
+    - '^G102:' # gosec: we have to bind to all ifaces
+    - '^G402:' # gosec: some services terminate at the load balancer
+    - '^G505:' # gosec: we use crypto/sha1 for some HMACs
+    - '^Range statement' # paralleltest: false positives
+    - '^var-declaration:' # revive: false positive
+    - '^exported:' # revive: backwards-compat
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+severity:
+  default-severity: error
