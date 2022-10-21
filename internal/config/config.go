@@ -1,296 +1,319 @@
 package config
 
 import (
-	"fmt"
+	"context"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
-	"strings"
+	"sync"
 
-	"github.com/pkg/errors"
-	"github.com/skratchdot/open-golang/open"
+	"github.com/cockroachdb/errors"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+
+	"github.com/nikoksr/proji/pkg/logging"
 )
 
-// APIAuthentication represents the configurable and authentication related values in the main config.
-type APIAuthentication struct {
-	GHToken string `mapstructure:"gh_token"`
-	GLToken string `mapstructure:"gl_token"`
-}
+type (
+	// Auth is a general authentication configuration.
+	Auth struct {
+		// GitHubToken allows proji to access private GitHub repos and avoid rate limiting.
+		GitHubToken string `mapstructure:"github_token"`
+		// GitLabToken allows proji to access private GitLab repos and avoid rate limiting.
+		GitLabToken string `mapstructure:"gitlab_token"`
+	}
 
-// Core represents core settings of proji.
-type Core struct {
-	DisableColors bool `mapstructure:"disable_colors"`
-}
+	// Database is a configuration for the database.
+	Database struct {
+		// DSN is the data source name for the database. At the moment, this is a path to a boltDB.
+		DSN string `mapstructure:"dsn"`
+	}
 
-// DatabaseConnection represents the configurable and database related values in the main config.
-type DatabaseConnection struct {
-	Driver string `mapstructure:"driver"`
-	DSN    string `mapstructure:"dsn"`
-}
+	// Import is a configuration for the import.
+	Import struct {
+		// Exclude is a regex that is used to exclude files and directories from the import process.
+		Exclude string `mapstructure:"exclude"`
+	}
 
-// Import represents package import related config settings.
-type Import struct {
-	Exclude string `mapstructure:"exclude"`
-}
+	// Sentry is a configuration for the Sentry monitoring service.
+	Sentry struct {
+		// Enabled is a flag that indicates if Sentry is enabled. This is disabled by default.
+		Enabled bool `mapstructure:"enabled"`
+	}
 
-// Template represents the configurable and database related values in the main config.
-type Template struct {
-	StartTag string `mapstructure:"start_tag"`
-	EndTag   string `mapstructure:"end_tag"`
-}
+	// Monitoring returns the monitoring configuration.
+	Monitoring struct {
+		// Sentry is a configuration for the Sentry monitoring service.
+		Sentry Sentry `mapstructure:"sentry"`
+	}
 
-// Config represents proji's main config holding information about central resources the app uses.
-type Config struct {
-	Auth               *APIAuthentication  `mapstructure:"auth"`
-	BasePath           string              `mapstructure:"-"`
-	Core               *Core               `mapstructure:"core"`
-	DatabaseConnection *DatabaseConnection `mapstructure:"database"`
-	Import             *Import             `mapstructure:"import"`
-	Template           *Template           `mapstructure:"template"`
-	provider           *viper.Viper        `mapstructure:"-"`
-}
+	// Config is the configuration for the application.
+	Config struct {
+		Auth       Auth         `mapstructure:"-"`
+		Database   Database     `mapstructure:"database"`
+		Import     Import       `mapstructure:"import"`
+		Monitoring Monitoring   `mapstructure:"monitoring"`
+		provider   *viper.Viper `mapstructure:"-"`
+	}
+)
 
 const (
-	defaultDatabaseDriver = "sqlite3"
-	defaultDatabaseDSN    = "/db/proji.sqlite3"
-	defaultStartTag       = "{{%"
-	defaultEndTag         = "%}}"
+	// Config directory defaults
+	defaultConfigDir  = "proji"
+	defaultConfigFile = "config.toml"
+
+	// Data directory defaults
+	defaultDataDir      = "data"
+	defaultDatabaseFile = "proji.db"
+
+	// Other subdirectories
+	defaultPluginsDir   = "plugins"
+	defaultTemplatesDir = "templates"
+
+	// Some config constants/defaults
+	defaultExcludePattern = `^(.git|.env|.idea|.vscode)$`
+	defaultSentryStatus   = false
 )
 
-//nolint:gochecknoglobals
-var globalBasePath string
+var (
+	// Anonymous check to ensure that the default regex exclude pattern is valid.
+	_ = regexp.MustCompile(defaultExcludePattern)
 
-// Prepare determines the operating system specific base config path and stores it. This needs to be run before all other
-// config methods.
-func Prepare() error {
-	// Load and set the config base path
-	return setGlobalBasePath()
+	config   *Config   // Singleton
+	loadOnce sync.Once // Used to ensure the singleton is in fact only loaded once
+
+	// ErrUnsupportedOS is returned when the operating system is not supported.
+	ErrUnsupportedOS = errors.New("unsupported operating system")
+
+	// ErrInvalidUserConfigPath is returned when the user config path could not be determined.
+	ErrInvalidUserConfigPath = errors.New("could not determine user config path")
+)
+
+// getUnixUserConfigPath returns the path to the user config directory for *nix systems. This uses the $HOME env var.
+func getUnixUserConfigPath() (string, error) {
+	homeDir := os.Getenv("HOME")
+	if homeDir == "" {
+		return "", ErrInvalidUserConfigPath
+	}
+
+	return filepath.Join(homeDir, ".config", defaultConfigDir, defaultConfigFile), nil
 }
 
-// New returns a new empty config instance which has its base path set to the given path.
-func New(path string) *Config {
-	// Set platform specific config path
-	conf := &Config{}
-	conf.BasePath = path
-	return conf
+// getWindowsUserConfigPath returns the path to the user config directory for Windows systems. This uses the
+// %LOCALAPPDATA% env var.
+func getWindowsUserConfigPath() (string, error) {
+	homeDir := os.Getenv("LOCALAPPDATA")
+	if homeDir == "" {
+		return "", ErrInvalidUserConfigPath
+	}
+
+	return filepath.Join(homeDir, defaultConfigDir, defaultConfigFile), nil
 }
 
-// LoadValues tries to load all configuration values.
-func (c *Config) LoadValues(cmdFlags *pflag.FlagSet) error {
-	// Set config provider
-	c.setProvider()
+// getUserConfigPath returns the path to the user config directory for the given operating system. We pass in the
+// operating system to make it easier to test.
+func getUserConfigPath(system string) (path string, err error) {
+	switch system {
+	// Same path for *nix systems
+	case "darwin", "freebsd", "linux", "netbsd", "openbsd":
+		path, err = getUnixUserConfigPath()
+	case "windows":
+		path, err = getWindowsUserConfigPath()
+	default:
+		return "", ErrUnsupportedOS
+	}
 
-	// Set config specifications
-	c.setSpecs()
+	return path, err
+}
 
-	// Set default config values
-	c.setDefaultValues()
+// defaultConfigPath returns the default path to the configuration file. This usually gets called when no configuration
+// path is provided by the user.
+func defaultConfigPath() (string, error) {
+	return getUserConfigPath(runtime.GOOS)
+}
 
-	// Load config values
-	err := c.loadValues(cmdFlags)
+// newProvider creates a new viper instance and sets the default values.
+func newProvider(path string) *viper.Viper {
+	provider := viper.New()
+
+	// Allow for cross-platform paths
+	path = filepath.FromSlash(path)
+	dir := filepath.Dir(path)
+
+	// Set default configuration
+	provider.SetDefault("database.dsn", filepath.Join(dir, defaultDataDir, defaultDatabaseFile))
+	provider.SetDefault("import.exclude", defaultExcludePattern)
+	provider.SetDefault("monitoring.sentry.enabled", defaultSentryStatus)
+
+	// Set configuration file path
+	provider.SetConfigFile(path)
+
+	return provider
+}
+
+// setupInfrastructure sets up the infrastructure for the configuration. It creates all necessary files and directories.
+func (conf *Config) setupInfrastructure() error {
+	if conf.provider == nil {
+		return errors.New("config provider is nil")
+	}
+
+	// Get directory for config file
+	baseDir := filepath.Dir(conf.provider.ConfigFileUsed())
+
+	// Create subdirectories; this also implicitly creates the base directory
+	dirs := []string{
+		filepath.Join(baseDir, defaultPluginsDir),
+		filepath.Join(baseDir, defaultTemplatesDir),
+		filepath.Join(baseDir, defaultDataDir),
+	}
+
+	for _, dir := range dirs {
+		err := os.MkdirAll(dir, 0o755)
+		if err != nil {
+			return errors.Wrapf(err, "create directory %q", dir)
+		}
+	}
+
+	// Create config file if it does not exist
+	err := conf.provider.SafeWriteConfigAs(conf.provider.ConfigFileUsed())
 	if err != nil {
-		return err
+		return errors.Wrap(err, "write config")
 	}
 
-	// Set the loaded values as config
-	err = c.setFinalValues()
-	if err != nil {
-		return err
-	}
+	// TODO: This is declared as a DSN, but it is actually a file path. I want to keep proji open to support more
+	//       databases in the future, so DSN is probably right, but the way we handle it here is not. We should use
+	//       a different approach. Check the protocol of the dsn or something similar. If it is not sqlite or bolt, we
+	//       should not create the file.
+	// Create empty database file
+	dbFile := conf.provider.GetString("database.dsn")
+	_, err = os.Create(dbFile)
 
-	// Handle special case for sqlite3 database
-	c.handleDatabaseDriverSpecialCase()
-	return nil
+	return errors.Wrapf(err, "create file %q", dbFile)
 }
 
-// setProvider sets the configs provider to a new viper instance.
-func (c *Config) setProvider() {
-	c.provider = viper.New()
+// readFile loads configuration from the configuration file.
+func (conf *Config) readFile() error {
+	return conf.provider.ReadInConfig()
 }
 
-// setSpecs sets config provider specifications like the config path and env prefix.
-func (c *Config) setSpecs() {
-	c.provider.AddConfigPath(c.BasePath)
-	c.provider.SetConfigName("config")
-	c.provider.SetConfigType("toml")
-	c.provider.SetEnvPrefix("PROJI")
-	c.provider.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+// readEnv loads configuration from environment variables.
+func (conf *Config) readEnv() {
+	conf.provider.AutomaticEnv()
 }
 
-// setDefaultValues sets the main configs default values for all keys.
-func (c *Config) setDefaultValues() {
-	c.provider.SetDefault("auth.gh_token", "")
-	c.provider.SetDefault("auth.gl_token", "")
-	c.provider.SetDefault("core.disable_colors", false)
-	c.provider.SetDefault("database.driver", defaultDatabaseDriver)
-	c.provider.SetDefault("database.dsn", filepath.Join(c.BasePath, defaultDatabaseDSN))
-	c.provider.SetDefault("import.exclude", `^(.git|.env|.idea|.vscode)$`)
-	c.provider.SetDefault("template.start_tag", defaultStartTag)
-	c.provider.SetDefault("template.end_tag", defaultEndTag)
-}
-
-// set should run after loadFile and loadEnvironmentVariables. It sets the loaded values as the final config.
-func (c *Config) setFinalValues() error {
-	return c.provider.Unmarshal(c)
-}
-
-// loadValues loads config values from file and environment variables.
-func (c *Config) loadValues(cmdFlags *pflag.FlagSet) error {
-	err := c.loadFile()
-	if err != nil {
-		return err
-	}
-	c.loadEnvironmentVariables()
-	if cmdFlags.NFlag() > 0 {
-		return c.loadFlags(cmdFlags)
-	}
-	return nil
-}
-
-// loadConfigFile tries to load the settings relevant values from the default config file. Skips if config file not found.
-func (c *Config) loadFile() error {
-	err := c.provider.ReadInConfig()
-	_, ok := err.(viper.ConfigFileNotFoundError)
-	if ok {
-		// Config file not found; ignore error and return empty settings
+// readFlags loads configuration from command line flags.
+func (conf *Config) readFlags(cmdFlags *pflag.FlagSet) error {
+	if cmdFlags == nil {
 		return nil
 	}
-	return err
-}
 
-// loadSettingsFromConfig tries to load the settings from the default config file. Skips if config file not found.
-func (c *Config) loadEnvironmentVariables() {
-	c.provider.AutomaticEnv()
-}
-
-func (c *Config) loadFlags(cmdFlags *pflag.FlagSet) error {
-	// Flag names with their viper internal keys
+	// Map flags to viper config tags
 	flags := map[string]string{
-		"exclude":   "import.exclude",
-		"no-colors": "core.disable_colors",
+		"exclude": "import.exclude",
 	}
 
 	for name, key := range flags {
 		flag := cmdFlags.Lookup(name)
 		if flag == nil {
-			// Flag not found
-			continue
+			continue // Flag not set
 		}
-		err := c.provider.BindPFlag(key, flag)
+
+		err := conf.provider.BindPFlag(key, flag)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "bind flag")
 		}
 	}
+
 	return nil
 }
 
-func (c *Config) handleDatabaseDriverSpecialCase() {
-	// Special case for sqlite.
-	if c.DatabaseConnection.Driver == "sqlite3" {
-		c.DatabaseConnection.DSN = RelativePathToAbsoluteConfigPath(c.BasePath, c.DatabaseConnection.DSN)
+// load the configuration. It combines loading from the configuration file, environment variables and command line
+// flags.
+// If the path is empty, the default configuration path is used. If the path is not empty, the path must point directly
+// to the configuration file.
+func load(ctx context.Context, path string, flags *pflag.FlagSet) (conf *Config, err error) {
+	logger := logging.FromContext(ctx)
+
+	// If no explicit path is given, use default path
+	if path == "" {
+		path, err = defaultConfigPath()
+		if err != nil {
+			return nil, errors.Wrap(err, "get config path")
+		}
+
+		logger.Debugf("no explicit config path given, using default path: %q", path)
 	}
+
+	// Make config path absolute
+	path, err = filepath.Abs(path)
+	if err != nil {
+		return nil, errors.Wrap(err, "get absolute config path")
+	}
+
+	// Create default config
+	logger.Debugf("creating config provider with path: %q", path)
+	conf = &Config{
+		provider: newProvider(path),
+	}
+
+	// Load config values; order is important here. File < Env < Flags.
+	logger.Debugf("loading config values from file: %q", path)
+	err = conf.readFile()
+
+	// If the config file doesn't exist, create it.
+	if errors.Is(err, os.ErrNotExist) {
+		logger.Debugf("config file does not exist, setting up infrastructure : %q", filepath.Dir(path))
+		err = conf.setupInfrastructure()
+		if err != nil {
+			return nil, errors.Wrap(err, "setup infrastructure")
+		}
+	} else if err != nil {
+		return nil, errors.Wrap(err, "read config")
+	}
+
+	// Environment variables
+	logger.Debugf("loading config values from environment")
+	conf.readEnv()
+
+	// Command line flags
+	logger.Debugf("loading config values from flags")
+	err = conf.readFlags(flags)
+	if err != nil {
+		return conf, errors.Wrap(err, "load config from flags")
+	}
+
+	// Unmarshal config values into struct
+	logger.Debugf("unmarshalling config")
+	err = conf.provider.Unmarshal(conf)
+	if err != nil {
+		return conf, errors.Wrap(err, "unmarshal config")
+	}
+
+	return conf, nil
 }
 
-// GetBaseConfigPath returns the OS specific base path of the config folder.
-func GetBaseConfigPath() string {
-	return globalBasePath
-}
-
-// setGlobalBasePath sets the variable globalBasePath to the OS specific base path of the config folder.
-func setGlobalBasePath() error {
-	if globalBasePath != "" {
-		return nil
-	}
-	var path string
+// Load loads the configuration from the given path. If the path is empty, the default path is used. If a path is given,
+// it has to be an absolute path that points directly to the config file. It returns the singleton instance.
+func Load(ctx context.Context, path string, flags *pflag.FlagSet) (*Config, error) {
 	var err error
-	switch runtime.GOOS {
-	case "linux":
-		path, err = getLinuxConfigBasePath()
-	case "darwin":
-		path, err = getDarwinConfigBasePath()
-	case "windows":
-		path, err = getWindowsConfigBasePath()
-	default:
-		err = fmt.Errorf("OS %s is not supported and/or tested yet. Please create an issue at "+
-			"https://github.com/nikoksr/proji to request the support of your OS", runtime.GOOS)
+	loadOnce.Do(func() {
+		config, err = load(ctx, path, flags)
+		if err != nil {
+			return
+		}
+	})
+
+	return config, err
+}
+
+// Validate the configuration. Invalid configs will return a ErrInvalidConfig error wrapped in a more detailed error.
+// This method never gets called automatically. It has to be called manually.
+func (conf *Config) Validate() error {
+	// Validate database
+	if conf.Database.DSN == "" {
+		return errors.New("database dsn is empty")
 	}
-	if err != nil {
-		return err
-	}
-	// No errors, set the global base path
-	globalBasePath = path
+
 	return nil
-}
-
-// getLinuxConfigBasePath tries to read the HOME env variable. Returns proji's home path on linux systems on success.
-func getLinuxConfigBasePath() (string, error) {
-	home, exists := os.LookupEnv("HOME")
-	if !exists {
-		return "", fmt.Errorf("could not find environment variable HOME")
-	}
-	return filepath.Join(home, "/.config/proji"), nil
-}
-
-// getDarwinConfigBasePath tries to read the HOME env variable. Returns proji's home path on darwin systems on success.
-func getDarwinConfigBasePath() (string, error) {
-	home, exists := os.LookupEnv("HOME")
-	if !exists {
-		return "", fmt.Errorf("could not find environment variable HOME")
-	}
-	return filepath.Join(home, "/Library/Application Support/proji"), nil
-}
-
-// getWindowsConfigBasePath tries to read the APPDATA env variable. Returns proji's home path on windows systems on success.
-func getWindowsConfigBasePath() (string, error) {
-	appData, exists := os.LookupEnv("APPDATA")
-	if !exists {
-		return "", fmt.Errorf("could not find environment variable APPDATA")
-	}
-	return filepath.Join(appData, "/proji"), nil
-}
-
-// RelativePathToAbsoluteConfigPath takes a relative path and a config folder path (usually proji's main config folder)
-// and returns the absolute path of the relative path in relation to the config folder path. Returns the relative path
-// unchanged if it was already an absolute path.
-func RelativePathToAbsoluteConfigPath(configFolderPath, relativePath string) string {
-	if filepath.IsAbs(relativePath) {
-		// Either user defined path like '/my/custom/db/path' or default value was loaded
-		return relativePath
-	}
-	// User defined path like 'db/proji.sqlite3'. Gets prefixed with config folder path. This has to be a relative
-	// path or else the above will trigger.
-	return filepath.Join(configFolderPath, relativePath)
-}
-
-// OpenInEditor tries to open a given config file in the systems default editor. If the attempt to open the config
-// in the systems default editor for the files type the function will try to open the the config file in a text editor
-// that's available on the os by default - 'TextEdit' on macOS for example.
-func OpenInEditor(configPath string) error {
-	// Try to open in default editor for file extension
-	err := open.Run(configPath)
-	if err == nil {
-		return nil
-	}
-
-	// If failed to open file with native open-command, try to open in systems default text editor.
-	switch runtime.GOOS {
-	case "linux":
-		return err // No default fallback editor under linux
-	case "darwin":
-		err = open.RunWith(configPath, "TextEdit") // Use TextEdit as fallback editor on macOS
-	case "windows":
-		err = open.RunWith(configPath, "notepad.exe") // Use notepad as fallback editor on Windows
-	default:
-		return fmt.Errorf("OS %s is not supported yet. Please create an issue at "+
-			"https://github.com/nikoksr/proji to request the support of your OS", runtime.GOOS)
-	}
-
-	// If an error occurred, make it more expressive
-	if err != nil {
-		err = errors.Wrap(fmt.Errorf("trying to open config with fallback editor"), err.Error())
-	}
-
-	return err
 }

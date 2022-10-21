@@ -1,53 +1,97 @@
-# Adapted from https://github.com/goreleaser/goreleaser/blob/master/Makefile
+###############################################################################
+# VARIABLES
+###############################################################################
 
-export PATH := ./bin:$(PATH)
 export GO111MODULE := on
+export GOPROXY = https://proxy.golang.org,direct
 
-# Install all the build and lint dependencies
+PKG_PATH=github.com/nikoksr/proji
+GIT_TAG=$(shell git describe --tags --abbrev=0)
+GIT_REV=$(shell git rev-parse --short HEAD)
+
+###############################################################################
+# DEPENDENCIES
+###############################################################################
+
 setup:
-	go mod download
-	go generate -v ./...
+	go mod tidy
+	@go install mvdan.cc/gofumpt@latest
+	@go install github.com/daixiang0/gci@latest
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 .PHONY: setup
 
-# Run all the tests
+###############################################################################
+# TESTS
+###############################################################################
+
 test:
-	LC_ALL=C go test -failfast -race -coverpkg=./... -covermode=atomic -coverprofile=coverage.txt -timeout=5m ./...
+	go test -failfast -race ./...
 .PHONY: test
 
-# Run all the tests and opens the coverage report
-cover: test
-	go tool cover -html=coverage.txt
-.PHONY: cover
+gen-coverage:
+	@go test -race -covermode=atomic -coverprofile=coverage.out ./... > /dev/null
+.PHONY: gen-coverage
 
-# gofmt and goimports all go files
+coverage: gen-coverage
+	go tool cover -func coverage.out
+.PHONY: coverage
+
+coverage-html: gen-coverage
+	go tool cover -html=coverage.out -o cover.html
+.PHONY: coverage-html
+
+
+
+###############################################################################
+# CODE HEALTH
+###############################################################################
+
 fmt:
-	find . -name '*.go' -not -wholename './vendor/*' | while read -r file; do gofumports -w "$$file"; done
+	@gofumpt -w -l . > /dev/null
+
+	@goimports -w -l -local github.com/nikoksr/proji . > /dev/null
+
+	@gci write --section standard --section default --section "Prefix(github.com/nikoksr/proji)" . > /dev/null
 .PHONY: fmt
 
-# Run all the linters
 lint:
-	golangci-lint run ./...
-	misspell -error **/*
+	@golangci-lint run --config .golangci.yml
 .PHONY: lint
 
-# Run all the tests and code checks
-ci: build test lint
+ci: fmt test lint
 .PHONY: ci
 
-# Build a beta version of goreleaser
-build:
-	go build -o ./bin/proji .
-.PHONY: build
+###############################################################################
+# BUILDS
+###############################################################################
 
-# Show to-do items per file.
-todo:
-	@grep \
-		--exclude-dir=vendor \
-		--exclude-dir=node_modules \
-		--exclude=Makefile \
-		--text \
-		--color \
-		-nRo -E ' TODO:.*|SkipNow' .
-.PHONY: todo
+prepare-build:
+	mkdir -p ./bin/debug ./bin/release ./docs
+.PHONY: prepare-build
 
-.DEFAULT_GOAL := build
+check-optimizations: prepare-build
+	go build -gcflags='-m -m' -o ./bin/debug/proji ./cmd/proji
+.PHONY: check-optimizations
+
+build-debug: prepare-build
+	CGO_ENABLED=0 go build -o ./bin/debug/proji ./cmd/proji
+.PHONY: build-debug
+
+build-debug-win: prepare-build
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o ./bin/debug/proji-win-amd64.exe ./cmd/proji
+.PHONY: build-debug-win
+
+build-release: prepare-build
+	CGO_ENABLED=0 go build -ldflags="-s -w" -o ./bin/release/proji ./cmd/proji
+.PHONY: build-release
+
+install:
+	CGO_ENABLED=0 go install ./cmd/proji
+.PHONY: install
+
+clean:
+	rm -rf ./bin 2> /dev/null
+	rm cover.html coverage.out 2> /dev/null
+.PHONY: clean
+
+.DEFAULT_GOAL := install

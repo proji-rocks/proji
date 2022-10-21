@@ -1,19 +1,11 @@
 # Folders
-.vscode/
-.idea/
-templates/
-vendor/
 bin/
-dist/
-
-# File Extensions
-*.sqlite
-*.sqlite3
-*.db
+build/
+.idea/
+.vscode/
+tmp/
 
 # Files
-Gopkg.lock
-Gopkg.toml
-.snapcraft.login
-coverage.txt
-proji-*.toml
+*.log
+.env
+coverage.out

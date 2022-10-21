@@ -1,0 +1,61 @@
+name: Test & Lint
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        go-version: [ 1.19.x ]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        name: Prepare cache
+        with:
+          # In order:
+          # * Module download cache
+          # * Build cache (Linux)
+          # * Build cache (Mac)
+          # * Build cache (Windows)
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ~/Library/Caches/go-build
+            %LocalAppData%\go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Lint
+        uses: golangci/golangci-lint-action@v3
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.19'
+      - name: Run coverage
+        run: go test -race -coverprofile=coverage.out -covermode=atomic
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3

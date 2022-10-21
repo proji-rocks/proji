@@ -1,5 +1,3 @@
-> Note: I haven't had much time to work on proji lately due to my job and the current worldwide situation. I will continue to work on proji soon. Stay safe, everyone!
-
 <div align="center">
 <img
     width=300px
@@ -8,14 +6,10 @@
 />
 
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/nikoksr/proji)](https://github.com/nikoksr/proji/releases/latest)
-[![AUR version](https://img.shields.io/aur/version/proji)](https://aur.archlinux.org/packages/proji/)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/643b7cce9fd2491e9fde38de6e1c58ad)](https://www.codacy.com/manual/nikoksr/proji?utm_source=github.com&utm_medium=referral&utm_content=nikoksr/proji&utm_campaign=Badge_Grade)
+[![codecov](https://codecov.io/gh/nikoksr/proji/branch/master/graph/badge.svg?token=14YTIHXHTX)](https://codecov.io/gh/nikoksr/proji)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nikoksr/proji)](https://goreportcard.com/report/github.com/nikoksr/proji)
-[![CircleCI](https://circleci.com/gh/nikoksr/proji.svg?style=shield)](https://circleci.com/gh/nikoksr/proji)
-[![Discord](https://img.shields.io/discord/723332758579183718?color=blue&label=discord)](https://discord.gg/gWM9Vr)
-![Platforms](https://img.shields.io/badge/platforms-Windows%2C%20macOS%20and%20Linux-blue)
+[![Maintainability](https://api.codeclimate.com/v1/badges/40bc389c40a19cfd7edd/maintainability)](https://codeclimate.com/github/nikoksr/proji/maintainability)
 [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/nikoksr/proji)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
 
 <p align="center">
   <a href="#demo">Demo</a>

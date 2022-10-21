@@ -1,52 +1,60 @@
 module github.com/nikoksr/proji
 
-go 1.14
+go 1.19
 
 require (
-	github.com/cavaliercoder/grab v2.0.0+incompatible
-	github.com/denisenkom/go-mssqldb v0.9.0 // indirect
-	github.com/fsnotify/fsnotify v1.4.9 // indirect
-	github.com/golang/protobuf v1.4.3 // indirect
+	github.com/cockroachdb/errors v1.9.0
+	github.com/getsentry/sentry-go v0.14.0
+	github.com/go-chi/chi v1.5.4
+	github.com/google/go-cmp v0.5.9
 	github.com/google/go-github/v31 v31.0.0
-	github.com/gookit/color v1.3.3
-	github.com/hashicorp/go-retryablehttp v0.6.8 // indirect
-	github.com/jackc/pgx/v4 v4.9.2 // indirect
-	github.com/jedib0t/go-pretty/v6 v6.0.5
-	github.com/kr/text v0.2.0 // indirect
-	github.com/lib/pq v1.7.0 // indirect
-	github.com/magiconair/properties v1.8.4 // indirect
-	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
-	github.com/mitchellh/mapstructure v1.3.3 // indirect
-	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
-	github.com/pelletier/go-toml v1.8.1
+	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
-	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
-	github.com/spf13/afero v1.4.1 // indirect
-	github.com/spf13/cast v1.3.1 // indirect
-	github.com/spf13/cobra v1.1.1
-	github.com/spf13/jwalterweatherman v1.1.0 // indirect
+	github.com/rs/xid v1.4.0
+	github.com/spf13/cobra v1.6.0
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.7.1
-	github.com/stretchr/testify v1.6.1
-	github.com/valyala/fasttemplate v1.2.1
-	github.com/xanzy/go-gitlab v0.40.1
-	github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da
-	golang.org/x/crypto v0.0.0-20201124201722-c8d3bf9c5392
-	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b // indirect
-	golang.org/x/oauth2 v0.0.0-20201109201403-9fd604954f58
-	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
-	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68 // indirect
-	golang.org/x/text v0.3.4 // indirect
-	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e // indirect
+	github.com/spf13/viper v1.13.0
+	github.com/valyala/fasttemplate v1.2.2
+	github.com/xanzy/go-gitlab v0.73.1
+	go.etcd.io/bbolt v1.3.6
+	go.uber.org/atomic v1.10.0
+	go.uber.org/zap v1.23.0
+	golang.org/x/oauth2 v0.1.0
+	golang.org/x/sync v0.1.0
+	moul.io/chizap v1.0.3
+)
+
+require (
+	github.com/cockroachdb/logtags v0.0.0-20211118104740-dabe8e521a4f // indirect
+	github.com/cockroachdb/redact v1.1.3 // indirect
+	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
+	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/inconshreveable/mousetrap v1.0.1 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
+	github.com/kr/text v0.2.0 // indirect
+	github.com/magiconair/properties v1.8.6 // indirect
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
+	github.com/rogpeppe/go-internal v1.9.0 // indirect
+	github.com/spf13/afero v1.9.2 // indirect
+	github.com/spf13/cast v1.5.0 // indirect
+	github.com/spf13/jwalterweatherman v1.1.0 // indirect
+	github.com/subosito/gotenv v1.4.1 // indirect
+	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	go.uber.org/multierr v1.8.0 // indirect
+	golang.org/x/crypto v0.1.0 // indirect
+	golang.org/x/net v0.1.0 // indirect
+	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/text v0.4.0 // indirect
+	golang.org/x/time v0.1.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
-	gopkg.in/guregu/null.v4 v4.0.0
-	gopkg.in/ini.v1 v1.62.0 // indirect
+	google.golang.org/protobuf v1.28.1 // indirect
+	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c // indirect
-	gorm.io/driver/mysql v1.0.3
-	gorm.io/driver/postgres v1.0.5
-	gorm.io/driver/sqlite v1.1.4
-	gorm.io/driver/sqlserver v1.0.5
-	gorm.io/gorm v1.20.8
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

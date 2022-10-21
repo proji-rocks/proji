@@ -1,0 +1,9 @@
+[database]
+dsn = '/home/user_b/.local/share/proji.db'
+
+[import]
+exclude = ''
+
+[monitoring]
+[monitoring.sentry]
+enabled = false

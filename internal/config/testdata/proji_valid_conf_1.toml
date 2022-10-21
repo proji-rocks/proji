@@ -1,0 +1,9 @@
+[database]
+dsn = '/home/user_a/.config/proji/data/proji.db'
+
+[import]
+exclude = '^(.git|.env|.idea|.vscode)$'
+
+[monitoring]
+[monitoring.sentry]
+enabled = false

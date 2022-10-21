@@ -1,77 +1,59 @@
 package remote
 
-import (
-	"net/url"
-	"testing"
+import "testing"
 
-	"github.com/stretchr/testify/assert"
-)
+func TestIsStatusCodeOK(t *testing.T) {
+	t.Parallel()
 
-func TestParseURL(t *testing.T) {
-	type args struct {
-		URL string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *url.URL
-		wantErr bool
+	cases := []struct {
+		name string
+		code int
+		want bool
 	}{
 		{
-			name: "Test ParseURL 1",
-			args: args{URL: "https://github.com/nikoksr/proji"},
-			want: &url.URL{
-				Scheme: "https",
-				Host:   "github.com",
-				Path:   "/nikoksr/proji",
-			},
-			wantErr: false,
+			name: "100",
+			code: 100,
+			want: false,
 		},
 		{
-			name: "Test ParseURL 2",
-			args: args{URL: "https://github.com/nikoksr/proji.git"},
-			want: &url.URL{
-				Scheme: "https",
-				Host:   "github.com",
-				Path:   "/nikoksr/proji",
-			},
-			wantErr: false,
+			name: "199",
+			code: 199,
+			want: false,
 		},
 		{
-			name: "Test ParseURL 3",
-			args: args{URL: "gh:/nikoksr/proji/configs/test.conf"},
-			want: &url.URL{
-				Scheme: "https",
-				Host:   "github.com",
-				Path:   "/nikoksr/proji/configs/test.conf",
-			},
-			wantErr: false,
+			name: "200",
+			code: 200,
+			want: true,
 		},
 		{
-			name: "Test ParseURL 4",
-			args: args{URL: "gl:/nikoksr/proji-test.git"},
-			want: &url.URL{
-				Scheme: "https",
-				Host:   "gitlab.com",
-				Path:   "/nikoksr/proji-test",
-			},
-			wantErr: false,
+			name: "299",
+			code: 299,
+			want: true,
 		},
 		{
-			name:    "Test ParseURL 5",
-			args:    args{URL: ""},
-			want:    nil,
-			wantErr: true,
+			name: "300",
+			code: 300,
+			want: false,
 		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseURL(tt.args.URL)
-			assert.Equal(t, err != nil, tt.wantErr, "ParseURL() error = %v, wantErr %v", err, tt.wantErr)
-			if got == nil {
-				return
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := IsStatusCodeOK(tc.code)
+			if got != tc.want {
+				t.Errorf("got %v, want %v", got, tc.want)
 			}
-			assert.Equal(t, tt.want, got, "ParseURL() got = %v, want %v", got, tt.want)
 		})
+	}
+}
+
+func TestDefaultPathSkipper(t *testing.T) {
+	t.Parallel()
+
+	if DefaultPathSkipper("") {
+		t.Fatalf("DefaultPathSkipper did not return false")
 	}
 }

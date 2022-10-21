@@ -1,0 +1,6 @@
+[import]
+exclude = '^(.git|.env|.idea|.vscode)$'
+
+[monitoring]
+[monitoring.sentry]
+enabled = false

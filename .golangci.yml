@@ -1,13 +1,12 @@
 run:
-  go: '1.18'
   timeout: '5m'
-  build-tags:
-    - 'all'
   skip-dirs:
+    - 'bin'
+    - 'assets'
     - 'docs'
-  skip-dirs-use-default: false
-  modules-download-mode: 'readonly'
+    - 'examples'
   allow-parallel-runners: true
+  modules-download-mode: 'readonly'
 
 linters:
   enable:
@@ -19,7 +18,6 @@ linters:
     - 'errcheck'
     - 'errorlint'
     - 'exportloopref'
-    - 'gofmt'
     - 'gofumpt'
     - 'goheader'
     - 'goimports'
@@ -47,17 +45,5 @@ linters:
     - 'whitespace'
 
 issues:
-  exclude:
-    - '^S1023:' # staticcheck: redundant returns help with http handlers
-    - '^SA3000:' # staticcheck: not required in Go 11.4+
-    - '^G102:' # gosec: we have to bind to all ifaces
-    - '^G402:' # gosec: some services terminate at the load balancer
-    - '^G505:' # gosec: we use crypto/sha1 for some HMACs
-    - '^Range statement' # paralleltest: false positives
-    - '^var-declaration:' # revive: false positive
-    - '^exported:' # revive: backwards-compat
   max-issues-per-linter: 0
   max-same-issues: 0
-
-severity:
-  default-severity: error
