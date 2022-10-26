@@ -8,12 +8,13 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/nikoksr/simplog"
+
 	"github.com/cockroachdb/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/nikoksr/proji/internal/cli"
 	"github.com/nikoksr/proji/pkg/api/v1/domain"
-	"github.com/nikoksr/proji/pkg/logging"
 	"github.com/nikoksr/proji/pkg/plugins"
 	"github.com/nikoksr/proji/pkg/templates"
 )
@@ -69,7 +70,7 @@ var missingTemplateKeyFn templates.MissingKeyFn = func(key string) (value string
 }
 
 func buildProject(ctx context.Context, project *domain.ProjectAdd) error {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	// Get package manager from session
 	logger.Debug("getting package manager from cli session")
@@ -227,7 +228,7 @@ func buildProject(ctx context.Context, project *domain.ProjectAdd) error {
 }
 
 func newProject(ctx context.Context, packageLabel, name string) error {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	// Get project manager from session
 	logger.Debug("getting project manager from cli session")

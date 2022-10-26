@@ -88,7 +88,7 @@ func Test_load(t *testing.T) {
 				},
 				Monitoring: Monitoring{
 					Sentry: Sentry{
-						Enabled: defaultSentryStatus,
+						Enabled: defaultSentryState,
 					},
 				},
 			},

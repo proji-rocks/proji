@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nikoksr/simplog"
+
 	"github.com/cockroachdb/errors"
 
 	"github.com/nikoksr/proji/internal/config"
@@ -13,7 +15,6 @@ import (
 	projectRepo "github.com/nikoksr/proji/pkg/api/v1/project/repository/bolt"
 	projectService "github.com/nikoksr/proji/pkg/api/v1/project/service"
 	database "github.com/nikoksr/proji/pkg/database/bolt"
-	"github.com/nikoksr/proji/pkg/logging"
 	"github.com/nikoksr/proji/pkg/packages"
 	"github.com/nikoksr/proji/pkg/projects"
 )
@@ -25,7 +26,7 @@ const defaultServiceTimeout = 5 * time.Second
 // address is empty, it will connect to the local package manager. Otherwise, it will connect to the remote package
 // manager.
 func NewPackageManager(ctx context.Context, address string, db *database.DB, auth *config.Auth) (packages.Manager, error) {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	// If an address is given, interpret that as an intent to connect to a remote package manager.
 	logger.Debugf("creating a package manager")
@@ -57,7 +58,7 @@ func NewPackageManager(ctx context.Context, address string, db *database.DB, aut
 // NewProjectManager returns a new project manager. Compared to the package manager, the project manager is always local,
 // at least for now.
 func NewProjectManager(ctx context.Context, db *database.DB) (projects.Manager, error) {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	// Create the project manager.
 	logger.Debugf("creating a project manager")

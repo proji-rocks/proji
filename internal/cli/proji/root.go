@@ -14,7 +14,7 @@ import (
 	"github.com/nikoksr/proji/internal/config"
 	"github.com/nikoksr/proji/internal/manager"
 	database "github.com/nikoksr/proji/pkg/database/bolt"
-	"github.com/nikoksr/proji/pkg/logging"
+	"github.com/nikoksr/simplog"
 )
 
 var db *database.DB
@@ -23,7 +23,7 @@ var db *database.DB
 // the PersistentPostRun function of the root command. We're intentionally not returning errors here, because we want
 // to make sure that the cleanup is always executed completely.
 func cleanup(ctx context.Context) {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	if db != nil {
 		err := db.Close(ctx)
@@ -47,14 +47,14 @@ func rootCommand() *cobra.Command {
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// Pick the right logger. Most of the cases, proji will be used as a client, so we'll use the client logger
 			// by default and only use the server logger if the user called the server command. The main difference is
-			// that the production server logger uses json for structured logging. We don't want that in the
+			// that the production server logger uses json for structured simplog. We don't want that in the
 			// client logger, should be human-readable. Check out the logging package for more info.
-			logger := logging.NewClientLogger(debug)
+			logger := simplog.NewClientLogger(debug)
 			if cmd.Name() == "server" {
-				logger = logging.NewServerLogger(debug)
+				logger = simplog.NewServerLogger(debug)
 			}
 
-			ctx := logging.WithLogger(cmd.Context(), logger)
+			ctx := simplog.WithLogger(cmd.Context(), logger)
 
 			// Load the app config
 			conf, err := config.Load(ctx, configPath, cmd.Flags())

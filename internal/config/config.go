@@ -8,11 +8,11 @@ import (
 	"runtime"
 	"sync"
 
+	"github.com/nikoksr/simplog"
+
 	"github.com/cockroachdb/errors"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-
-	"github.com/nikoksr/proji/pkg/logging"
 )
 
 type (
@@ -73,7 +73,7 @@ const (
 
 	// Some config constants/defaults
 	defaultExcludePattern = `^(.git|.env|.idea|.vscode)$`
-	defaultSentryStatus   = false
+	defaultSentryState    = false
 )
 
 var (
@@ -144,7 +144,7 @@ func newProvider(path string) *viper.Viper {
 	// Set default configuration
 	provider.SetDefault("database.dsn", filepath.Join(dir, defaultDataDir, defaultDatabaseFile))
 	provider.SetDefault("import.exclude", defaultExcludePattern)
-	provider.SetDefault("monitoring.sentry.enabled", defaultSentryStatus)
+	provider.SetDefault("monitoring.sentry.enabled", defaultSentryState)
 
 	// Set configuration file path
 	provider.SetConfigFile(path)
@@ -158,8 +158,9 @@ func (conf *Config) setupInfrastructure() error {
 		return errors.New("config provider is nil")
 	}
 
-	// Get directory for config file
-	baseDir := filepath.Dir(conf.provider.ConfigFileUsed())
+	// Get directory for config file and make sure it's cross-platform compatible
+	configPath := filepath.FromSlash(conf.provider.ConfigFileUsed())
+	baseDir := filepath.Dir(configPath)
 
 	// Create subdirectories; this also implicitly creates the base directory
 	dirs := []string{
@@ -176,9 +177,9 @@ func (conf *Config) setupInfrastructure() error {
 	}
 
 	// Create config file if it does not exist
-	err := conf.provider.SafeWriteConfigAs(conf.provider.ConfigFileUsed())
+	err := conf.provider.SafeWriteConfigAs(configPath)
 	if err != nil {
-		return errors.Wrap(err, "write config")
+		return errors.Wrapf(err, "write config to %q", configPath)
 	}
 
 	// TODO: This is declared as a DSN, but it is actually a file path. I want to keep proji open to support more
@@ -233,7 +234,7 @@ func (conf *Config) readFlags(cmdFlags *pflag.FlagSet) error {
 // If the path is empty, the default configuration path is used. If the path is not empty, the path must point directly
 // to the configuration file.
 func load(ctx context.Context, path string, flags *pflag.FlagSet) (conf *Config, err error) {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	// If no explicit path is given, use default path
 	if path == "" {
@@ -244,6 +245,9 @@ func load(ctx context.Context, path string, flags *pflag.FlagSet) (conf *Config,
 
 		logger.Debugf("no explicit config path given, using default path: %q", path)
 	}
+
+	// Make sure the path is cross-platform compatible
+	path = filepath.FromSlash(path)
 
 	// Make config path absolute
 	path, err = filepath.Abs(path)

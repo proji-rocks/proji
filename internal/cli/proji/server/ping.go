@@ -5,10 +5,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nikoksr/simplog"
+
 	"github.com/cockroachdb/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/nikoksr/proji/pkg/logging"
 	"github.com/nikoksr/proji/pkg/sdk/health"
 )
 
@@ -54,7 +55,7 @@ func pingRemoteServer(ctx context.Context, address string) (time.Duration, error
 }
 
 func ping(ctx context.Context, address string) error {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	// Sanitize and check address.
 	address = strings.ToLower(strings.TrimSpace(address))

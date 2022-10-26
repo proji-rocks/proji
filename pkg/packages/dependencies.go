@@ -7,10 +7,11 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/nikoksr/simplog"
+
 	"github.com/cockroachdb/errors"
 
 	"github.com/nikoksr/proji/pkg/api/v1/domain"
-	"github.com/nikoksr/proji/pkg/logging"
 	"github.com/nikoksr/proji/pkg/remote"
 	"github.com/nikoksr/proji/pkg/remote/platform"
 )
@@ -26,8 +27,11 @@ func (m *localManager) downloadDependency(ctx context.Context, upstreamURL *stri
 		return errors.New("upstreamURL is empty")
 	}
 	if basePath == "" {
-		return errors.New("base path is empty")
+		return errors.New("Base path is empty")
 	}
+
+	// Make sure the Base path is cross-platform compatible.
+	basePath = filepath.FromSlash(basePath)
 
 	// Extract information about the dependency from the upstream URL
 	upstream, err := url.Parse(*upstreamURL)
@@ -68,17 +72,17 @@ func (m *localManager) downloadDependency(ctx context.Context, upstreamURL *stri
 }
 
 func (m *localManager) downloadPlugin(ctx context.Context, plugin *domain.Plugin) error {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 	logger.Debugf("downloading plugin %v", plugin.UpstreamURL)
 
-	return m.downloadDependency(ctx, plugin.UpstreamURL, m.paths.plugins)
+	return m.downloadDependency(ctx, plugin.UpstreamURL, m.paths.Plugins)
 }
 
 func (m *localManager) downloadTemplate(ctx context.Context, template *domain.Template) error {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 	logger.Debugf("downloading template %v", template.UpstreamURL)
 
-	return m.downloadDependency(ctx, template.UpstreamURL, m.paths.templates)
+	return m.downloadDependency(ctx, template.UpstreamURL, m.paths.Templates)
 }
 
 func (m *localManager) downloadDependencies(ctx context.Context, pkg *domain.PackageAdd) (err error) {
@@ -86,7 +90,7 @@ func (m *localManager) downloadDependencies(ctx context.Context, pkg *domain.Pac
 		return errors.New("package is nil")
 	}
 
-	// Download templates
+	// Download Templates
 	for _, entry := range pkg.DirTree {
 		if entry == nil || entry.Template == nil || entry.Template.UpstreamURL == nil {
 			continue
@@ -97,7 +101,7 @@ func (m *localManager) downloadDependencies(ctx context.Context, pkg *domain.Pac
 		}
 	}
 
-	// Download plugins
+	// Download Plugins
 	if pkg.Plugins == nil {
 		return nil
 	}

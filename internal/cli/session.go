@@ -18,7 +18,7 @@ import (
 // session. A manager.PackageManager is not necessary for every command, thus we don't embed it. The loaded app config
 // on the other hand is necessary for almost every command, so we embed it. The session type may be extended in the
 // future to include more types.
-// A logging.Logger instance is not embedded since we use logging frequently outside a CLI's session, thus, to avoid
+// A simplog.Logger instance is not embedded since we use logging frequently outside a CLI's session, thus, to avoid
 // confusion, we don't embed it and instead handle loggers manually.
 type Session struct {
 	Debug          bool

@@ -7,12 +7,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nikoksr/simplog"
+
 	"github.com/cockroachdb/errors"
 	gl "github.com/xanzy/go-gitlab"
 
 	"github.com/nikoksr/proji/pkg/api/v1/domain"
 	"github.com/nikoksr/proji/pkg/httputil"
-	"github.com/nikoksr/proji/pkg/logging"
 	"github.com/nikoksr/proji/pkg/remote"
 )
 
@@ -32,7 +33,7 @@ var httpClient = &http.Client{
 // NewWithOAuth creates a new GitLab remote instance. It uses the given OAuth2 token to authenticate with the GitLab
 // API.
 func NewWithOAuth(ctx context.Context, token string) (*GitLab, error) {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	logger.Debugf("creating new GitLab client with OAuth")
 	client, err := gl.NewOAuthClient(token, gl.WithHTTPClient(httpClient))
@@ -45,7 +46,7 @@ func NewWithOAuth(ctx context.Context, token string) (*GitLab, error) {
 
 // NewWithPAT creates a new GitLab remote instance. It uses the given PAT to authenticate with the GitLab API.
 func NewWithPAT(ctx context.Context, token string) (*GitLab, error) {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	logger.Debugf("creating new GitLab client with PAT")
 	client, err := gl.NewClient(token, gl.WithHTTPClient(httpClient))
@@ -82,7 +83,7 @@ func (g *GitLab) getRepoSHA(info remote.RepoInfo) (string, error) {
 
 // GetRepoTree returns the list of entries for the given repository as a domain.DirTree.
 func (g *GitLab) GetRepoTree(ctx context.Context, info remote.RepoInfo, skip remote.PathSkipperFn) (domain.DirTree, string, error) {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	pid := info.Owner + "/" + info.Name
 	recursive := true
@@ -148,7 +149,7 @@ func (g *GitLab) GetRepoTree(ctx context.Context, info remote.RepoInfo, skip rem
 // GetFileContent returns the content of the given file. If the file is a directory, an error will be returned. If the
 // file does not exist, an error will be returned.
 func (g *GitLab) GetFileContent(ctx context.Context, info remote.RepoInfo, file string) ([]byte, string, error) {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	if info.Owner == "" || info.Name == "" || info.Ref == "" {
 		return nil, "", errors.New("missing owner, name or ref")

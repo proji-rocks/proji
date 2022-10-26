@@ -45,7 +45,7 @@ func newLogger(debug, server bool) *zap.SugaredLogger {
 	} else {
 		config = zap.NewProductionConfig()
 
-		// Special case for client production logging. Servers should use the default production config - json encoding
+		// Special case for client production simplog. Servers should use the default production config - json encoding
 		if !server {
 			config.Encoding = "console"
 			config.EncoderConfig = productionCLIEncoderConfig()

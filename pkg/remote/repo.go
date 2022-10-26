@@ -6,9 +6,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/cockroachdb/errors"
+	"github.com/nikoksr/simplog"
 
-	"github.com/nikoksr/proji/pkg/logging"
+	"github.com/cockroachdb/errors"
 )
 
 const (
@@ -128,7 +128,7 @@ var (
 //   - [nikoksr]/[proji]/-/tree/[main]	                                      -> extracts owner, remote and branch name
 //   - [nikoksr]/[proji]/-/tree/[fd24446df4766b987c5be0a79dd11c7bebd5dbd5]    -> extracts owner, remote and commit sha
 func extractInfoFromURL(ctx context.Context, sourceURL *url.URL) (info RepoInfo, packageConf string, err error) {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	if sourceURL == nil {
 		return RepoInfo{}, "", errors.New("empty URL")

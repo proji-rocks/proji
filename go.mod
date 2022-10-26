@@ -8,10 +8,11 @@ require (
 	github.com/go-chi/chi v1.5.4
 	github.com/google/go-cmp v0.5.9
 	github.com/google/go-github/v31 v31.0.0
+	github.com/nikoksr/simplog v0.7.0
 	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
 	github.com/rs/xid v1.4.0
-	github.com/spf13/cobra v1.6.0
+	github.com/spf13/cobra v1.6.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.13.0
 	github.com/valyala/fasttemplate v1.2.2

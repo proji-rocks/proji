@@ -5,13 +5,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/nikoksr/simplog"
+
 	"github.com/cockroachdb/errors"
 	gh "github.com/google/go-github/v31/github"
 	"golang.org/x/oauth2"
 
 	"github.com/nikoksr/proji/pkg/api/v1/domain"
 	"github.com/nikoksr/proji/pkg/httputil"
-	"github.com/nikoksr/proji/pkg/logging"
 	"github.com/nikoksr/proji/pkg/remote"
 )
 
@@ -31,7 +32,7 @@ var httpClient = &http.Client{
 }
 
 func newWithAuth(ctx context.Context, token string) *GitHub {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	if token == "" {
 		logger.Debugf("no token provided, using anonymous GitHub client")
@@ -68,7 +69,7 @@ func New(ctx context.Context, token string) *GitHub {
 // GetRepoTree returns the list of entries for the given repository as a domain.DirTree. It also returns the SHA of the
 // repo tree. This is useful for versioning packages.
 func (g *GitHub) GetRepoTree(ctx context.Context, info remote.RepoInfo, skip remote.PathSkipperFn) (domain.DirTree, string, error) {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	if skip == nil {
 		logger.Debugf("using default path skipper")
@@ -170,7 +171,7 @@ func (g *GitHub) getFileContent(ctx context.Context, info remote.RepoInfo, file 
 // GetFileContent returns the content of the given file. If the file is a directory, an error will be returned. If the
 // file does not exist, an error will be returned.
 func (g *GitHub) GetFileContent(ctx context.Context, info remote.RepoInfo, file string) ([]byte, string, error) {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	logger.Debugf("getting content for file %s/%s@%s:%s", info.Owner, info.Name, info.Ref, file)
 	content, sha, err := g.getFileContent(ctx, info, file)

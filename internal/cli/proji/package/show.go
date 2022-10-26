@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/nikoksr/simplog"
+
 	"github.com/cockroachdb/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/nikoksr/proji/internal/cli"
 	"github.com/nikoksr/proji/pkg/api/v1/domain"
-	"github.com/nikoksr/proji/pkg/logging"
 )
 
 func newShowCommand() *cobra.Command {
@@ -53,7 +54,7 @@ func prettyPrintPackage(_ context.Context, _package *domain.Package) error {
 }
 
 func showPackages(ctx context.Context, labels ...string) error {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	// Get package manager from session
 	logger.Debug("getting package manager from cli session")

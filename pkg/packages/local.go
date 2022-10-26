@@ -3,6 +3,7 @@ package packages
 import (
 	"context"
 	"path"
+	"path/filepath"
 
 	"github.com/cockroachdb/errors"
 
@@ -10,38 +11,42 @@ import (
 	"github.com/nikoksr/proji/pkg/api/v1/domain"
 )
 
-type paths struct {
-	base      string
-	plugins   string
-	templates string
+type Paths struct {
+	Base      string
+	Plugins   string
+	Templates string
 }
 
 // localManager is a local package manager. It manages packages in a local directory. It is used by the standalone proji
 // binary. If you want to use the proji API, use the remoteManager instead.
 type localManager struct {
 	auth           *config.Auth
-	paths          paths
+	paths          Paths
 	packageService domain.PackageService
 }
 
 // Compile-time check to ensure that localManager implements the Manager interface.
 var _ Manager = &localManager{}
 
-// SetBaseDirectory sets the base directory for the local package manager. Relative to the base directory are the
-// plugins and templates directories. The default base directory is "proji".
+// SetBaseDirectory sets the Base directory for the local package manager. Relative to the Base directory are the
+// Plugins and Templates directories. The default Base directory is "proji".
 func (m *localManager) SetBaseDirectory(dir string) {
 	if m == nil || dir == "" {
 		return
 	}
 
-	m.paths.base = dir
-	m.paths.plugins = path.Join(dir, "plugins")
-	m.paths.templates = path.Join(dir, "templates")
+	// Make sure the base directory is cross-platform compatible.
+	dir = filepath.Clean(dir)
+	dir = filepath.FromSlash(dir)
+
+	m.paths.Base = dir
+	m.paths.Plugins = path.Join(dir, "plugins")
+	m.paths.Templates = path.Join(dir, "templates")
 }
 
 // NewLocalManager creates a new local package manager. It requires a domain.PackageService to be set. If you want to
 // use the proji API, use the remoteManager instead. The localManager is used by the standalone proji binary and manages
-// packages in a local directory. By default, the localManager uses the proji directory as base directory.
+// packages in a local directory. By default, the localManager uses the proji directory as Base directory.
 func NewLocalManager(auth *config.Auth, service domain.PackageService) (Manager, error) {
 	if service == nil {
 		return nil, errors.New("service is required")

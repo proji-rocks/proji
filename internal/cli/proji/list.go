@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/nikoksr/simplog"
+
 	"github.com/cockroachdb/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/nikoksr/proji/internal/cli"
 	"github.com/nikoksr/proji/internal/text"
-	"github.com/nikoksr/proji/pkg/logging"
 )
 
 func projectListCommand() *cobra.Command {
@@ -28,7 +29,7 @@ func projectListCommand() *cobra.Command {
 }
 
 func listProjects(ctx context.Context) error {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	// Get project manager from session
 	logger.Debug("getting project manager from cli session")

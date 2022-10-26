@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/cockroachdb/errors"
+	"github.com/nikoksr/simplog"
 
-	"github.com/nikoksr/proji/pkg/logging"
+	"github.com/cockroachdb/errors"
 )
 
 var httpClient = &http.Client{
@@ -16,7 +16,7 @@ var httpClient = &http.Client{
 }
 
 func rawRequestWithClient(ctx context.Context, client *http.Client, method, url string, body []byte) (*http.Response, error) {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	if url == "" {
 		return nil, errors.New("url cannot be empty")

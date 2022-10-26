@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/nikoksr/simplog"
+
 	"github.com/cockroachdb/errors"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -14,7 +16,6 @@ import (
 
 	healthHandlers "github.com/nikoksr/proji/pkg/api/v1/health/delivery/http"
 	packageHandlers "github.com/nikoksr/proji/pkg/api/v1/package/delivery/http"
-	"github.com/nikoksr/proji/pkg/logging"
 	"github.com/nikoksr/proji/pkg/packages"
 )
 
@@ -86,7 +87,7 @@ func (s *Server) registerHandlers(managers *Managers) error {
 // New creates a new Server. It uses sane defaults for the logger and router. The server can be started with the
 // Run method.
 func New(ctx context.Context, managers *Managers) (*Server, error) {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	if managers == nil {
 		return nil, errors.New("no managers given to server")

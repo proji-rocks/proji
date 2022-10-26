@@ -6,15 +6,16 @@ import (
 	"os"
 	"path"
 
+	"github.com/nikoksr/simplog"
+
 	"github.com/cockroachdb/errors"
 
-	"github.com/nikoksr/proji/pkg/logging"
 	"github.com/nikoksr/proji/pkg/remote"
 )
 
 // DownloadFile downloads the given source and writes it to the given destination.
 func DownloadFile(ctx context.Context, source, destination string) error {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	// Prepare the destination directory.
 	logger.Debugf("preparing destination directory: %s", path.Dir(destination))

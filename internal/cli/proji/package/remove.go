@@ -3,11 +3,12 @@ package pkg
 import (
 	"context"
 
+	"github.com/nikoksr/simplog"
+
 	"github.com/cockroachdb/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/nikoksr/proji/internal/cli"
-	"github.com/nikoksr/proji/pkg/logging"
 )
 
 func newRemoveCommand() *cobra.Command {
@@ -30,7 +31,7 @@ func newRemoveCommand() *cobra.Command {
 }
 
 func removePackages(ctx context.Context, labels ...string) error {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	// Get package manager from session
 	logger.Debug("getting package manager from cli session")

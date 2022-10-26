@@ -4,11 +4,12 @@ import (
 	"context"
 	"regexp"
 
+	"github.com/nikoksr/simplog"
+
 	"github.com/cockroachdb/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/nikoksr/proji/internal/cli"
-	"github.com/nikoksr/proji/pkg/logging"
 )
 
 func newMimicCommand() *cobra.Command {
@@ -41,7 +42,7 @@ func newMimicCommand() *cobra.Command {
 }
 
 func mimicPackages(ctx context.Context, exclude *regexp.Regexp, paths ...string) error {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	// Get package manager from session
 	logger.Debug("getting package manager from cli session")

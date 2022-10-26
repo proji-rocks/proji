@@ -4,15 +4,16 @@ import (
 	"context"
 	"time"
 
+	"github.com/nikoksr/simplog"
+
 	"github.com/cockroachdb/errors"
 	"github.com/getsentry/sentry-go"
 	"github.com/spf13/cobra"
 
 	"github.com/nikoksr/proji/internal/buildinfo"
-	"github.com/nikoksr/proji/pkg/logging"
 )
 
-const sentryDSN = ""
+const sentryDSN = "https://c02c90cfaec14f0c86247caee1c7de7b@o408463.ingest.sentry.io/6340441"
 
 // environment is used to determine the environment in which the application is running. We pass it to Sentry to help
 // us determine the environment in which the error occurred. This defaults to "production" but can be overridden by
@@ -41,7 +42,7 @@ func handleExecutionError(ctx context.Context, err error) {
 	}
 
 	// Logger and session should've been set in the root command's PersistentPreRunE function.
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	// We need the session to check if we're in debug mode and if reporting to Sentry is enabled.
 	session := SessionFromContext(ctx)

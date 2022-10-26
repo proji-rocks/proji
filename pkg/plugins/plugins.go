@@ -5,12 +5,12 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/nikoksr/proji/pkg/logging"
+	"github.com/nikoksr/simplog"
 )
 
 // TODO: This needs Windows support - sigh.
 func run(ctx context.Context, path string) error {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	cmd := exec.Command("lua", path)
 	cmd.Stdout = os.Stdout

@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	bolt "go.etcd.io/bbolt"
+	"github.com/nikoksr/simplog"
 
-	"github.com/nikoksr/proji/pkg/logging"
+	bolt "go.etcd.io/bbolt"
 )
 
 // ErrBucketNotFound is returned when a bucket is not found. It's an alias for bolt.ErrBucketNotFound.
@@ -18,7 +18,7 @@ type DB struct {
 }
 
 func connect(ctx context.Context, path string) (*DB, error) {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	// Check if file is already open.
 	logger.Debugf("trying to open database file: %q", path)
@@ -39,7 +39,7 @@ func Connect(ctx context.Context, path string) (*DB, error) {
 
 // Close closes the database connection.
 func (db *DB) Close(ctx context.Context) error {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 	logger.Debugf("closing database connection")
 
 	return db.Core.Close()

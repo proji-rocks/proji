@@ -5,10 +5,10 @@ import (
 	"io"
 	"strings"
 
+	"github.com/nikoksr/simplog"
+
 	"github.com/pkg/errors"
 	"github.com/valyala/fasttemplate"
-
-	"github.com/nikoksr/proji/pkg/logging"
 )
 
 // MissingKeyFn defines the behavior of a function that is called when a key is not found in the template.
@@ -72,7 +72,7 @@ func humanReadableKey(key string) string {
 
 // render the template and writes the result to the writer.
 func (t *TemplateEngine) render(ctx context.Context, w io.Writer, tmpl *fasttemplate.Template) error {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	var err error
 	keys := make(map[string]string)
@@ -106,7 +106,7 @@ func (t *TemplateEngine) render(ctx context.Context, w io.Writer, tmpl *fasttemp
 
 // parse the template file and renders it to the writer.
 func (t *TemplateEngine) parse(ctx context.Context, w io.Writer, data []byte) error {
-	logger := logging.FromContext(ctx)
+	logger := simplog.FromContext(ctx)
 
 	if t.MissingKeyFn == nil {
 		logger.Debugf("using default missing key function")
