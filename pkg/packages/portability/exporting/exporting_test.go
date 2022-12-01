@@ -11,18 +11,16 @@ import (
 
 	"github.com/nikoksr/proji/pkg/api/v1/domain"
 	"github.com/nikoksr/proji/pkg/packages/portability/importing"
+	"github.com/nikoksr/proji/pkg/pointer"
 )
-
-func newStringPointer(s string) *string {
-	return &s
-}
 
 func Test_ToConfig(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		pkg *domain.Package
-		dir string
+		pkg      *domain.PackageExport
+		dir      string
+		fileType string
 	}
 	cases := []struct {
 		name    string
@@ -32,17 +30,19 @@ func Test_ToConfig(t *testing.T) {
 		{
 			name: "Valid package",
 			args: args{
-				pkg: &domain.Package{
+				pkg: &domain.PackageExport{
 					Label:       "tst",
 					Name:        "test",
-					UpstreamURL: newStringPointer("https://github.com/nikoksr/proji/"),
-					Description: newStringPointer("A test package."),
-					DirTree: domain.DirTree{
-						&domain.DirEntry{IsDir: false, Path: "docs"},
-						&domain.DirEntry{IsDir: false, Path: "tests"},
-						&domain.DirEntry{IsDir: true, Path: "file1.go", Template: &domain.Template{Path: "file1.go"}},
-						&domain.DirEntry{IsDir: true, Path: "file2.go", Template: &domain.Template{Path: "file2.go"}},
-						&domain.DirEntry{IsDir: true, Path: "file3.go", Template: &domain.Template{Path: "file3.go"}},
+					UpstreamURL: pointer.To("https://github.com/nikoksr/proji/"),
+					Description: pointer.To("A test package."),
+					DirTree: &domain.DirTree{
+						Entries: []*domain.DirEntry{
+							{IsDir: false, Path: "docs"},
+							{IsDir: false, Path: "tests"},
+							{IsDir: true, Path: "file1.go", Template: &domain.Template{Path: "file1.go"}},
+							{IsDir: true, Path: "file2.go", Template: &domain.Template{Path: "file2.go"}},
+							{IsDir: true, Path: "file3.go", Template: &domain.Template{Path: "file3.go"}},
+						},
 					},
 					Plugins: &domain.PluginScheduler{
 						Pre: []*domain.Plugin{
@@ -55,14 +55,15 @@ func Test_ToConfig(t *testing.T) {
 						},
 					},
 				},
-				dir: "",
+				dir:      "",
+				fileType: "json",
 			},
 			wantErr: false,
 		},
 		{
 			name: "Invalid destination directory",
 			args: args{
-				pkg: &domain.Package{},
+				pkg: &domain.PackageExport{},
 				dir: "/invalid/dir",
 			},
 			wantErr: true,
@@ -83,7 +84,7 @@ func Test_ToConfig(t *testing.T) {
 			t.Parallel()
 
 			// Empty dir will create a temporary file.
-			configPath, err := ToConfig(context.Background(), tc.args.pkg, tc.args.dir)
+			configPath, err := ToTOML(context.Background(), tc.args.pkg, tc.args.dir)
 			if err != nil {
 				if !tc.wantErr {
 					t.Fatalf("ToConfig() error = %v, wantErr %v", err, tc.wantErr)

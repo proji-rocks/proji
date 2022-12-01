@@ -2,6 +2,9 @@ package pkg
 
 import (
 	"context"
+	"strings"
+
+	"github.com/nikoksr/proji/pkg/packages/portability"
 
 	"github.com/nikoksr/simplog"
 
@@ -14,6 +17,7 @@ import (
 
 func newExportCommand() *cobra.Command {
 	var destination string
+	var fileType string
 
 	cmd := &cobra.Command{
 		Use:                   "export [OPTIONS] LABEL [LABEL...]",
@@ -24,19 +28,21 @@ func newExportCommand() *cobra.Command {
 
 		Example: `  proji package export py
   proji package out py js
-  proji package out -d ./my_packages cpp go`,
+  proji package out -d ./my_packages cpp go
+  proji package out -t json py3`,
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return exportPackages(cmd.Context(), destination, args...)
+			return exportPackages(cmd.Context(), destination, fileType, args...)
 		},
 	}
 
 	cmd.Flags().StringVarP(&destination, "destination", "d", ".", "Destination folder")
+	cmd.Flags().StringVarP(&fileType, "type", "t", "toml", "File type to export to (toml, json)")
 
 	return cmd
 }
 
-func exportPackages(ctx context.Context, destination string, labels ...string) error {
+func exportPackages(ctx context.Context, destination, fileType string, labels ...string) error {
 	logger := simplog.FromContext(ctx)
 
 	// Get package manager from session
@@ -55,8 +61,19 @@ func exportPackages(ctx context.Context, destination string, labels ...string) e
 			return errors.Wrapf(err, "get package %q", label)
 		}
 
-		logger.Debugf("exporting package %q to %q", label, destination)
-		path, err := exporting.ToConfig(ctx, &pkg, destination)
+		// Export package
+		logger.Debugf("exporting package %q as %q to %q", label, fileType, destination)
+
+		var path string
+		switch strings.ToLower(fileType) {
+		case portability.FileTypeTOML:
+			path, err = exporting.ToTOML(ctx, pkg.AsExportable(), destination)
+		case portability.FileTypeJSON:
+			path, err = exporting.ToJSON(ctx, pkg.AsExportable(), destination)
+		default:
+			err = portability.ErrUnsupportedConfigFileType
+		}
+
 		if err != nil {
 			logger.Errorf("Failed to export package %q: %v", label, err)
 		} else {

@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"regexp"
 
+	"github.com/nikoksr/proji/pkg/packages/portability"
+
 	"github.com/cockroachdb/errors"
 
 	"github.com/nikoksr/proji/pkg/api/v1/domain"
@@ -24,12 +26,12 @@ func (i *_importer) LocalPackage(_ context.Context, path string) (_package *doma
 	// Read config; detect file extension and parse accordingly. If the file is not a TOML file, return an error.
 	ext := filepath.Ext(path)
 	switch ext {
-	case ".json":
-		_package, err = packageFromJSONReader(file)
 	case ".toml":
 		_package, err = packageFromTOMLReader(file)
+	case ".json":
+		_package, err = packageFromJSONReader(file)
 	default:
-		return &domain.PackageAdd{}, errors.New("invalid config file extension")
+		return &domain.PackageAdd{}, portability.ErrUnsupportedConfigFileType
 	}
 
 	return _package, errors.Wrap(err, "unmarshal config file")
@@ -67,7 +69,7 @@ func (i *_importer) LocalFolderAsPackage(_ context.Context, path string, exclude
 		}
 
 		// Append file or folder as template to package
-		_package.DirTree = append(_package.DirTree, &domain.DirEntry{
+		_package.DirTree.Entries = append(_package.DirTree.Entries, &domain.DirEntry{
 			Path:  relPath,
 			IsDir: info.IsDir(),
 		})

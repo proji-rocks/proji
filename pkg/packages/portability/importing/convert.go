@@ -5,63 +5,24 @@ import (
 	"io"
 
 	"github.com/cockroachdb/errors"
-	"github.com/pelletier/go-toml"
+	"github.com/pelletier/go-toml/v2"
 
 	"github.com/nikoksr/proji/pkg/api/v1/domain"
 )
 
-//
-// JSON
-//
-
-func packageFromJSON(buf []byte) (*domain.PackageAdd, error) {
-	pkg := &domain.PackageAdd{}
-	err := json.Unmarshal(buf, &pkg)
-
-	return pkg, errors.Wrap(err, "unmarshal json")
-}
-
-func packageFromJSONReader(r io.Reader) (*domain.PackageAdd, error) {
-	buf, err := io.ReadAll(r)
-	if err != nil {
-		return &domain.PackageAdd{}, errors.Wrap(err, "read all")
-	}
-
-	return packageFromJSON(buf)
-}
-
-func packagesFromJSON(buf []byte) ([]domain.Package, error) {
-	var packages []domain.Package
-	err := json.Unmarshal(buf, &packages)
-
-	return packages, errors.Wrap(err, "unmarshal json")
-}
-
-func PackagesFromJSONReader(r io.Reader) ([]domain.Package, error) {
-	buf, err := io.ReadAll(r)
-	if err != nil {
-		return nil, errors.Wrap(err, "read all")
-	}
-
-	return packagesFromJSON(buf)
-}
-
-//
-// TOML
-//
-
+// packageFromTOML unmarshals a TOML byte slice and returns a package. It returns an error if the byte slice is not a TOML
+// file, or it was not able to unmarshal the TOML file.
 func packageFromTOML(buf []byte) (*domain.PackageAdd, error) {
-	data, err := toml.LoadBytes(buf)
-	if err != nil {
-		return &domain.PackageAdd{}, errors.Wrap(err, "load toml")
+	pkg := &domain.PackageAdd{}
+	if err := toml.Unmarshal(buf, pkg); err != nil {
+		return nil, errors.Wrap(err, "unmarshal package")
 	}
 
-	pkg := &domain.PackageAdd{}
-	err = data.Unmarshal(pkg)
-
-	return pkg, errors.Wrap(err, "unmarshal toml")
+	return pkg, nil
 }
 
+// packageFromTOMLReader unmarshals a TOML reader and returns a package. It returns an error if the reader is not a TOML
+// file, or it was not able to unmarshal the TOML file.
 func packageFromTOMLReader(r io.Reader) (*domain.PackageAdd, error) {
 	buf, err := io.ReadAll(r)
 	if err != nil {
@@ -69,4 +30,26 @@ func packageFromTOMLReader(r io.Reader) (*domain.PackageAdd, error) {
 	}
 
 	return packageFromTOML(buf)
+}
+
+// packageFromJSON unmarshals a JSON byte slice and returns a package. It returns an error if the byte slice is not a JSON
+// file, or it was not able to unmarshal the JSON file.
+func packageFromJSON(buf []byte) (*domain.PackageAdd, error) {
+	pkg := &domain.PackageAdd{}
+	if err := json.Unmarshal(buf, pkg); err != nil {
+		return nil, errors.Wrap(err, "unmarshal package")
+	}
+
+	return pkg, nil
+}
+
+// packageFromJSONReader unmarshals a JSON reader and returns a package. It returns an error if the reader is not a JSON
+// file, or it was not able to unmarshal the JSON file.
+func packageFromJSONReader(r io.Reader) (*domain.PackageAdd, error) {
+	buf, err := io.ReadAll(r)
+	if err != nil {
+		return &domain.PackageAdd{}, errors.Wrap(err, "read all")
+	}
+
+	return packageFromJSON(buf)
 }
