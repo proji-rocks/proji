@@ -13,7 +13,7 @@ import (
 	"github.com/nikoksr/proji/internal/buildinfo"
 )
 
-const sentryDSN = "https://c02c90cfaec14f0c86247caee1c7de7b@o408463.ingest.sentry.io/6340441"
+const sentryDSN = ""
 
 // environment is used to determine the environment in which the application is running. We pass it to Sentry to help
 // us determine the environment in which the error occurred. This defaults to "production" but can be overridden by
