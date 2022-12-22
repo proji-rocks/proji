@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nikoksr/proji/pkg/pointer"
+	"github.com/pelletier/go-toml/v2"
 )
 
 func TestNewPackage(t *testing.T) {
@@ -60,7 +62,7 @@ func TestPackage_Bucket(t *testing.T) {
 	}
 }
 
-func TestPackageAdd_MarshalJSON(t *testing.T) {
+func TestPackageAdd_Marshalling(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
@@ -118,9 +120,125 @@ func TestPackageAdd_MarshalJSON(t *testing.T) {
 			got.UpdatedAt = got.UpdatedAt.Truncate(time.Second)
 
 			// Compare the fields of the Package and the PackageAdd.
-			diff := cmp.Diff(tc.want, &got)
-			if diff != "" {
+			if diff := cmp.Diff(tc.want, &got); diff != "" {
 				t.Fatalf("MarshalJSON() mismatch (-want +got):\n%s", diff)
+			}
+
+			// Repeat the same process for TOML.
+			gotRaw, err = tc.pkg.MarshalTOML()
+			if err != nil {
+				t.Fatalf("MarshalTOML() error = %v", err)
+			}
+
+			err = toml.Unmarshal(gotRaw, &got)
+			if err != nil {
+				t.Fatalf("UnmarshalTOML() error = %v", err)
+			}
+
+			// ... ^
+			tc.want.CreatedAt = tc.want.CreatedAt.Truncate(time.Second)
+			tc.want.UpdatedAt = tc.want.UpdatedAt.Truncate(time.Second)
+			got.CreatedAt = got.CreatedAt.Truncate(time.Second)
+			got.UpdatedAt = got.UpdatedAt.Truncate(time.Second)
+
+			// Compare the fields of the Package and the PackageAdd.
+
+			if diff := cmp.Diff(tc.want, &got); diff != "" {
+				t.Fatalf("MarshalJSON() mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestPackage_Conversions(t *testing.T) {
+	t.Parallel()
+
+	type wantPackages struct {
+		updated *PackageUpdate
+	}
+	cases := []struct {
+		name string
+		pkg  *Package
+		want wantPackages
+	}{
+		{
+			name: "convert package - simple",
+			pkg:  &Package{Name: "test", Label: "tst"},
+			want: wantPackages{
+				updated: &PackageUpdate{Name: "test", Label: "tst"},
+			},
+		},
+		{
+			name: "convert package - complex",
+			pkg: &Package{
+				Name:        "test",
+				Label:       "tst",
+				UpstreamURL: pointer.To("https://github.com/user/repo/tree/branch"),
+				SHA:         pointer.To("1234567890abcdef"),
+				Description: pointer.To("This is a test package."),
+				DirTree: &DirTree{
+					Entries: []*DirEntry{
+						{IsDir: true, Path: "test"},
+						{IsDir: false, Path: "test/test.txt"},
+						{IsDir: false, Path: "README.md", Template: &Template{ID: "123", Path: "basic.tmpl"}},
+					},
+				},
+				Plugins: &PluginScheduler{
+					Pre: []*Plugin{
+						{ID: "123", Path: "basic.lua"},
+						{ID: "456", Path: "advanced.lua"},
+					},
+					Post: []*Plugin{
+						{ID: "789", Path: "basic.lua"},
+						{ID: "012", Path: "advanced.lua"},
+					},
+				},
+				CreatedAt: time.Unix(0, 0),
+				UpdatedAt: time.Unix(0, 0),
+			},
+			want: wantPackages{
+				updated: &PackageUpdate{
+					Name:        "test",
+					Label:       "tst",
+					UpstreamURL: pointer.To("https://github.com/user/repo/tree/branch"),
+					SHA:         pointer.To("1234567890abcdef"),
+					Description: pointer.To("This is a test package."),
+					DirTree: &DirTree{
+						Entries: []*DirEntry{
+							{IsDir: true, Path: "test"},
+							{IsDir: false, Path: "test/test.txt"},
+							{IsDir: false, Path: "README.md", Template: &Template{ID: "123", Path: "basic.tmpl"}},
+						},
+					},
+					Plugins: &PluginScheduler{
+						Pre: []*Plugin{
+							{ID: "123", Path: "basic.lua"},
+							{ID: "456", Path: "advanced.lua"},
+						},
+						Post: []*Plugin{
+							{ID: "789", Path: "basic.lua"},
+							{ID: "012", Path: "advanced.lua"},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "convert package - empty",
+			pkg:  &Package{},
+			want: wantPackages{
+				updated: &PackageUpdate{},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			if diff := cmp.Diff(tc.want.updated, tc.pkg.AsUpdatable()); diff != "" {
+				t.Fatalf("Package.ToUpdate() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

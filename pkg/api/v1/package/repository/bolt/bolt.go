@@ -34,7 +34,7 @@ func New(db *db.DB) (domain.PackageRepo, error) {
 
 	return &packageRepo{
 		db:         db.Core,
-		bucketName: domain.Package{}.Bucket(),
+		bucketName: (&domain.Package{}).Bucket(),
 	}, nil
 }
 

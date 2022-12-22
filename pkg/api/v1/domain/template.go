@@ -11,33 +11,34 @@ import (
 type (
 	// Template represents a package template. Templates are used to create bootstrapped files in projects.
 	Template struct {
-		ID          string    `json:"id"`                     // ID is the unique identifier of the template
-		Path        string    `json:"path"`                   // Path is the path to the template
-		UpstreamURL *string   `json:"upstream_url,omitempty"` // UpstreamURL is the URL of the upstream template
-		Description *string   `json:"description,omitempty"`
-		CreatedAt   time.Time `json:"created_at"`
-		UpdatedAt   time.Time `json:"updated_at"`
+		ID          string    `json:"id" toml:"id"`
+		Path        string    `json:"path" toml:"path"`
+		UpstreamURL *string   `json:"upstream_url,omitempty" toml:"upstream_url,omitempty"`
+		Description *string   `json:"description,omitempty" toml:"description,omitempty"`
+		CreatedAt   time.Time `json:"created_at" toml:"created_at"`
+		UpdatedAt   time.Time `json:"updated_at" toml:"updated_at"`
+	}
+
+	// TemplateConfig represents a template configuration. It is used as part of the PackageConfig.
+	TemplateConfig struct {
+		Path        string  `json:"path" toml:"path"`
+		UpstreamURL *string `json:"upstream_url,omitempty" toml:"upstream_url,omitempty"`
+		Description *string `json:"description,omitempty" toml:"description,omitempty"`
 	}
 
 	// TemplateAdd is used to add a new template.
 	TemplateAdd struct {
-		Name        string  `json:"name"`
-		Path        string  `json:"path"`
-		Destination string  `json:"destination"`
-		IsFile      bool    `json:"is_file"`
-		UpstreamURL *string `json:"upstream_url,omitempty"`
-		Description *string `json:"description,omitempty"`
+		Path        string  `json:"path" toml:"path"`
+		UpstreamURL *string `json:"upstream_url,omitempty" toml:"upstream_url,omitempty"`
+		Description *string `json:"description,omitempty" toml:"description,omitempty"`
 	}
 
 	// TemplateUpdate is used to update an existing template.
 	TemplateUpdate struct {
-		ID          string  `json:"id"`
-		Name        string  `json:"name"`
-		Path        string  `json:"path"`
-		Destination string  `json:"destination"`
-		IsFile      bool    `json:"is_file"`
-		UpstreamURL *string `json:"upstream_url,omitempty"`
-		Description *string `json:"description,omitempty"`
+		ID          string  `json:"id" toml:"id"`
+		Path        *string `json:"path,omitempty" toml:"path,omitempty"`
+		UpstreamURL *string `json:"upstream_url,omitempty" toml:"upstream_url,omitempty"`
+		Description *string `json:"description,omitempty" toml:"description,omitempty"`
 	}
 
 	// TemplateService is used to manage templates, typically by calling a TemplateRepo under the hood.
@@ -58,7 +59,7 @@ type (
 const bucketTemplates = "templates"
 
 // Bucket returns the bucket name for the template.
-func (Template) Bucket() string {
+func (*Template) Bucket() string {
 	return bucketTemplates
 }
 
@@ -78,4 +79,16 @@ func (t *TemplateAdd) MarshalJSON() ([]byte, error) {
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	})
+}
+
+func (t *Template) toConfig() *TemplateConfig {
+	if t == nil {
+		return nil
+	}
+
+	return &TemplateConfig{
+		Path:        t.Path,
+		UpstreamURL: t.UpstreamURL,
+		Description: t.Description,
+	}
 }

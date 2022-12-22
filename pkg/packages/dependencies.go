@@ -91,7 +91,7 @@ func (m *localManager) downloadDependencies(ctx context.Context, pkg *domain.Pac
 	}
 
 	// Download Templates
-	for _, entry := range pkg.DirTree {
+	for _, entry := range pkg.DirTree.Entries {
 		if entry == nil || entry.Template == nil || entry.Template.UpstreamURL == nil {
 			continue
 		}

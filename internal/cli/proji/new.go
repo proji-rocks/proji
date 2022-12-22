@@ -152,7 +152,7 @@ func buildProject(ctx context.Context, project *domain.ProjectAdd) error {
 		tmpl.MissingKeyFn = missingTemplateKeyFn
 
 		logger.Infof("Creating project structure")
-		for _, entry := range _package.DirTree {
+		for _, entry := range _package.DirTree.Entries {
 			if entry.Template != nil {
 				logger.Debugf("generating file %q from template %q", entry.Path, entry.Template.ID)
 

@@ -82,7 +82,7 @@ func (g *GitLab) getRepoSHA(info remote.RepoInfo) (string, error) {
 }
 
 // GetRepoTree returns the list of entries for the given repository as a domain.DirTree.
-func (g *GitLab) GetRepoTree(ctx context.Context, info remote.RepoInfo, skip remote.PathSkipperFn) (domain.DirTree, string, error) {
+func (g *GitLab) GetRepoTree(ctx context.Context, info remote.RepoInfo, skip remote.PathSkipperFn) (*domain.DirTree, string, error) {
 	logger := simplog.FromContext(ctx)
 
 	pid := info.Owner + "/" + info.Name
@@ -119,15 +119,15 @@ func (g *GitLab) GetRepoTree(ctx context.Context, info remote.RepoInfo, skip rem
 		}
 
 		// Store the tree entries to the list.
-		if tree == nil {
-			tree = make(domain.DirTree, 0, resp.TotalItems)
+		if tree.Entries == nil {
+			tree.Entries = make([]*domain.DirEntry, 0, resp.TotalItems)
 		}
 		for _, node := range nodes {
 			if node == nil || skip(node.Path) {
 				continue
 			}
 
-			tree = append(tree, &domain.DirEntry{
+			tree.Entries = append(tree.Entries, &domain.DirEntry{
 				Path:  node.Path,
 				IsDir: node.Type == "tree",
 			})
@@ -143,7 +143,7 @@ func (g *GitLab) GetRepoTree(ctx context.Context, info remote.RepoInfo, skip rem
 		listOptions.ListOptions.Page = resp.NextPage
 	}
 
-	return tree, sha, nil
+	return &tree, sha, nil
 }
 
 // GetFileContent returns the content of the given file. If the file is a directory, an error will be returned. If the

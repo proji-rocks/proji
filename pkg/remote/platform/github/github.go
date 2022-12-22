@@ -68,7 +68,7 @@ func New(ctx context.Context, token string) *GitHub {
 
 // GetRepoTree returns the list of entries for the given repository as a domain.DirTree. It also returns the SHA of the
 // repo tree. This is useful for versioning packages.
-func (g *GitHub) GetRepoTree(ctx context.Context, info remote.RepoInfo, skip remote.PathSkipperFn) (domain.DirTree, string, error) {
+func (g *GitHub) GetRepoTree(ctx context.Context, info remote.RepoInfo, skip remote.PathSkipperFn) (*domain.DirTree, string, error) {
 	logger := simplog.FromContext(ctx)
 
 	if skip == nil {
@@ -100,7 +100,9 @@ func (g *GitHub) GetRepoTree(ctx context.Context, info remote.RepoInfo, skip rem
 	}
 
 	logger.Debugf("processing repo tree for %s/%s@%s", info.Owner, info.Name, info.Ref)
-	tree := make(domain.DirTree, 0, len(repoTree.Entries))
+	tree := domain.DirTree{
+		Entries: make([]*domain.DirEntry, 0, len(repoTree.Entries)),
+	}
 
 	for _, entry := range repoTree.Entries {
 		if entry == nil || entry.Path == nil || entry.Type == nil {
@@ -112,13 +114,13 @@ func (g *GitHub) GetRepoTree(ctx context.Context, info remote.RepoInfo, skip rem
 			continue
 		}
 
-		tree = append(tree, &domain.DirEntry{
+		tree.Entries = append(tree.Entries, &domain.DirEntry{
 			Path:  path,
 			IsDir: entry.GetType() == "tree",
 		})
 	}
 
-	return tree, repoTree.GetSHA(), nil
+	return &tree, repoTree.GetSHA(), nil
 }
 
 func (g *GitHub) getContent(ctx context.Context, info remote.RepoInfo, path string) (*gh.RepositoryContent, string, error) {

@@ -12,30 +12,30 @@ type (
 	// Project represents a package. Project is meant to be used for display purposes as it loads all info about a
 	// package that might of interest to the user. It is not meant to be used for storage purposes.
 	Project struct {
-		ID          string    `json:"id"`
-		Path        string    `json:"path"`
-		Name        string    `json:"name"`
-		Package     string    `json:"package"`
-		Description *string   `json:"description,omitempty"`
-		CreatedAt   time.Time `json:"created_at"`
-		UpdatedAt   time.Time `json:"updated_at"`
+		ID          string    `json:"id" toml:"id"`
+		Path        string    `json:"path" toml:"path"`
+		Name        string    `json:"name" toml:"name"`
+		Package     string    `json:"package" toml:"package"`
+		Description *string   `json:"description,omitempty" toml:"description,omitempty"`
+		CreatedAt   time.Time `json:"created_at" toml:"created_at"`
+		UpdatedAt   time.Time `json:"updated_at" toml:"updated_at"`
 	}
 
 	// ProjectAdd is used to add new packages to the database.
 	ProjectAdd struct {
-		Path        string  `json:"path"`
-		Name        string  `json:"name"`
-		Package     string  `json:"package"`
-		Description *string `json:"description,omitempty"`
+		Path        string  `json:"path" toml:"path"`
+		Name        string  `json:"name" toml:"name"`
+		Package     string  `json:"package" toml:"package"`
+		Description *string `json:"description,omitempty" toml:"description,omitempty"`
 	}
 
 	// ProjectUpdate is used to update packages in the database.
 	ProjectUpdate struct {
-		ID          string  `json:"id"`
-		Path        string  `json:"path"`
-		Name        string  `json:"name,omitempty"`
-		Package     string  `json:"package,omitempty"`
-		Description *string `json:"description,omitempty"`
+		ID          string  `json:"id" toml:"id"`
+		Path        string  `json:"path" toml:"path"`
+		Name        string  `json:"name,omitempty" toml:"name,omitempty"`
+		Package     string  `json:"package,omitempty" toml:"package,omitempty"`
+		Description *string `json:"description,omitempty" toml:"description,omitempty"`
 	}
 
 	// ProjectService is used to manage packages, typically by calling a ProjectRepo under the hood.

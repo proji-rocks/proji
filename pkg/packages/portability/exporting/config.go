@@ -1,28 +1,45 @@
 package exporting
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"os"
 
+	"github.com/pelletier/go-toml/v2"
+
 	"github.com/nikoksr/proji/pkg/packages/portability"
 
 	"github.com/cockroachdb/errors"
-	"github.com/pelletier/go-toml/v2"
-
 	"github.com/nikoksr/proji/pkg/api/v1/domain"
 )
 
-func write(_ context.Context, file *os.File, data []byte) error {
+func encodeJSON(data *bytes.Buffer, pkg *domain.PackageConfig) error {
+	enc := json.NewEncoder(data)
+	enc.SetIndent("", "  ")
+
+	return enc.Encode(pkg)
+}
+
+func encodeTOML(data *bytes.Buffer, pkg *domain.PackageConfig) error {
+	enc := toml.NewEncoder(data)
+	enc.SetIndentTables(true)
+	enc.SetIndentSymbol("  ")
+
+	return enc.Encode(pkg)
+}
+
+func write(_ context.Context, file *os.File, data *bytes.Buffer) error {
 	// Write data to file.
-	written, err := file.Write(data)
+	bufferSize := data.Len() // Before writing, get the buffer size.
+	written, err := data.WriteTo(file)
 	if err != nil {
 		return err
 	}
 
 	// Check if all data was written.
-	if written != len(data) {
-		return errors.New("incomplete write")
+	if written != int64(bufferSize) {
+		return errors.Newf("incomplete write; written %d bytes, expected %d bytes", written, bufferSize)
 	}
 	if written == 0 {
 		return errors.New("no data written")
@@ -31,21 +48,20 @@ func write(_ context.Context, file *os.File, data []byte) error {
 	return nil
 }
 
-func toConfig(ctx context.Context, pkg *domain.PackageExport, dir, fileType string) (string, error) {
+func toConfig(ctx context.Context, pkg *domain.PackageConfig, dir, fileType string) (string, error) {
 	if pkg == nil {
 		return "", errors.New("package is nil")
 	}
 
 	var err error
-	var data []byte
-
+	data := new(bytes.Buffer)
 	fileName := "proji-" + pkg.Name + ".*." + fileType
 
 	switch fileType {
 	case portability.FileTypeTOML:
-		data, err = toml.Marshal(pkg)
+		err = encodeTOML(data, pkg)
 	case portability.FileTypeJSON:
-		data, err = json.MarshalIndent(pkg, "", "  ")
+		err = encodeJSON(data, pkg)
 	default:
 		err = portability.ErrUnsupportedConfigFileType
 	}
@@ -72,6 +88,6 @@ func toConfig(ctx context.Context, pkg *domain.PackageExport, dir, fileType stri
 // ToConfig writes the given package to the given destination directory. If the destination is empty, a temporary file
 // will be created. The caller is responsible for deleting the file. If the destination is not empty, the file will be
 // overwritten.
-func (e *_exporter) ToConfig(ctx context.Context, pkg *domain.PackageExport, dir, fileType string) (string, error) {
+func (e *_exporter) ToConfig(ctx context.Context, pkg *domain.PackageConfig, dir, fileType string) (string, error) {
 	return toConfig(ctx, pkg, dir, fileType)
 }

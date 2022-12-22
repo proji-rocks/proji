@@ -10,7 +10,7 @@ import (
 // that can be used to fetch and store information. For example, GitHub is a platform. We use these platforms to fetch
 // and store information about packages.
 type Platform interface {
-	GetRepoTree(ctx context.Context, info RepoInfo, skipper PathSkipperFn) (domain.DirTree, string, error)
+	GetRepoTree(ctx context.Context, info RepoInfo, skipper PathSkipperFn) (*domain.DirTree, string, error)
 	GetFileContent(ctx context.Context, info RepoInfo, file string) ([]byte, string, error)
 	DownloadFile(ctx context.Context, info RepoInfo, source, destination string) error
 	DownloadFileRaw(ctx context.Context, source, destination string) error

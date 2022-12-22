@@ -1,6 +1,7 @@
 package exporting
 
 import (
+	"bytes"
 	"context"
 	"os"
 	"testing"
@@ -11,7 +12,7 @@ func Test_write(t *testing.T) {
 
 	type args struct {
 		validFile bool
-		data      []byte
+		data      *bytes.Buffer
 	}
 
 	cases := []struct {

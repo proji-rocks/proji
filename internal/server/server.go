@@ -62,10 +62,10 @@ func newRouter(logger *zap.Logger) *chi.Mux {
 // newHTTPServer creates a new http server. It is required that the router is already initialized.
 func newHTTPServer() *http.Server {
 	return &http.Server{
-		ReadTimeout:       1 * time.Second,
-		WriteTimeout:      1 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      15 * time.Second,
 		IdleTimeout:       30 * time.Second,
-		ReadHeaderTimeout: 2 * time.Second,
+		ReadHeaderTimeout: 5 * time.Second,
 	}
 }
 
