@@ -153,8 +153,16 @@ func buildProject(ctx context.Context, project *domain.ProjectAdd) error {
 
 		logger.Infof("Creating project structure")
 		for _, entry := range _package.DirTree.Entries {
+			// Check if template path is a template string
+			entryPath := entry.Path
+			if parsedPath, err := tmpl.ParseString(ctx, entryPath); err != nil {
+				logger.Debugf("template path %q is not a template string", entryPath)
+			} else {
+				entryPath = parsedPath
+			}
+
 			if entry.Template != nil {
-				logger.Debugf("generating file %q from template %q", entry.Path, entry.Template.ID)
+				logger.Debugf("generating file %q from template %q", entryPath, entry.Template.ID)
 
 				tmplPath := entry.Template.Path
 				if tmplPath == "" {
@@ -162,6 +170,7 @@ func buildProject(ctx context.Context, project *domain.ProjectAdd) error {
 					continue
 				}
 
+				// Check if template path is absolute
 				if !filepath.IsAbs(tmplPath) {
 					tmplPath = filepath.Join("/home/niko/.config/proji/templates", tmplPath)
 				}
@@ -174,9 +183,9 @@ func buildProject(ctx context.Context, project *domain.ProjectAdd) error {
 				}
 
 				// Create empty destination file
-				destinationFile, err := os.Create(entry.Path)
+				destinationFile, err := os.Create(entryPath)
 				if err != nil {
-					return errors.Wrapf(err, "create template destination file %q", entry.Path)
+					return errors.Wrapf(err, "create template destination file %q", entryPath)
 				}
 
 				err = tmpl.Parse(ctx, destinationFile, templateData)
@@ -188,16 +197,16 @@ func buildProject(ctx context.Context, project *domain.ProjectAdd) error {
 			}
 
 			if entry.IsDir {
-				logger.Debugf("creating directory %q", entry.Path)
-				err = os.MkdirAll(entry.Path, 0o755)
+				logger.Debugf("creating directory %q", entryPath)
+				err = os.MkdirAll(entryPath, 0o755)
 				if err != nil {
-					return errors.Wrapf(err, "create directory %q", entry.Path)
+					return errors.Wrapf(err, "create directory %q", entryPath)
 				}
 			} else {
-				logger.Debugf("creating file %q", entry.Path)
-				_, err = os.Create(entry.Path)
+				logger.Debugf("creating file %q", entryPath)
+				_, err = os.Create(entryPath)
 				if err != nil {
-					return errors.Wrapf(err, "create file %q", entry.Path)
+					return errors.Wrapf(err, "create file %q", entryPath)
 				}
 			}
 		}
