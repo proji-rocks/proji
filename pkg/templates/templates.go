@@ -132,3 +132,14 @@ func (t *TemplateEngine) parse(ctx context.Context, w io.Writer, data []byte) er
 func (t *TemplateEngine) Parse(ctx context.Context, w io.Writer, data []byte) error {
 	return t.parse(ctx, w, data)
 }
+
+// ParseString is similar to Parse but accepts a string as input instead of a byte slice. It returns an error if the
+// template cannot be parsed or rendered. If the template is parsed and rendered successfully, the result is returned.
+func (t *TemplateEngine) ParseString(ctx context.Context, data string) (string, error) {
+	var b strings.Builder
+	if err := t.parse(ctx, &b, []byte(data)); err != nil {
+		return "", err
+	}
+
+	return b.String(), nil
+}

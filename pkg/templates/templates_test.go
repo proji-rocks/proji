@@ -263,3 +263,119 @@ func Greet() {
 		})
 	}
 }
+
+func TestTemplateEngine_ParseString(t *testing.T) {
+	t.Parallel()
+
+	type fields struct {
+		StartTag     string
+		EndTag       string
+		MissingKeyFn MissingKeyFn
+	}
+	type args struct {
+		ctx  context.Context
+		data string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "empty",
+			fields: fields{
+				StartTag:     "%{{",
+				EndTag:       "}}%",
+				MissingKeyFn: defaultMissingKeyFn,
+			},
+			args: args{
+				ctx:  context.Background(),
+				data: "",
+			},
+			want:    "",
+			wantErr: false,
+		},
+		{
+			name: "simple",
+			fields: fields{
+				StartTag: "%{{",
+				EndTag:   "}}%",
+				MissingKeyFn: func(key string) (string, error) {
+					if key == "Name" {
+						return "Proji", nil
+					}
+					return "", errors.Newf("unexpected key: %s", key)
+				},
+			},
+			args: args{
+				ctx:  context.Background(),
+				data: "Hello, %{{name}}%!",
+			},
+			want:    "Hello, Proji!",
+			wantErr: false,
+		},
+		{
+			name: "advanced",
+			fields: fields{
+				StartTag: "%{{",
+				EndTag:   "}}%",
+				MissingKeyFn: func(key string) (string, error) {
+					if key == "Name" {
+						return "Proji", nil
+					} else if key == "Message" {
+						return "I hope you have a great day.", nil
+					}
+					return "", errors.Newf("unexpected key: %s", key)
+				},
+			},
+			args: args{
+				ctx:  context.Background(),
+				data: "Hello, %{{name}}%! %{{message}}%",
+			},
+			want:    "Hello, Proji! I hope you have a great day.",
+			wantErr: false,
+		},
+		{
+			name: "invalid template",
+			fields: fields{
+				StartTag: "%{{",
+				EndTag:   "}}%",
+				MissingKeyFn: func(key string) (string, error) {
+					if key == "Name" {
+						return "Proji", nil
+					}
+					return "", errors.Newf("unexpected key: %s", key)
+				},
+			},
+			args: args{
+				ctx:  context.Background(),
+				data: "Hello, %{{name}}!",
+			},
+			want:    "",
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			engine := NewEngine(tt.fields.StartTag, tt.fields.EndTag)
+			if engine == nil {
+				t.Fatal("engine is nil")
+			}
+			engine.MissingKeyFn = tt.fields.MissingKeyFn
+
+			got, err := engine.ParseString(tt.args.ctx, tt.args.data)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Fatalf("mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
