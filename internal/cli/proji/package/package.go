@@ -12,6 +12,7 @@ func NewCommand() *cobra.Command {
 
 	cmd.AddCommand(
 		newImportCommand(),
+		newEditCommand(),
 		newExportCommand(),
 		newListCommand(),
 		newMimicCommand(),

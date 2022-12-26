@@ -139,7 +139,6 @@ func newProvider(path string) *viper.Viper {
 
 	// Allow for cross-platform paths
 	path = filepath.Clean(path)
-	path = filepath.FromSlash(path)
 	dir := filepath.Dir(path)
 
 	// Set default configuration
@@ -237,14 +236,6 @@ func (conf *Config) readFlags(cmdFlags *pflag.FlagSet) error {
 func load(ctx context.Context, path string, flags *pflag.FlagSet) (conf *Config, err error) {
 	logger := simplog.FromContext(ctx)
 
-	// Clean up path
-	path = filepath.Clean(path)
-
-	path, err = filepath.Abs(path)
-	if err != nil {
-		return nil, errors.Wrap(err, "get absolute config path")
-	}
-
 	// If no explicit path is given, use default path
 	if path == "" {
 		path, err = defaultConfigPath()
@@ -253,6 +244,13 @@ func load(ctx context.Context, path string, flags *pflag.FlagSet) (conf *Config,
 		}
 
 		logger.Debugf("no explicit config path given, using default path: %q", path)
+	}
+
+	// Clean up path
+	path = filepath.Clean(path)
+	path, err = filepath.Abs(path)
+	if err != nil {
+		return nil, errors.Wrap(err, "get absolute config path")
 	}
 
 	// Create default config
