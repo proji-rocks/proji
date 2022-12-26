@@ -74,7 +74,15 @@ func buildProject(ctx context.Context, project *domain.ProjectAdd) error {
 
 	// Get package manager from session
 	logger.Debug("getting package manager from cli session")
-	pama := cli.SessionFromContext(ctx).PackageManager
+	session := cli.SessionFromContext(ctx)
+
+	// Get mandatory paths for finding plugins and templates in the filesystem
+	config := session.Config
+	pluginsDir := config.PluginsDir()
+	templatesDir := config.TemplatesDir()
+
+	// Get package manager from session
+	pama := session.PackageManager
 	if pama == nil {
 		return errors.New("no package manager found")
 	}
@@ -134,7 +142,7 @@ func buildProject(ctx context.Context, project *domain.ProjectAdd) error {
 			}
 
 			if !filepath.IsAbs(path) {
-				path = filepath.Join("/home/niko/.config/proji/plugins", path)
+				path = filepath.Join(pluginsDir, path)
 			}
 
 			logger.Infof("Running plugin %q", filepath.Base(path))
@@ -172,7 +180,7 @@ func buildProject(ctx context.Context, project *domain.ProjectAdd) error {
 
 				// Check if template path is absolute
 				if !filepath.IsAbs(tmplPath) {
-					tmplPath = filepath.Join("/home/niko/.config/proji/templates", tmplPath)
+					tmplPath = filepath.Join(templatesDir, tmplPath)
 				}
 
 				// Read template from filesystem
@@ -222,7 +230,7 @@ func buildProject(ctx context.Context, project *domain.ProjectAdd) error {
 			}
 
 			if !filepath.IsAbs(path) {
-				path = filepath.Join("/home/niko/.config/proji/plugins", path)
+				path = filepath.Join(pluginsDir, path)
 			}
 
 			logger.Infof("Running plugin %q", filepath.Base(path))

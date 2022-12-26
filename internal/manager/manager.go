@@ -22,26 +22,51 @@ import (
 // TODO: Should probably be configurable.
 const defaultServiceTimeout = 5 * time.Second
 
+type LocalPaths struct {
+	Base      string
+	Plugins   string
+	Templates string
+}
+
+// Config is a package manager configuration. This config is shared between different types of package managers.
+type Config struct {
+	// Address is the address of the remote package manager. If empty, the local package manager will be used.
+	Address string
+
+	// Auth contains the authentication information for the remote package manager.
+	Auth *config.Auth
+
+	// DB is the database connection.
+	DB *database.DB
+
+	// LocalPaths contains local filesystem paths that point to the base directory, the plugins/ directory and the
+	// templates/ directory. These paths are used by the local package manager to persist packages and templates.
+	LocalPaths *LocalPaths
+}
+
 // NewPackageManager is a convenience function that connects to a package manager based on the given address. If the
 // address is empty, it will connect to the local package manager. Otherwise, it will connect to the remote package
 // manager.
-func NewPackageManager(ctx context.Context, address string, db *database.DB, auth *config.Auth) (packages.Manager, error) {
-	logger := simplog.FromContext(ctx)
+func NewPackageManager(ctx context.Context, config Config) (packages.Manager, error) {
+	if config == (Config{}) {
+		return nil, errors.New("config is required")
+	}
 
-	// If an address is given, interpret that as an intent to connect to a remote package manager.
+	logger := simplog.FromContext(ctx)
 	logger.Debugf("creating a package manager")
 
-	address = strings.TrimSpace(address)
-	if address != "" {
-		logger.Debugf("server address not empty, connecting to remote package manager at %s", address)
+	// If an address is given, interpret that as an intent to connect to a remote package manager.
+	config.Address = strings.TrimSpace(config.Address)
+	if config.Address != "" {
+		logger.Debugf("server address not empty, connecting to remote package manager at %q", config.Address)
 
-		return packages.NewRemoteManager(address)
+		return packages.NewRemoteManager(config.Address)
 	}
 
 	// Otherwise, connect to the local package manager.
 	logger.Debugf("server address is empty, creating a local package manager")
 
-	repo, err := packageRepo.New(db)
+	repo, err := packageRepo.New(config.DB)
 	if err != nil {
 		return nil, errors.Wrap(err, "create package repository")
 	}
@@ -52,7 +77,7 @@ func NewPackageManager(ctx context.Context, address string, db *database.DB, aut
 	}
 
 	// Create the local package manager.
-	return packages.NewLocalManager(auth, service)
+	return packages.NewLocalManager(config.Auth, service)
 }
 
 // NewProjectManager returns a new project manager. Compared to the package manager, the project manager is always local,

@@ -75,7 +75,16 @@ func rootCommand() *cobra.Command {
 			}
 
 			// Create package manager
-			pama, err := manager.NewPackageManager(ctx, serverAddress, db, &conf.Auth)
+			pama, err := manager.NewPackageManager(ctx, manager.Config{
+				Address: serverAddress,
+				DB:      db,
+				Auth:    &conf.Auth,
+				LocalPaths: &manager.LocalPaths{
+					Base:      conf.BaseDir(),
+					Templates: conf.TemplatesDir(),
+					Plugins:   conf.PluginsDir(),
+				},
+			})
 			if err != nil {
 				return errors.Wrap(err, "setup package manager")
 			}

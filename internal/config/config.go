@@ -138,6 +138,7 @@ func newProvider(path string) *viper.Viper {
 	provider := viper.New()
 
 	// Allow for cross-platform paths
+	path = filepath.Clean(path)
 	path = filepath.FromSlash(path)
 	dir := filepath.Dir(path)
 
@@ -158,8 +159,8 @@ func (conf *Config) setupInfrastructure() error {
 		return errors.New("config provider is nil")
 	}
 
-	// Get directory for config file and make sure it's cross-platform compatible
-	configPath := filepath.FromSlash(conf.provider.ConfigFileUsed())
+	// Get directory for config file
+	configPath := conf.provider.ConfigFileUsed()
 	baseDir := filepath.Dir(configPath)
 
 	// Create subdirectories; this also implicitly creates the base directory
@@ -236,6 +237,14 @@ func (conf *Config) readFlags(cmdFlags *pflag.FlagSet) error {
 func load(ctx context.Context, path string, flags *pflag.FlagSet) (conf *Config, err error) {
 	logger := simplog.FromContext(ctx)
 
+	// Clean up path
+	path = filepath.Clean(path)
+
+	path, err = filepath.Abs(path)
+	if err != nil {
+		return nil, errors.Wrap(err, "get absolute config path")
+	}
+
 	// If no explicit path is given, use default path
 	if path == "" {
 		path, err = defaultConfigPath()
@@ -244,15 +253,6 @@ func load(ctx context.Context, path string, flags *pflag.FlagSet) (conf *Config,
 		}
 
 		logger.Debugf("no explicit config path given, using default path: %q", path)
-	}
-
-	// Make sure the path is cross-platform compatible
-	path = filepath.FromSlash(path)
-
-	// Make config path absolute
-	path, err = filepath.Abs(path)
-	if err != nil {
-		return nil, errors.Wrap(err, "get absolute config path")
 	}
 
 	// Create default config
@@ -320,4 +320,19 @@ func (conf *Config) Validate() error {
 	}
 
 	return nil
+}
+
+// BaseDir returns the base directory of the configuration file.
+func (conf *Config) BaseDir() string {
+	return filepath.Dir(conf.provider.ConfigFileUsed())
+}
+
+// PluginsDir returns the plugins' directory.
+func (conf *Config) PluginsDir() string {
+	return filepath.Join(conf.BaseDir(), defaultPluginsDir)
+}
+
+// TemplatesDir returns the templates' directory.
+func (conf *Config) TemplatesDir() string {
+	return filepath.Join(conf.BaseDir(), defaultTemplatesDir)
 }

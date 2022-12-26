@@ -223,3 +223,53 @@ func Test_defaultConfigPath(t *testing.T) {
 		}
 	}
 }
+
+func TestConfig_BaseDir(t *testing.T) {
+	t.Parallel()
+
+	type args struct {
+		path string
+	}
+	cases := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "default",
+			args: args{
+				path: "/home/user/.config/proji.toml",
+			},
+			want: filepath.Join("/home", "user", ".config"),
+		},
+		{
+			name: "complex",
+			args: args{
+				path: "/home/user/.config/proji/this/is/a/very/long/path/to/a/config/file.toml",
+			},
+			want: filepath.Join("/home", "user", ".config", "proji", "this", "is", "a", "very", "long", "path", "to", "a", "config"),
+		},
+		{
+			name: "current dir",
+			args: args{
+				path: "./proji.toml",
+			},
+			want: ".",
+		},
+		// TODO: Add Windows tests
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			conf := &Config{
+				provider: newProvider(tc.args.path),
+			}
+			if got := conf.BaseDir(); got != filepath.FromSlash(tc.want) {
+				t.Fatalf("BaseDir() returned unexpected path: %q;\nbase directory of %q should be %q", got, tc.args.path, tc.want)
+			}
+		})
+	}
+}
