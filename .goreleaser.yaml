@@ -1,31 +1,49 @@
+project_name: proji
+
 before:
     hooks:
-        - go mod tidy
+        - go mod download
 
 builds:
-    -   env:
-            - CGO_ENABLED=0
+    -
+        main: ./cmd/proji/main.go
         goos:
             - linux
-            - windows
             - darwin
+            - windows
+        goarch:
+            - amd64
+            - arm64
+        targets:
+            - linux_amd64
+            - darwin_amd64
+            - darwin_arm64
+            - windows_amd64
+        env:
+            - CGO_ENABLED=0
+        ldflags:
+            - -s -w
 
 archives:
     -   replacements:
-            darwin: Darwin
+            darwin: macOS
             linux: Linux
             windows: Windows
-            386: i386
             amd64: x86_64
 
+        format_overrides:
+            -   goos: windows
+                format: zip
+
+        files:
+            - LICENSE
+            - README.md
+
 checksum:
-    name_template: 'checksums.txt'
+    name_template: "checksums.txt"
 
 snapshot:
-    name_template: "{{ incpatch .Version }}-next"
+    name_template: "{{ .Tag }}"
 
 changelog:
     use: github-native
-
-universal_binaries:
-    -   replace: true
