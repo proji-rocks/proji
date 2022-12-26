@@ -47,4 +47,5 @@ snapshot:
     name_template: "{{ .Tag }}"
 
 changelog:
+    skip: false
     use: github-native
