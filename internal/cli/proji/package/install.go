@@ -19,7 +19,7 @@ func newImportCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                   "install [OPTIONS] PATH [PATH...]",
 		Short:                 "Install packages from local or remote config files",
-		Aliases:               []string{"in"},
+		Aliases:               []string{"i"},
 		Args:                  cobra.MinimumNArgs(1),
 		DisableFlagsInUseLine: true,
 

@@ -27,7 +27,7 @@ func newExportCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                   "export [OPTIONS] LABEL [LABEL...]",
 		Short:                 "Export packages as config files",
-		Aliases:               []string{"out"},
+		Aliases:               []string{"x"},
 		DisableFlagsInUseLine: true,
 
 		Example: `  proji package export py
