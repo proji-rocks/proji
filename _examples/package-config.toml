@@ -1,0 +1,82 @@
+# Label is a short string that is used to identify the package. It usually gets auto-generated from the package name,
+# but can be overridden by the user. Almost all actions that operate on packages use the label to identify the package,
+# so it is recommended to keep it short and intuitive. The package label is mandatory.
+label = 'xxx'
+
+# Name is the name of the package. It is used to identify the package in the package store. The package name serves no
+# other purpose than helping the user to differentiate between packages and keep track of them. It is recommended to
+# pick a explicit and descriptive name for the package. Usuaully a packages label is derived from the package name. The
+# package name is mandatory.
+#
+# Example:
+#   name              = 'my-package'
+#   (generated) label = 'mp'
+name = 'Example'
+
+# Description is a string that's used to allow for extensive explanations, usage examples and other instructions. The
+# description is optional.
+description = 'This is an example package'
+
+# DirTree is a list of directories entries. A directory entry either is a file or a directory. File entries allow for
+# the usage of templates. The paths are relative to the project root.
+# If a file entry is a template, you have to specify the path to the template file. Usually template files are stored
+# and managed automatically by proji under the templates directory in the main config directory. Unless necessary, you
+# should not change the template path.
+[dir_tree]
+
+# A simple directory entry. The directory will be created if it does not exist.
+[[dir_tree.entry]]
+path = 'docs'
+is_dir = true
+
+# A simple file entry. An empty file will be created if it does not exist.
+[[dir_tree.entry]]
+path = 'docs/docs.md'
+is_dir = false
+
+# A file entry that uses a template. The template file will be copied and then parsed at the specified path.
+[[dir_tree.entry]]
+path = 'README.md'
+is_dir = false
+
+[dir_tree.entry.template]
+path = 'github/nikoksr/README.md' # This path will be relative to the templates directory in proji's main config directory.
+
+# In this case, the directory gets implicitly created if it does not exist. Proji checks if the parent directory exists
+# and creates it if necessary. This can simplify the dir_tree section a lot.
+# TODO: Need to implement this.
+[[dir_tree.entry]]
+path = 'src/main.go'
+is_dir = false
+
+[dir_tree.entry.template]
+path = 'github/nikoksr/main.go'
+
+# Some more directory entries, just because you gotta know.
+[[dir_tree.entry]]
+path = '1_You'
+is_dir = false
+
+[[dir_tree.entry]]
+path = '2_Are'
+is_dir = false
+
+[[dir_tree.entry]]
+path = '3_Awesome'
+is_dir = false
+
+# Plugins are just to add infinite flexibility and funtionality to proji. The plugin scheduler is seperated in two
+# lists: pre and post. The pre list contains plugins that are executed before the project is created. The post list
+# contains plugins that are executed after the project is created. Plugins will be executed in the order they are
+# specified in their respective list. Similar to how templates function, the given path points to the plugin file in the
+# plugins directory in proji's main config directory. Plugins are written in Lua and are executed by the Lua interpreter.
+# The plugins section is optional.
+[plugins]
+
+# Plugins that are executed before the project is created.
+[[plugins.pre]]
+path = 'github/nikoksr/go-init.lua'
+
+# Plugins that are executed after the project is created.
+[[plugins.post]]
+path = 'github/nikoksr/git-init.lua'
