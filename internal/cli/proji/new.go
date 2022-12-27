@@ -102,8 +102,7 @@ func buildProject(ctx context.Context, project *domain.ProjectAdd) error {
 
 	// Create base directory
 	logger.Infof("Creating base directory %q", project.Path)
-	err = os.Mkdir(project.Path, 0o755)
-	if err != nil {
+	if err = os.Mkdir(project.Path, 0o755); err != nil {
 		if os.IsExist(err) {
 			return errors.Newf("path %q already exists", project.Path)
 		}
@@ -121,16 +120,14 @@ func buildProject(ctx context.Context, project *domain.ProjectAdd) error {
 
 	// Change to base path
 	logger.Debugf("changing to project base path %q", project.Path)
-	err = os.Chdir(project.Path)
-	if err != nil {
+	if err = os.Chdir(project.Path); err != nil {
 		return errors.Wrapf(err, "change to base path %q", project.Path)
 	}
 
 	// Make sure to change back to original directory
 	defer func() {
 		logger.Debugf("changing back to original directory %q", cwd)
-		ferr := os.Chdir(cwd)
-		if ferr != nil {
+		if ferr := os.Chdir(cwd); ferr != nil {
 			err = errors.CombineErrors(err, ferr)
 		}
 	}()
@@ -149,8 +146,7 @@ func buildProject(ctx context.Context, project *domain.ProjectAdd) error {
 			}
 
 			logger.Infof("Running plugin %q", filepath.Base(path))
-			err = plugins.Run(ctx, path)
-			if err != nil {
+			if err = plugins.Run(ctx, path); err != nil {
 				return errors.Wrapf(err, "run plugin %q at %q", plugin.ID, path)
 			}
 		}
@@ -199,25 +195,33 @@ func buildProject(ctx context.Context, project *domain.ProjectAdd) error {
 					return errors.Wrapf(err, "create template destination file %q", entryPath)
 				}
 
-				err = tmpl.Parse(ctx, destinationFile, templateData)
-				if err != nil {
+				if err = tmpl.Parse(ctx, destinationFile, templateData); err != nil {
 					return errors.Wrapf(err, "parse template %q", tmplPath)
 				}
 
 				continue
 			}
 
-			if entry.IsDir {
-				logger.Debugf("creating directory %q", entryPath)
-				err = os.MkdirAll(entryPath, 0o755)
-				if err != nil {
-					return errors.Wrapf(err, "create directory %q", entryPath)
+			// If we have a file, get its directory and create it. This allows for implicit directory creation and may
+			// simplify the directory tree structure in a packages config vastly.
+			dirPath := entryPath
+			filePath := ""
+			if !entry.IsDir {
+				dirPath = filepath.Dir(entryPath)
+				filePath = entryPath
+			}
+
+			if dirPath != "." {
+				logger.Debugf("creating directory %q", dirPath)
+				if err = os.MkdirAll(dirPath, 0o755); err != nil {
+					return errors.Wrapf(err, "create directory %q", dirPath)
 				}
-			} else {
-				logger.Debugf("creating file %q", entryPath)
-				_, err = os.Create(entryPath)
-				if err != nil {
-					return errors.Wrapf(err, "create file %q", entryPath)
+			}
+
+			if filePath != "" {
+				logger.Debugf("creating file %q", filePath)
+				if _, err = os.Create(filePath); err != nil {
+					return errors.Wrapf(err, "create file %q", filePath)
 				}
 			}
 		}
@@ -237,8 +241,7 @@ func buildProject(ctx context.Context, project *domain.ProjectAdd) error {
 			}
 
 			logger.Infof("Running plugin %q", filepath.Base(path))
-			err = plugins.Run(ctx, path)
-			if err != nil {
+			if err = plugins.Run(ctx, path); err != nil {
 				return errors.Wrapf(err, "run plugin %q at %q", plugin.ID, path)
 			}
 		}
