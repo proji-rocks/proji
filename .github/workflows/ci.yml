@@ -1,15 +1,17 @@
 name: Test & Lint
-
 on:
   push:
+    tags:
+      - "v*.*.*"
+    branches:
+      - main
   pull_request:
-
 jobs:
   test:
     strategy:
       matrix:
         go-version: [ 1.19.x ]
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install Go
@@ -34,24 +36,17 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
+      - name: Test coverage
+        run: go test -race -covermode=atomic -coverprofile=coverage.out ./...
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
 
   lint:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
       - uses: actions/checkout@v3
       - name: Lint
         uses: golangci/golangci-lint-action@v3
-
-  coverage:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 2
-      - uses: actions/setup-go@v2
-        with:
-          go-version: '1.19'
-      - name: Run coverage
-        run: go test -race -coverprofile=coverage.out -covermode=atomic
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
