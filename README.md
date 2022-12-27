@@ -5,7 +5,7 @@
     alt="proji logo"
 />
 
-[![codecov](https://codecov.io/gh/nikoksr/proji/branch/master/graph/badge.svg?token=14YTIHXHTX)](https://codecov.io/gh/nikoksr/proji)
+[![codecov](https://codecov.io/gh/nikoksr/proji/branch/refactor/project/graph/badge.svg?token=14YTIHXHTX)](https://codecov.io/gh/nikoksr/proji)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nikoksr/proji)](https://goreportcard.com/report/github.com/nikoksr/proji)
 [![Maintainability](https://api.codeclimate.com/v1/badges/40bc389c40a19cfd7edd/maintainability)](https://codeclimate.com/github/nikoksr/proji/maintainability)
 [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/nikoksr/proji)
