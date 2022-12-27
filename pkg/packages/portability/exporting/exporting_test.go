@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/nikoksr/proji/pkg/packages/portability"
@@ -121,11 +120,6 @@ func Test_ToConfig(t *testing.T) {
 							"ToConfig() config path is not in the expected directory (-want +got):\n%s",
 							cmp.Diff(tc.args.dir, filepath.Dir(configPath)),
 						)
-					}
-				} else {
-					// This should create a config file in a temporary directory.
-					if !strings.HasPrefix(configDir, os.TempDir()) {
-						t.Fatalf("ToConfig() config path is not in a temporary directory")
 					}
 				}
 
