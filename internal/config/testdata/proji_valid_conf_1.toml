@@ -7,3 +7,6 @@ exclude = '^(.git|.env|.idea|.vscode)$'
 [monitoring]
 [monitoring.sentry]
 enabled = false
+
+[system]
+text_editor = 'vim'

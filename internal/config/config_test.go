@@ -46,6 +46,9 @@ func Test_load(t *testing.T) {
 						Enabled: false,
 					},
 				},
+				System: System{
+					TextEditor: "vim",
+				},
 			},
 			isValid:   true,
 			wantErr:   false,
@@ -69,6 +72,9 @@ func Test_load(t *testing.T) {
 						Enabled: false,
 					},
 				},
+				System: System{
+					TextEditor: "",
+				},
 			},
 			isValid:   true,
 			wantErr:   false,
@@ -90,6 +96,9 @@ func Test_load(t *testing.T) {
 					Sentry: Sentry{
 						Enabled: defaultSentryState,
 					},
+				},
+				System: System{
+					TextEditor: "",
 				},
 			},
 			isValid:   true,

@@ -43,41 +43,44 @@ func newCommand(ctx context.Context, name string, args ...string) *exec.Cmd {
 	return cmd
 }
 
-func openFile(ctx context.Context, system, path string) error {
+func openFile(ctx context.Context, system, editor, path string) error {
 	logger := simplog.FromContext(ctx)
 
 	if path == "" {
 		return errors.New("path is empty")
 	}
 
-	// TODO: More options for opening files; potentially use config file to set default editor/switch between $EDITOR;
-	//       $VISUAL, commands like xdg-open or other application names
-	// Set command depending on system
-	switch system {
-	case "darwin", "freebsd", "linux", "netbsd", "openbsd":
-		editor := os.Getenv("EDITOR")
-		logger.Debugf("opening file %q with editor %q", path, editor)
-
-		return newCommand(ctx, editor, path).Run()
-	case "windows":
-		logger.Debugf("opening file %q with start command", path)
-
-		// return exec.Command("rundll32", "url.dll,FileProtocolHandler", path).Start()
-		return newCommand(ctx, "start", path).Run()
-	default:
-		return errors.Newf("unsupported OS %q", system)
+	if editor == "" {
+		switch system {
+		case "darwin", "freebsd", "linux", "netbsd", "openbsd":
+			editor = os.Getenv("EDITOR")
+		case "windows":
+			editor = "notepad.exe"
+		default:
+			return errors.Newf("unsupported OS %q", system)
+		}
 	}
+
+	logger.Debugf("opening file %q in %s", path, editor)
+
+	return newCommand(ctx, editor, path).Run()
 }
 
 func editPackage(ctx context.Context, label, fileType string) error {
 	logger := simplog.FromContext(ctx)
 
-	// Get package manager from session
+	// Get the session
 	logger.Debug("getting package manager from cli session")
-	pama := cli.SessionFromContext(ctx).PackageManager
+	session := cli.SessionFromContext(ctx)
+
+	// Get the package manager
+	pama := session.PackageManager
 	if pama == nil {
 		return errors.New("no package manager available")
 	}
+
+	// Get value for the text editor defined in the config file
+	textEditor := session.Config.System.TextEditor
 
 	// Load package that should be edited
 	logger.Debugf("load package %q", label)
@@ -94,15 +97,14 @@ func editPackage(ctx context.Context, label, fileType string) error {
 	}
 
 	// Edit package; open file is OS dependent and will open the file in the default editor.
-	logger.Infof("Opening config file of package %q in default editor", label)
-	if err := openFile(ctx, runtime.GOOS, path); err != nil {
+	logger.Infof("Opening config of %q", label)
+	if err := openFile(ctx, runtime.GOOS, textEditor, path); err != nil {
 		return errors.Wrap(err, "open file")
 	}
 
 	// Wait for user to finish editing
-	logger.Info("Press ENTER to confirm your changes")
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Scan()
+	logger.Info("Press ENTER to confirm your changes when you are done")
+	_, _ = bufio.NewReader(os.Stdin).ReadBytes('\n')
 
 	// When we are done editing, we can import the edited package
 	if err := replacePackage(ctx, label, path); err != nil {

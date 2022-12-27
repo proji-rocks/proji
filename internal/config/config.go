@@ -48,12 +48,19 @@ type (
 		Sentry Sentry `mapstructure:"sentry"`
 	}
 
+	// System includes settings that in some way or another affect the system that proji is running on.
+	System struct {
+		// TextEditor is the editor that proji will use to open files. This is usually set to the $EDITOR env var.
+		TextEditor string `mapstructure:"text_editor"`
+	}
+
 	// Config is the configuration for the application.
 	Config struct {
 		Auth       Auth         `mapstructure:"-"`
 		Database   Database     `mapstructure:"database"`
 		Import     Import       `mapstructure:"import"`
 		Monitoring Monitoring   `mapstructure:"monitoring"`
+		System     System       `mapstructure:"system"`
 		provider   *viper.Viper `mapstructure:"-"`
 	}
 )

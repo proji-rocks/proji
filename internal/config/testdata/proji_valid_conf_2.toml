@@ -7,3 +7,6 @@ exclude = ''
 [monitoring]
 [monitoring.sentry]
 enabled = false
+
+[system]
+text_editor = ''
