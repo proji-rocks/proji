@@ -52,16 +52,17 @@ func cleanProjects(ctx context.Context) error {
 		return errors.Wrap(err, "fetch projects")
 	}
 
-	// Clean all projects in a pretty table.
+	// Clean all projects
 	removeCounter := 0
 	logger.Debug("cleaning projects")
 	for _, project := range projects {
 		if doesPathExist(project.Path) {
+			logger.Debug("project path exists, skipping")
 			continue // Skip if path exists
 		}
 
-		logger.Infof("Removing project %s (%q); previous location: %q", project.Name, project.ID, project.Path)
-		if err = prma.Remove(ctx, project.ID); err != nil {
+		logger.Infof("Removing project %s (%q); last known location: %q", project.Name, project.ID, project.Path)
+		if err = prma.Remove(ctx, project.Path); err != nil {
 			return errors.Wrapf(err, "Failed to remove project %q", project.ID)
 		}
 
