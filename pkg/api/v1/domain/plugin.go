@@ -108,14 +108,14 @@ func (p *Plugin) toConfig() *PluginConfig {
 	}
 }
 
-func (p *PluginScheduler) toConfig() *PluginSchedulerConfig {
+func (p *PluginScheduler) ToConfig() *PluginSchedulerConfig {
 	if p == nil {
 		return nil
 	}
 
 	conf := &PluginSchedulerConfig{
-		Pre:  make([]*PluginConfig, len(p.Pre)),
-		Post: make([]*PluginConfig, len(p.Post)),
+		Pre:  make([]*PluginConfig, 0, len(p.Pre)),
+		Post: make([]*PluginConfig, 0, len(p.Post)),
 	}
 
 	for _, plg := range p.Pre {

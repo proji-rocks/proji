@@ -5,6 +5,9 @@ import (
 	"io"
 	"strings"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"github.com/nikoksr/simplog"
 
 	"github.com/pkg/errors"
@@ -65,7 +68,7 @@ func humanReadableKey(key string) string {
 	key = strings.TrimSpace(key)
 	key = strings.ReplaceAll(key, "-", " ")
 	key = strings.ReplaceAll(key, "_", " ")
-	key = strings.Title(key)
+	key = cases.Title(language.Und, cases.NoLower).String(key)
 
 	return key
 }

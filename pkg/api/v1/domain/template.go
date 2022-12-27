@@ -81,7 +81,7 @@ func (t *TemplateAdd) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (t *Template) toConfig() *TemplateConfig {
+func (t *Template) ToConfig() *TemplateConfig {
 	if t == nil {
 		return nil
 	}

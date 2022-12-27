@@ -30,6 +30,18 @@ func encodeTOML(data *bytes.Buffer, pkg *domain.PackageConfig) error {
 }
 
 func write(_ context.Context, file *os.File, data *bytes.Buffer) error {
+	// If no data is given, we return nil. This is an okay behavior, because the caller might want to write an empty
+	// file.
+	if data == nil {
+		return nil
+	}
+
+	// If no file but data is given, we return an error. This is not okay, because data that's intended to be written
+	// was given.
+	if file == nil {
+		return errors.New("file is nil")
+	}
+
 	// Write data to file.
 	bufferSize := data.Len() // Before writing, get the buffer size.
 	written, err := data.WriteTo(file)
@@ -40,9 +52,6 @@ func write(_ context.Context, file *os.File, data *bytes.Buffer) error {
 	// Check if all data was written.
 	if written != int64(bufferSize) {
 		return errors.Newf("incomplete write; written %d bytes, expected %d bytes", written, bufferSize)
-	}
-	if written == 0 {
-		return errors.New("no data written")
 	}
 
 	return nil

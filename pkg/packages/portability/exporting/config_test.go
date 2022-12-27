@@ -24,7 +24,7 @@ func Test_write(t *testing.T) {
 			name: "Nil file",
 			args: args{
 				validFile: false,
-				data:      nil,
+				data:      new(bytes.Buffer),
 			},
 			wantErr: true,
 		},
@@ -34,7 +34,23 @@ func Test_write(t *testing.T) {
 				validFile: true,
 				data:      nil,
 			},
-			wantErr: true,
+			wantErr: false,
+		},
+		{
+			name: "Valid file and data",
+			args: args{
+				validFile: true,
+				data:      new(bytes.Buffer),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Invalid file and data",
+			args: args{
+				validFile: false,
+				data:      nil,
+			},
+			wantErr: false, // Okay, because data is nil, and we return early.
 		},
 	}
 

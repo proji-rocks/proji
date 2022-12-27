@@ -8,6 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"github.com/nikoksr/simplog"
 
 	"github.com/cockroachdb/errors"
@@ -52,7 +55,7 @@ func localPathToAbsPath(path string) (string, error) {
 }
 
 var missingTemplateKeyFn templates.MissingKeyFn = func(key string) (value string, err error) {
-	_, err = fmt.Printf("   > %s: ", strings.Title(key))
+	_, err = fmt.Printf("   > %s: ", cases.Title(language.Und, cases.NoLower).String(key))
 	if err != nil {
 		return "", errors.Wrapf(err, "prompt input for template key %q", key)
 	}

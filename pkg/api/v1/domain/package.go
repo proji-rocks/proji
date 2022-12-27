@@ -189,21 +189,21 @@ func (e *DirEntry) toConfig() *DirEntryConfig {
 	return &DirEntryConfig{
 		Path:     e.Path,
 		IsDir:    e.IsDir,
-		Template: e.Template.toConfig(),
+		Template: e.Template.ToConfig(),
 	}
 }
 
-func (d *DirTree) toConfig() *DirTreeConfig {
+func (d *DirTree) ToConfig() *DirTreeConfig {
 	if d == nil {
 		return nil
 	}
 
 	conf := &DirTreeConfig{
-		Entries: make([]*DirEntryConfig, len(d.Entries)),
+		Entries: make([]*DirEntryConfig, 0, len(d.Entries)),
 	}
 
-	for i, entry := range d.Entries {
-		conf.Entries[i] = entry.toConfig()
+	for _, entry := range d.Entries {
+		conf.Entries = append(conf.Entries, entry.toConfig())
 	}
 
 	return conf
@@ -216,7 +216,7 @@ func (p *Package) ToConfig() *PackageConfig {
 		UpstreamURL: p.UpstreamURL,
 		SHA:         p.SHA,
 		Description: p.Description,
-		DirTree:     p.DirTree.toConfig(),
-		Plugins:     p.Plugins.toConfig(),
+		DirTree:     p.DirTree.ToConfig(),
+		Plugins:     p.Plugins.ToConfig(),
 	}
 }

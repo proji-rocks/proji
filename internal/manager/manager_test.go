@@ -6,7 +6,6 @@ import (
 
 	bolt "go.etcd.io/bbolt"
 
-	"github.com/nikoksr/proji/internal/config"
 	database "github.com/nikoksr/proji/pkg/database/bolt"
 )
 
@@ -14,10 +13,8 @@ func TestNewPackageManager(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		ctx     context.Context
-		address string
-		db      *database.DB
-		auth    *config.Auth
+		ctx    context.Context
+		config Config
 	}
 	cases := []struct {
 		name     string
@@ -26,38 +23,56 @@ func TestNewPackageManager(t *testing.T) {
 		wantErr  bool
 	}{
 		{
-			name:     "local package manager with no database",
-			args:     args{ctx: context.Background(), address: "", db: nil, auth: nil},
+			name: "local package manager with no database",
+			args: args{
+				ctx:    context.Background(),
+				config: Config{Address: "", DB: nil, Auth: nil, LocalPaths: nil},
+			},
 			wantType: "local",
 			wantErr:  true,
 		},
 		{
-			name:     "local package manager with no auth",
-			args:     args{ctx: context.Background(), address: "", db: &database.DB{Core: &bolt.DB{}}, auth: nil},
+			name: "local package manager with no auth",
+			args: args{
+				ctx:    context.Background(),
+				config: Config{Address: "", DB: &database.DB{Core: &bolt.DB{}}, Auth: nil, LocalPaths: nil},
+			},
 			wantType: "local",
 			wantErr:  false,
 		},
 		{
-			name:     "remote package manager with fully qualified address",
-			args:     args{ctx: context.Background(), address: "http://localhost:8080", db: nil, auth: nil},
+			name: "remote package manager with fully qualified address",
+			args: args{
+				ctx:    context.Background(),
+				config: Config{Address: "http://localhost:8080", DB: nil, Auth: nil, LocalPaths: nil},
+			},
 			wantType: "remote",
 			wantErr:  false,
 		},
 		{
-			name:     "remote package manager with malformed address",
-			args:     args{ctx: context.Background(), address: "htt://localhost:8080", db: nil, auth: nil},
+			name: "remote package manager with malformed address",
+			args: args{
+				ctx:    context.Background(),
+				config: Config{Address: "htt://localhost:8080", DB: nil, Auth: nil, LocalPaths: nil},
+			},
 			wantType: "remote",
 			wantErr:  true,
 		},
 		{
-			name:     "remote package manager with short address",
-			args:     args{ctx: context.Background(), address: "localhost:8080", db: nil, auth: nil},
+			name: "remote package manager with short address",
+			args: args{
+				ctx:    context.Background(),
+				config: Config{Address: "localhost:8080", DB: nil, Auth: nil, LocalPaths: nil},
+			},
 			wantType: "remote",
 			wantErr:  false,
 		},
 		{
-			name:     "remote package manager with port only as address",
-			args:     args{ctx: context.Background(), address: ":8080", db: nil, auth: nil},
+			name: "remote package manager with port only as address",
+			args: args{
+				ctx:    context.Background(),
+				config: Config{Address: ":8080", DB: nil, Auth: nil, LocalPaths: nil},
+			},
 			wantType: "remote",
 			wantErr:  false,
 		},
@@ -68,7 +83,7 @@ func TestNewPackageManager(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := NewPackageManager(tc.args.ctx, tc.args.address, tc.args.db, tc.args.auth)
+			got, err := NewPackageManager(tc.args.ctx, tc.args.config)
 			if (err != nil) != tc.wantErr {
 				t.Fatalf("NewPackageManager() error = %v, wantErr %v", err, tc.wantErr)
 			}
