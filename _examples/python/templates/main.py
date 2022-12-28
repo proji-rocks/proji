@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Define the main function
 def main():
     # Print a message to the console
