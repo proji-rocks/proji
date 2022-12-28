@@ -5,9 +5,9 @@
 export GO111MODULE := on
 export GOPROXY = https://proxy.golang.org,direct
 
-PKG_PATH=github.com/nikoksr/proji
-GIT_TAG=$(shell git describe --tags --abbrev=0)
-GIT_REV=$(shell git rev-parse --short HEAD)
+PKG_PATH = github.com/nikoksr/proji
+GIT_TAG = $(shell git describe --tags --abbrev=0 --dirty="+CHANGES")
+LDFLAGS = -X $(PKG_PATH)/internal/buildinfo.AppVersion=$(GIT_TAG)
 
 ###############################################################################
 # DEPENDENCIES
@@ -39,8 +39,6 @@ coverage: gen-coverage
 coverage-html: gen-coverage
 	go tool cover -html=coverage.out -o cover.html
 .PHONY: coverage-html
-
-
 
 ###############################################################################
 # CODE HEALTH
@@ -74,19 +72,15 @@ check-optimizations: prepare-build
 .PHONY: check-optimizations
 
 build-debug: prepare-build
-	CGO_ENABLED=0 go build -o ./bin/debug/proji ./cmd/proji
+	CGO_ENABLED=0 go build -ldflags="$(LDFLAGS)" -o ./bin/debug/proji ./cmd/proji
 .PHONY: build-debug
 
-build-debug-win: prepare-build
-	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o ./bin/debug/proji-win-amd64.exe ./cmd/proji
-.PHONY: build-debug-win
-
 build-release: prepare-build
-	CGO_ENABLED=0 go build -ldflags="-s -w" -o ./bin/release/proji ./cmd/proji
+	CGO_ENABLED=0 go build -ldflags="-s -w $(LDFLAGS)" -o ./bin/release/proji ./cmd/proji
 .PHONY: build-release
 
 install:
-	CGO_ENABLED=0 go install ./cmd/proji
+	CGO_ENABLED=0 go install -ldflags="-s -w $(LDFLAGS)" ./cmd/proji
 .PHONY: install
 
 clean:
