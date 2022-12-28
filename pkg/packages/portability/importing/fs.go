@@ -43,6 +43,7 @@ func (i *_importer) LocalFolderAsPackage(_ context.Context, path string, exclude
 	// Pick package name and label
 	name := filepath.Base(path)
 	_package := domain.NewPackageWithAutoLabel(name)
+	_package.DirTree = &domain.DirTree{}
 
 	hasExcludePattern := exclude != nil && exclude.String() != ""
 
