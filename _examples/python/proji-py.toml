@@ -1,0 +1,25 @@
+label = 'py'
+name = 'Official Python Example'
+description = 'This package demonstrates how to setup a very basic Python project with Proji.'
+
+[dir_tree]
+[[dir_tree.entry]]
+  path = 'README.md'
+  is_dir = false
+
+  [dir_tree.entry.template]
+    path = 'README.md'
+
+[[dir_tree.entry]]
+  path = 'main.py'
+  is_dir = false
+
+  [dir_tree.entry.template]
+    path = 'main.py'
+
+[plugins]
+[[plugins.post]]
+  path = 'init-venv.lua'
+
+[[plugins.post]]
+  path = 'init-git.lua'
