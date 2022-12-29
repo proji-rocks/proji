@@ -72,6 +72,98 @@ var missingTemplateKeyFn templates.MissingKeyFn = func(key string) (value string
 	return value, nil
 }
 
+func createEntry(ctx context.Context, entry *domain.DirEntry, templatesDir string, tmpl *templates.TemplateEngine) error {
+	logger := simplog.FromContext(ctx)
+
+	// Check if template path is a template string
+	entryPath := entry.Path
+	if parsedPath, err := tmpl.ParseToString(ctx, entryPath); err != nil {
+		logger.Debugf("template path %q is not a template string", entryPath)
+	} else {
+		entryPath = parsedPath
+	}
+
+	// If we have a file, get its directory and create it. This allows for implicit directory creation and may
+	// simplify the directory tree structure in a packages config vastly.
+	dirPath := entryPath
+	filePath := ""
+	if !entry.IsDir {
+		dirPath = filepath.Dir(entryPath)
+		filePath = entryPath
+	}
+
+	if dirPath != "." {
+		logger.Debugf("creating directory %q", dirPath)
+		if err := os.MkdirAll(dirPath, 0o755); err != nil {
+			return errors.Wrapf(err, "create directory %q", dirPath)
+		}
+	}
+
+	// Skip if we don't have a file path
+	if filePath == "" {
+		return nil
+	}
+
+	logger.Debugf("creating file %q", filePath)
+	file, err := os.Create(filePath)
+	if err != nil {
+		if os.IsExist(err) {
+			// If the file already exists, we can ignore the error.
+			logger.Warnf("file %q already exists; skipping", filePath)
+		} else {
+			return errors.Wrapf(err, "create file %q", filePath)
+		}
+	}
+	defer func() {
+		if ferr := file.Close(); ferr != nil {
+			logger.Errorf("error closing file %q: %v", filePath, ferr)
+		}
+	}()
+
+	// Skip if we have no template
+	if entry.Template == nil {
+		return nil
+	}
+
+	tmplPath := entry.Template.Path
+	if tmplPath == "" {
+		logger.Warnf("template %q has no path; skipping", entry.Template.ID)
+		return nil
+	}
+
+	// Check if template path is absolute
+	if !filepath.IsAbs(tmplPath) {
+		tmplPath = filepath.Join(templatesDir, tmplPath)
+	}
+
+	// Parse template
+	logger.Debugf("generating file %q from template %q", entryPath, entry.Template.ID)
+	logger.Debugf("parsing template from file %q", tmplPath)
+	if err = tmpl.ParseFile(ctx, file, tmplPath); err != nil {
+		return errors.Wrapf(err, "parse template from file %q", tmplPath)
+	}
+
+	return nil
+}
+
+func runPlugin(ctx context.Context, plugin *domain.Plugin, pluginsDir string) error {
+	logger := simplog.FromContext(ctx)
+
+	path := plugin.Path
+	if path == "" {
+		logger.Warnf("plugin %q has no path; skipping", plugin.ID)
+		return nil
+	}
+
+	if !filepath.IsAbs(path) {
+		path = filepath.Join(pluginsDir, path)
+	}
+
+	logger.Infof("Running plugin %q", filepath.Base(path))
+
+	return plugins.Run(ctx, path)
+}
+
 func buildProject(ctx context.Context, project *domain.ProjectAdd) error {
 	logger := simplog.FromContext(ctx)
 
@@ -135,19 +227,8 @@ func buildProject(ctx context.Context, project *domain.ProjectAdd) error {
 	// Pre-run plugins
 	if _package.Plugins != nil {
 		for _, plugin := range _package.Plugins.Pre {
-			path := plugin.Path
-			if path == "" {
-				logger.Warnf("plugin %q has no path; skipping", plugin.ID)
-				continue
-			}
-
-			if !filepath.IsAbs(path) {
-				path = filepath.Join(pluginsDir, path)
-			}
-
-			logger.Infof("Running plugin %q", filepath.Base(path))
-			if err = plugins.Run(ctx, path); err != nil {
-				return errors.Wrapf(err, "run plugin %q at %q", plugin.ID, path)
+			if err = runPlugin(ctx, plugin, pluginsDir); err != nil {
+				return errors.Wrapf(err, "run pre-run plugin %q", plugin.ID)
 			}
 		}
 	}
@@ -160,69 +241,8 @@ func buildProject(ctx context.Context, project *domain.ProjectAdd) error {
 
 		logger.Infof("Creating project structure")
 		for _, entry := range _package.DirTree.Entries {
-			// Check if template path is a template string
-			entryPath := entry.Path
-			if parsedPath, err := tmpl.ParseString(ctx, entryPath); err != nil {
-				logger.Debugf("template path %q is not a template string", entryPath)
-			} else {
-				entryPath = parsedPath
-			}
-
-			if entry.Template != nil {
-				logger.Debugf("generating file %q from template %q", entryPath, entry.Template.ID)
-
-				tmplPath := entry.Template.Path
-				if tmplPath == "" {
-					logger.Warnf("template %q has no path; skipping", entry.Template.ID)
-					continue
-				}
-
-				// Check if template path is absolute
-				if !filepath.IsAbs(tmplPath) {
-					tmplPath = filepath.Join(templatesDir, tmplPath)
-				}
-
-				// Read template from filesystem
-				logger.Debugf("loading template file %q", tmplPath)
-				templateData, err := os.ReadFile(tmplPath)
-				if err != nil {
-					return errors.Wrapf(err, "load template file %q", tmplPath)
-				}
-
-				// Create empty destination file
-				destinationFile, err := os.Create(entryPath)
-				if err != nil {
-					return errors.Wrapf(err, "create template destination file %q", entryPath)
-				}
-
-				if err = tmpl.Parse(ctx, destinationFile, templateData); err != nil {
-					return errors.Wrapf(err, "parse template %q", tmplPath)
-				}
-
-				continue
-			}
-
-			// If we have a file, get its directory and create it. This allows for implicit directory creation and may
-			// simplify the directory tree structure in a packages config vastly.
-			dirPath := entryPath
-			filePath := ""
-			if !entry.IsDir {
-				dirPath = filepath.Dir(entryPath)
-				filePath = entryPath
-			}
-
-			if dirPath != "." {
-				logger.Debugf("creating directory %q", dirPath)
-				if err = os.MkdirAll(dirPath, 0o755); err != nil {
-					return errors.Wrapf(err, "create directory %q", dirPath)
-				}
-			}
-
-			if filePath != "" {
-				logger.Debugf("creating file %q", filePath)
-				if _, err = os.Create(filePath); err != nil {
-					return errors.Wrapf(err, "create file %q", filePath)
-				}
+			if err = createEntry(ctx, entry, templatesDir, tmpl); err != nil {
+				return errors.Wrapf(err, "create directory tree entry %q", entry.Path)
 			}
 		}
 	}
@@ -230,19 +250,8 @@ func buildProject(ctx context.Context, project *domain.ProjectAdd) error {
 	// Post-run plugins
 	if _package.Plugins != nil {
 		for _, plugin := range _package.Plugins.Post {
-			path := plugin.Path
-			if path == "" {
-				logger.Warnf("plugin %q has no path; skipping", plugin.ID)
-				continue
-			}
-
-			if !filepath.IsAbs(path) {
-				path = filepath.Join(pluginsDir, path)
-			}
-
-			logger.Infof("Running plugin %q", filepath.Base(path))
-			if err = plugins.Run(ctx, path); err != nil {
-				return errors.Wrapf(err, "run plugin %q at %q", plugin.ID, path)
+			if err = runPlugin(ctx, plugin, pluginsDir); err != nil {
+				return errors.Wrapf(err, "run post-run plugin %q", plugin.ID)
 			}
 		}
 	}
