@@ -3,6 +3,7 @@ package templates
 import (
 	"context"
 	"io"
+	"os"
 	"strings"
 
 	"golang.org/x/text/cases"
@@ -117,7 +118,7 @@ func (t *TemplateEngine) parse(ctx context.Context, w io.Writer, data []byte) er
 	}
 
 	// Parse the template
-	logger.Debug("parsing template")
+	logger.Debugf("parsing %d bytes of template data", len(data))
 	tmpl, err := fasttemplate.NewTemplate(string(data), t.StartTag, t.EndTag)
 	if err != nil {
 		return errors.Wrap(err, "parse template")
@@ -136,9 +137,23 @@ func (t *TemplateEngine) Parse(ctx context.Context, w io.Writer, data []byte) er
 	return t.parse(ctx, w, data)
 }
 
-// ParseString is similar to Parse but accepts a string as input instead of a byte slice. It returns an error if the
+// ParseFile is similar to Parse but accepts a file path as input instead of a byte slice. It returns an error if the
 // template cannot be parsed or rendered. If the template is parsed and rendered successfully, the result is returned.
-func (t *TemplateEngine) ParseString(ctx context.Context, data string) (string, error) {
+func (t *TemplateEngine) ParseFile(ctx context.Context, w io.Writer, path string) error {
+	logger := simplog.FromContext(ctx)
+
+	logger.Debugf("loading template file %q", path)
+	templateData, err := os.ReadFile(path)
+	if err != nil {
+		return errors.Wrapf(err, "load template file %q", path)
+	}
+
+	return t.parse(ctx, w, templateData)
+}
+
+// ParseToString is similar to Parse but accepts a string as input instead of a byte slice. It returns an error if the
+// template cannot be parsed or rendered. If the template is parsed and rendered successfully, the result is returned.
+func (t *TemplateEngine) ParseToString(ctx context.Context, data string) (string, error) {
 	var b strings.Builder
 	if err := t.parse(ctx, &b, []byte(data)); err != nil {
 		return "", err

@@ -368,12 +368,113 @@ func TestTemplateEngine_ParseString(t *testing.T) {
 			}
 			engine.MissingKeyFn = tt.fields.MissingKeyFn
 
-			got, err := engine.ParseString(tt.args.ctx, tt.args.data)
+			got, err := engine.ParseToString(tt.args.ctx, tt.args.data)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("unexpected error: %v", err)
 			}
 
 			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Fatalf("mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestTemplateEngine_ParseFile(t *testing.T) {
+	t.Parallel()
+
+	type args struct {
+		templatePath string
+		missingKeyFn MissingKeyFn
+	}
+	cases := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "Empty",
+			args: args{
+				templatePath: "",
+				missingKeyFn: defaultMissingKeyFn,
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "Valid template 1",
+			args: args{
+				templatePath: "./testdata/valid_template_1.md",
+				missingKeyFn: func(key string) (string, error) {
+					if key == "Project" {
+						return "Proji", nil
+					}
+					return "", errors.Newf("unexpected key: %s", key)
+				},
+			},
+			want: `# Proji
+
+Welcome to Proji!
+`,
+			wantErr: false,
+		},
+		{
+			name: "Valid template 2",
+			args: args{
+				templatePath: "./testdata/valid_template_2.txt",
+				missingKeyFn: func(key string) (string, error) {
+					if key == "Name" {
+						return "John Doe", nil
+					}
+					return "", errors.Newf("unexpected key: %s", key)
+				},
+			},
+			want: `This
+  is
+    a
+      test!
+    Hello
+  there,
+John Doe.
+`,
+			wantErr: false,
+		},
+		{
+			name: "Invalid template",
+			args: args{
+				templatePath: "./testdata/invalid_template.md",
+				missingKeyFn: func(key string) (string, error) {
+					if key == "Project" {
+						return "Proji", nil
+					}
+					return "", errors.Newf("unexpected key: %s", key)
+				},
+			},
+			want:    "",
+			wantErr: true,
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			engine := NewEngine("%{{", "}}%")
+			if engine == nil {
+				t.Fatal("engine is nil")
+			}
+			engine.MissingKeyFn = tc.args.missingKeyFn
+
+			got := new(bytes.Buffer)
+
+			err := engine.ParseFile(context.Background(), got, tc.args.templatePath)
+			if (err != nil) != tc.wantErr {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if diff := cmp.Diff(tc.want, got.String()); diff != "" {
 				t.Fatalf("mismatch (-want +got):\n%s", diff)
 			}
 		})

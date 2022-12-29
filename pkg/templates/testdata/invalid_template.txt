@@ -1,0 +1,3 @@
+# %{{ project }}
+
+Welcome to %{{ project }}%!
