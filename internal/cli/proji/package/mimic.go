@@ -27,12 +27,7 @@ func newMimicCommand() *cobra.Command {
   mimic ./some_dir`,
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			reExclude, err := regexp.Compile(exclude)
-			if err != nil {
-				return errors.Wrap(err, "compile exclude regexp")
-			}
-
-			return mimicPackages(cmd.Context(), reExclude, args...)
+			return mimicPackages(cmd.Context(), exclude, args...)
 		},
 	}
 
@@ -41,15 +36,26 @@ func newMimicCommand() *cobra.Command {
 	return cmd
 }
 
-func mimicPackages(ctx context.Context, exclude *regexp.Regexp, paths ...string) error {
+func mimicPackages(ctx context.Context, exclude string, paths ...string) error {
 	logger := simplog.FromContext(ctx)
 
 	// Get package manager from session
 	logger.Debug("getting package manager from cli session")
-	pama := cli.SessionFromContext(ctx).PackageManager
+	session := cli.SessionFromContext(ctx)
+    pama := session.PackageManager
 	if pama == nil {
 		return errors.New("no package manager available")
 	}
+
+    // Compile regex pattern for excluding paths. Value from flag has priority over value from config.
+    if exclude == "" {
+        exclude = session.Config.Import.Exclude
+    }
+
+    reExclude, err := regexp.Compile(exclude)
+    if err != nil {
+        return errors.Wrap(err, "compile exclude regexp")
+    }
 
 	// Mimicking packages
 	logger.Debugf("mimicking %d packages", len(paths))
@@ -60,7 +66,7 @@ func mimicPackages(ctx context.Context, exclude *regexp.Regexp, paths ...string)
 		}
 
 		logger.Debugf("mimicking package %q", path)
-		pkg, err := importPackage(ctx, path, false, exclude)
+		pkg, err := importPackage(ctx, path, false, reExclude)
 		if err != nil {
 			return errors.Wrapf(err, "import package as mimic from %q", path)
 		}
