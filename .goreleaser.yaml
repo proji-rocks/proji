@@ -36,6 +36,8 @@ archives:
             -   goos: windows
                 format: zip
 
+        name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+
         files:
             - LICENSE
             - README.md
