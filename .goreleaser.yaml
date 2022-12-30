@@ -23,7 +23,7 @@ builds:
         env:
             - CGO_ENABLED=0
         ldflags:
-            - -s -w
+            - -s -w -X github.com/nikoksr/proji/internal/buildinfo.AppVersion={{.Version}}
 
 archives:
     -   replacements:
