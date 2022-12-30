@@ -6,9 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/nikoksr/simplog"
-
 	"github.com/cockroachdb/errors"
+	"github.com/nikoksr/simplog"
 )
 
 const (

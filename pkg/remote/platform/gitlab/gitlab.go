@@ -7,9 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nikoksr/simplog"
-
 	"github.com/cockroachdb/errors"
+	"github.com/nikoksr/simplog"
 	gl "github.com/xanzy/go-gitlab"
 
 	"github.com/nikoksr/proji/pkg/api/v1/domain"

@@ -6,12 +6,11 @@ import (
 	"encoding/json"
 	"os"
 
+	"github.com/cockroachdb/errors"
 	"github.com/pelletier/go-toml/v2"
 
-	"github.com/nikoksr/proji/pkg/packages/portability"
-
-	"github.com/cockroachdb/errors"
 	"github.com/nikoksr/proji/pkg/api/v1/domain"
+	"github.com/nikoksr/proji/pkg/packages/portability"
 )
 
 func encodeJSON(data *bytes.Buffer, pkg *domain.PackageConfig) error {

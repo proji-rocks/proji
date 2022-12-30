@@ -6,11 +6,10 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"github.com/nikoksr/proji/pkg/packages/portability"
-
 	"github.com/cockroachdb/errors"
 
 	"github.com/nikoksr/proji/pkg/api/v1/domain"
+	"github.com/nikoksr/proji/pkg/packages/portability"
 )
 
 // LocalPackage reads a TOML file and returns a package. It returns an error if the file is not a TOML file, or it was not

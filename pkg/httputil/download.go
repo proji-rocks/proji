@@ -6,9 +6,8 @@ import (
 	"os"
 	"path"
 
-	"github.com/nikoksr/simplog"
-
 	"github.com/cockroachdb/errors"
+	"github.com/nikoksr/simplog"
 
 	"github.com/nikoksr/proji/pkg/remote"
 )

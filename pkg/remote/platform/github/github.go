@@ -5,10 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/nikoksr/simplog"
-
 	"github.com/cockroachdb/errors"
 	gh "github.com/google/go-github/v31/github"
+	"github.com/nikoksr/simplog"
 	"golang.org/x/oauth2"
 
 	"github.com/nikoksr/proji/pkg/api/v1/domain"

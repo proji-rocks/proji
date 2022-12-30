@@ -3,9 +3,8 @@ package exporting
 import (
 	"context"
 
-	"github.com/nikoksr/proji/pkg/packages/portability"
-
 	"github.com/nikoksr/proji/pkg/api/v1/domain"
+	"github.com/nikoksr/proji/pkg/packages/portability"
 )
 
 type (

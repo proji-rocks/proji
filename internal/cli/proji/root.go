@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/cockroachdb/errors"
+	"github.com/nikoksr/simplog"
 	"github.com/spf13/cobra"
 
 	"github.com/nikoksr/proji/internal/buildinfo"
@@ -14,7 +15,6 @@ import (
 	"github.com/nikoksr/proji/internal/config"
 	"github.com/nikoksr/proji/internal/manager"
 	database "github.com/nikoksr/proji/pkg/database/bolt"
-	"github.com/nikoksr/simplog"
 )
 
 var db *database.DB

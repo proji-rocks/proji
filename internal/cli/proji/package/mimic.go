@@ -4,9 +4,8 @@ import (
 	"context"
 	"regexp"
 
-	"github.com/nikoksr/simplog"
-
 	"github.com/cockroachdb/errors"
+	"github.com/nikoksr/simplog"
 	"github.com/spf13/cobra"
 
 	"github.com/nikoksr/proji/internal/cli"
@@ -42,20 +41,20 @@ func mimicPackages(ctx context.Context, exclude string, paths ...string) error {
 	// Get package manager from session
 	logger.Debug("getting package manager from cli session")
 	session := cli.SessionFromContext(ctx)
-    pama := session.PackageManager
+	pama := session.PackageManager
 	if pama == nil {
 		return errors.New("no package manager available")
 	}
 
-    // Compile regex pattern for excluding paths. Value from flag has priority over value from config.
-    if exclude == "" {
-        exclude = session.Config.Import.Exclude
-    }
+	// Compile regex pattern for excluding paths. Value from flag has priority over value from config.
+	if exclude == "" {
+		exclude = session.Config.Import.Exclude
+	}
 
-    reExclude, err := regexp.Compile(exclude)
-    if err != nil {
-        return errors.Wrap(err, "compile exclude regexp")
-    }
+	reExclude, err := regexp.Compile(exclude)
+	if err != nil {
+		return errors.Wrap(err, "compile exclude regexp")
+	}
 
 	// Mimicking packages
 	logger.Debugf("mimicking %d packages", len(paths))

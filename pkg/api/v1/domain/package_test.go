@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/nikoksr/proji/pkg/pointer"
 	"github.com/pelletier/go-toml/v2"
+
+	"github.com/nikoksr/proji/pkg/pointer"
 )
 
 func TestNewPackage(t *testing.T) {

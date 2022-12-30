@@ -5,11 +5,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/nikoksr/simplog"
-
 	"github.com/cockroachdb/errors"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/nikoksr/simplog"
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
 	"moul.io/chizap"

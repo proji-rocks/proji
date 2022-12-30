@@ -5,9 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nikoksr/simplog"
-
 	"github.com/cockroachdb/errors"
+	"github.com/nikoksr/simplog"
 	"github.com/spf13/cobra"
 
 	"github.com/nikoksr/proji/pkg/sdk/health"

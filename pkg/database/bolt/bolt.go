@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/nikoksr/simplog"
-
 	bolt "go.etcd.io/bbolt"
 )
 

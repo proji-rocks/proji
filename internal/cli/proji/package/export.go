@@ -4,19 +4,15 @@ import (
 	"context"
 	"strings"
 
-	"github.com/nikoksr/proji/pkg/pointer"
-
-	"github.com/nikoksr/proji/pkg/api/v1/domain"
-
-	"github.com/nikoksr/proji/pkg/packages/portability"
-
-	"github.com/nikoksr/simplog"
-
 	"github.com/cockroachdb/errors"
+	"github.com/nikoksr/simplog"
 	"github.com/spf13/cobra"
 
 	"github.com/nikoksr/proji/internal/cli"
+	"github.com/nikoksr/proji/pkg/api/v1/domain"
+	"github.com/nikoksr/proji/pkg/packages/portability"
 	"github.com/nikoksr/proji/pkg/packages/portability/exporting"
+	"github.com/nikoksr/proji/pkg/pointer"
 )
 
 func newExportCommand() *cobra.Command {

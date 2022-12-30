@@ -6,9 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/nikoksr/simplog"
-
 	"github.com/cockroachdb/errors"
+	"github.com/nikoksr/simplog"
 )
 
 var httpClient = &http.Client{

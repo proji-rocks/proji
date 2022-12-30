@@ -4,10 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/nikoksr/simplog"
-
 	"github.com/cockroachdb/errors"
 	"github.com/getsentry/sentry-go"
+	"github.com/nikoksr/simplog"
 	"github.com/spf13/cobra"
 
 	"github.com/nikoksr/proji/internal/buildinfo"

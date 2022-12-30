@@ -5,9 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nikoksr/simplog"
-
 	"github.com/cockroachdb/errors"
+	"github.com/nikoksr/simplog"
 
 	"github.com/nikoksr/proji/internal/config"
 	packageRepo "github.com/nikoksr/proji/pkg/api/v1/package/repository/bolt"

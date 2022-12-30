@@ -6,13 +6,11 @@ import (
 	"os"
 	"strings"
 
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
-
 	"github.com/nikoksr/simplog"
-
 	"github.com/pkg/errors"
 	"github.com/valyala/fasttemplate"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // MissingKeyFn defines the behavior of a function that is called when a key is not found in the template.

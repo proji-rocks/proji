@@ -8,9 +8,8 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/nikoksr/simplog"
-
 	"github.com/cockroachdb/errors"
+	"github.com/nikoksr/simplog"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )

@@ -6,11 +6,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/nikoksr/proji/pkg/packages/portability"
-
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/nikoksr/proji/pkg/api/v1/domain"
+	"github.com/nikoksr/proji/pkg/packages/portability"
 	"github.com/nikoksr/proji/pkg/packages/portability/importing"
 	"github.com/nikoksr/proji/pkg/pointer"
 )

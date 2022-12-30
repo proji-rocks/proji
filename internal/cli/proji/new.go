@@ -8,13 +8,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/cockroachdb/errors"
+	"github.com/nikoksr/simplog"
+	"github.com/spf13/cobra"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
-
-	"github.com/nikoksr/simplog"
-
-	"github.com/cockroachdb/errors"
-	"github.com/spf13/cobra"
 
 	"github.com/nikoksr/proji/internal/cli"
 	"github.com/nikoksr/proji/pkg/api/v1/domain"

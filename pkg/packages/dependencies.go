@@ -7,9 +7,8 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/nikoksr/simplog"
-
 	"github.com/cockroachdb/errors"
+	"github.com/nikoksr/simplog"
 
 	"github.com/nikoksr/proji/pkg/api/v1/domain"
 	"github.com/nikoksr/proji/pkg/remote"

@@ -7,9 +7,8 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/nikoksr/simplog"
-
 	"github.com/cockroachdb/errors"
+	"github.com/nikoksr/simplog"
 	"github.com/spf13/cobra"
 
 	"github.com/nikoksr/proji/internal/cli"
